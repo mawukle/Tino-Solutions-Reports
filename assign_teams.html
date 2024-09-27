@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Teams to Clients</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="'favicon.ico" type="image/x-icon">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
     <div class="container">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
-        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+        <img src="logo.png" alt="Logo" class="logo">
+        <a href="index" class="back-link">The Renewable Energy Experts</a>
         <h1>TEAM ASSIGNMENT</h1>
 
         <form id="assign_teams_form" action="{{ url_for('assign_teams') }}" method="POST">
