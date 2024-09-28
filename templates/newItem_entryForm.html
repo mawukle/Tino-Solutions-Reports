@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+
+        <h1>TINO SOLUTIONS LIMITED ITEMS ENTRY FORM</h1>
+
+        <!-- Navigation -->
+        <nav>
+            <a href="#" onclick="showForm('manualForm1')">Add Items Manually</a>
+            <a href="#" onclick="showForm('excelForm1')">Upload Excel File</a>
+            <a href="{{ url_for('item_list') }}">View Item List</a>
+        </nav>
+
+        <!-- Flash Messages for Feedback -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+              {% for message in messages %}
+                  <p>{{ message }}</p>
+              {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Manual Item Entry Form -->
+        <form id="manualForm1" method="POST" action="{{ url_for('newItem_entryForm') }}">
+          <div class="form-row">
+            <label for="item_description">Item Description:</label>
+            <input type="text" id="item_description" name="item_description" placeholder="Item Description" required>
+          </div>
+
+          <div class="form-row">
+            <label for="retail_price_with_tax">Retail Price With Tax:</label>
+            <input type="text" id="retail_price_with_tax" name="retail_price_with_tax" placeholder="Retail Price With Tax" required>
+          </div>
+
+          <div class="form-row">
+            <label for="super_dealer_price_with_tax">Super Dealer Price With Tax:</label>
+            <input type="text" id="super_dealer_price_with_tax" name="super_dealer_price_with_tax" placeholder="Super Dealer Price With Tax">
+          </div>
+
+          <div class="form-row">
+            <label for="end_user_usd">End User USD:</label>
+            <input type="text" id="end_user_usd" name="end_user_usd" placeholder="End User USD">
+          </div>
+
+          <div class="form-row">
+            <label for="end_user_ghc">End User GHC:</label>
+            <input type="text" id="end_user_ghc" name="end_user_ghc" placeholder="End User GHC">
+          </div>
+
+          <div class="form-row">
+            <label for="super_dealer_usd">Super Dealer USD:</label>
+            <input type="text" id="super_dealer_usd" name="super_dealer_usd" placeholder="Super Dealer USD">
+          </div>
+
+          <div class="form-row">
+            <label for="super_dealer_ghc">Super Dealer GHC:</label>
+            <input type="text" id="super_dealer_ghc" name="super_dealer_ghc" placeholder="Super Dealer GHC">
+          </div>
+
+          <div class="form-row">
+            <button type="submit">Add Item</button>
+          </div>
+        </form>
+
+        <!-- Excel File Upload Form -->
+        <form id="excelForm1" method="POST" action="{{ url_for('newItem_entryForm') }}" enctype="multipart/form-data">
+            <label for="file">Upload Item List Excel File:</label>
+            <input type="file" id="file" name="file" required>
+
+            <button type="submit">Upload Item List Excel File</button>
+        </form>
+    </div>
+
+    <script>
+        function showForm(formId) {
+            document.getElementById('manualForm1').style.display = 'none';
+            document.getElementById('excelForm1').style.display = 'none';
+            document.getElementById(formId).style.display = 'block';
+        }
+        // Default view is the manual form
+        showForm('manualForm1');
+    </script>
+</body>
+</html>

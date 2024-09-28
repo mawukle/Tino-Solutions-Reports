@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+
+    <div class="container">
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+
+        <h1>Invoice Form</h1>
+
+        <!-- Invoice Heading -->
+        <div class="form-row">
+            <label for="invoiceHeading">Heading of Invoice:</label>
+            <input type="text" id="invoiceHeading" name="invoiceHeading" placeholder="Enter Invoice Heading">
+        </div>
+
+        <!-- Manual or Automatic Selection -->
+        <div class="form-row">
+            <label for="invoiceType">Invoice Type:</label>
+            <select id="invoiceType" name="invoiceType">
+                <option value="manual">Manual</option>
+                <option value="automatic">Automatic</option>
+            </select>
+        </div>
+
+        <!-- Retail or Super Dealer Selection -->
+        <div class="form-row">
+            <label for="dealerType">Dealer Type:</label>
+            <select id="dealerType" name="dealerType">
+                <option value="retail">Retail</option>
+                <option value="superDealer">Super Dealer</option>
+            </select>
+        </div>
+
+        <!-- Display Tax or Do not Display Tax -->
+        <div class="form-row">
+            <label for="displayTax">Display Tax:</label>
+            <select id="displayTax" name="displayTax">
+                <option value="yes">Display Tax</option>
+                <option value="no">Do not Display Tax</option>
+            </select>
+        </div>
+
+        <!-- GHC or USD Selection -->
+        <div class="form-row">
+            <label for="currency">Currency:</label>
+            <select id="currency" name="currency">
+                <option value="ghc">GHC</option>
+                <option value="usd">USD</option>
+            </select>
+        </div>
+
+        <!-- Exchange Rate Input -->
+        <div class="form-row">
+            <label for="exchangeRate">Exchange Rate:</label>
+            <input type="number" id="exchangeRate" name="exchangeRate" step="0.1" placeholder="Enter Exchange Rate">
+        </div>
+
+        <!-- Display Selected Items Table -->
+        <h2>Selected Items</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Item Description</th>
+                        <th>Retail Price With Tax</th>
+                        <th>End User USD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in selected_items %}
+                    <tr>
+                        <td>{{ item['Item_ID'] }}</td>
+                        <td>{{ item['Item_Description'] }}</td>
+                        <td>{{ item['Retail_Price_With_Tax'] }}</td>
+                        <td>{{ item['End_User_USD'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Jobs to Teams</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div class="container">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+      <!-- Back to Homepage Link -->
+      <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+
+      <h1>DAILY REPORT</h1>
+      <form action="{{ url_for('assign_job') }}" method="post" enctype="multipart/form-data">
+        <!--div id="date_filter"-->
+          <div id="dates_filter">
+            <label for="job_date">Job Date:</label>
+            <input type="date" id="job_date" name="job_date" required><br>
+            <label for="percentage_completion">Percentage Completion:</label>
+            <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
+
+          </div>
+          <div id="location_filter">
+            <label for="client_name">Client Name:</label>
+            <input type="text" id="client_name" name="client_name" required><br>
+          </div>
+        <!--/div-->
+
+          <label for="tasks_performed">Tasks Performed:</label>
+          <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea>
+          <br>
+
+          <label for="any_issues">Any Issues:</label>
+          <textarea id="input_entries" name="any_issues" rows="4" cols="50" required></textarea>
+          <br>
+          <label for="team_members">Select Team Members:</label>
+          <div id="team_members">
+              {% for member in team_members %}
+                  <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
+                  <label for="{{ member[0] }}">{{ member[1] }}</label>
+                  <!--br-->
+              {% endfor %}
+          </div>
+
+
+          <label for="job_pictures">Upload Pictures:</label>
+          <input type="file" id="job_pictures" name="job_pictures" multiple>
+          <br>
+
+          <button type="submit">Submit</button>
+      </form>
+
+      <script>
+          $(document).ready(function() {
+              // Enable autocomplete for client names
+              $("#client_name").autocomplete({
+                  source: function(request, response) {
+                      $.ajax({
+                          url: "{{ url_for('autocomplete_client') }}",
+                          type: "GET",
+                          data: {
+                              term: request.term
+                          },
+                          success: function(data) {
+                              response(data);
+                          }
+                      });
+                  },
+                  minLength: 2
+              });
+          });
+      </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage - Tino Solutions Limited</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="container_2">
+
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <h1>Welcome to Tino Solutions Limited</h1>
+        <p>Select a page to navigate:</p>
+
+        <!-- Navigation Menu -->
+        <nav class="navigation-menu">
+            <ul>
+                <li><a href="{{ url_for('newClient_entryForm') }}">New Client Entry Form</a></li>
+                <li><a href="{{ url_for('client_list') }}">Client List</a></li>
+                <li><a href="{{ url_for('newItem_entryForm') }}">New Item Entry Form</a></li>
+                <li><a href="{{ url_for('item_list') }}">Item List</a></li>
+                <li><a href="{{ url_for('invoice_sheet') }}">Invoice Sheet</a></li>
+                <li><a href="{{ url_for('assign_teams') }}">Team Assignment</a></li>
+                <li><a href="{{ url_for('assign_job') }}">Daily Report</a></li>
+                <li><a href="{{ url_for('summary') }}">Summary</a></li>
+                <li><a href="{{ url_for('client_summary') }}">Client Summary</a></li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>
