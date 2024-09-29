@@ -5,12 +5,6 @@ aioitertools==0.7.1
 aiosignal==1.2.0
 aiosqlite==0.18.0
 alabaster==0.7.13
-anaconda-anon-usage==2.6.1  # Replace with the correct version
-anaconda-catalogs==1.0.9    # Replace with the correct version
-anaconda-client==1.11.2     # Replace with the correct version
-anaconda-cloud-auth==0.1.7  # Replace with the correct version
-anaconda-navigator==2.4.0   # Replace with the correct version
-anaconda-project==0.10.2    # Replace with the correct version
 anyio==3.7.1  # Replace with the correct version from PyPI
 appdirs==1.4.4
 applaunchservices==0.2.1  # Replace with the correct version from PyPI
