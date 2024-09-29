@@ -30,7 +30,7 @@ beautifulsoup4==4.12.2  # Replace with the correct version from PyPI
 binaryornot==0.4.4  # Replace with the correct version from PyPI
 black==23.3.0  # Replace with the correct version from PyPI
 bleach==6.0.0  # Replace with the correct version from PyPI
-bokeh==3.1.2  # Replace with the correct version from PyPI
+bokeh==2.4.2  # Replace with the correct version from PyPI
 boltons==23.0.0  # Replace with the correct version from PyPI
 botocore==1.31.1  # Replace with the correct version from PyPI
 Bottleneck==1.3.7  # Replace with the correct version from PyPI
