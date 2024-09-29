@@ -14,7 +14,7 @@ argon2-cffi==21.3.0  # Replace with the correct version from PyPI
 argon2-cffi-bindings==21.2.0  # Replace with the correct version from PyPI
 arrow==1.2.3  # Replace with the correct version from PyPI
 astroid==2.15.6  # Replace with the correct version from PyPI
-astropy==5.3.3  # Replace with the correct version from PyPI
+astropy==5.1
 asttokens==2.2.1  # Replace with the correct version from PyPI
 async-timeout==4.0.2  # Replace with the correct version from PyPI
 atomicwrites==1.4.0
@@ -270,6 +270,7 @@ Scrapy==2.10.0
 seaborn==0.12.2
 Send2Trash==1.8.2
 service-identity==21.1.0
+setuptools>=70.3.0
 sip==6.7.11
 six==1.16.0
 smart-open==6.3.0
