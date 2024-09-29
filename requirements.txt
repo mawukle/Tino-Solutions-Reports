@@ -14,7 +14,7 @@ argon2-cffi==21.3.0  # Replace with the correct version from PyPI
 argon2-cffi-bindings==21.2.0  # Replace with the correct version from PyPI
 arrow==1.2.3  # Replace with the correct version from PyPI
 astroid==2.15.6  # Replace with the correct version from PyPI
-astropy==5.1
+astropy==5.2.2
 asttokens==2.2.1  # Replace with the correct version from PyPI
 async-timeout==4.0.2  # Replace with the correct version from PyPI
 atomicwrites==1.4.0
