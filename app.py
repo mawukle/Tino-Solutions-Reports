@@ -6,6 +6,10 @@ import pandas as pd
 import numpy as np
 import os
 import logging
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
