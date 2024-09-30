@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            margin-bottom: 20px; /* Add some space below the buttons */
+        }
+    </style>
+</head>
+<body>
+    <div class="container_1">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+
+            <form action="{{ url_for('invoice_sheet') }}" method="post" style="display:inline;">
+                <button type="submit" class="back-link">Display Selected Items</button>
+            </form>
+
+        <h1>TINO SOLUTIONS LIMITED ITEMS LIST</h1>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Item ID</th>
+                        <th>Item Description</th>
+                        <th>Retail Price With Tax</th>
+                        <th>Super Dealer Price With Tax</th>
+                        <th>End User USD</th>
+                        <th>End User GHC</th>
+                        <th>Super Dealer USD</th>
+                        <th>Super Dealer GHC</th>
+                        <!-- Use colspan to span the "Action" header across two columns -->
+                        <th colspan="2">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <!-- Checkbox to select row -->
+                        <td>
+                            <input type="checkbox" name="selected_items" value="{{ item[0] }}">
+                        </td>
+                        <!-- Update form: Wrapping all input fields and update button within a single form tag -->
+                        <form action="{{ url_for('update_item') }}" method="post">
+                            <td>{{ item[0] }}</td>
+                            <td><input type="text" name="item_description" value="{{ item[1] }}"></td>
+                            <td><input type="text" name="retail_price_with_tax" value="{{ item[2] }}"></td>
+                            <td><input type="text" name="super_dealer_price_with_tax" value="{{ item[3] }}"></td>
+                            <td><input type="text" name="end_user_usd" value="{{ item[4] }}"></td>
+                            <td><input type="text" name="end_user_ghc" value="{{ item[5] }}"></td>
+                            <td><input type="text" name="super_dealer_usd" value="{{ item[6] }}"></td>
+                            <td><input type="text" name="super_dealer_ghc" value="{{ item[7] }}"></td>
+                            <td>
+                                <!-- Hidden field for item ID -->
+                                <input type="hidden" name="item_id" value="{{ item[0] }}">
+
+                                <!-- Update button -->
+                                <button type="submit" class="update-button">Update</button>
+                            </td>
+                        </form>
+
+                        <!-- Separate form for delete button -->
+                        <td>
+                            <form action="{{ url_for('delete_item', item_id=item[0]) }}" method="post" style="display:inline;">
+                                <button type="submit" class="delete-button">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
