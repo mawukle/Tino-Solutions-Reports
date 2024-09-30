@@ -6,25 +6,47 @@ import pandas as pd
 import numpy as np
 import os
 import logging
-#import pymysql
+import pymysql
+from dotenv import load_dotenv
 
-#pymysql.install_as_MySQLdb()
+pymysql.install_as_MySQLdb()
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)  # Set to INFO for production
 
 app = Flask(__name__, static_folder='static')
-app.secret_key = '12345Tsl'
+
+# Use an environment variable for the secret key
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your_default_secret_key')  # Default value for local development
+
 # Define UPLOAD_FOLDER
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 
 # Create the upload folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-app.config['UPLOAD_FOLDER'] = 'UPLOAD_FOLDER'  # Directory to save uploaded files
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  # Correctly reference the upload folder
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 MB
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 
+# Database configuration from environment variables
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'user')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'password')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'database')
+
+# Error handling
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 
 # Function to establish the connection to the database
@@ -1071,4 +1093,4 @@ if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(uploads)
 
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))  # Use environment variable for port
