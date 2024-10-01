@@ -1090,7 +1090,9 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Use debug=True for local development
+    # Use the port from environment variables; default to 5000 for local development
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
     
     # Ensure the upload folder exists
 #    if not os.path.exists(UPLOAD_FOLDER):
