@@ -40,6 +40,12 @@ app.config['MYSQL_USER'] = os.getenv('JAWSDB_USER', 'user')
 app.config['MYSQL_PASSWORD'] = os.getenv('JAWSDB_PASSWORD', 'password')
 app.config['MYSQL_DB'] = os.getenv('JAWSDB_DB', 'database')
 
+# Check if environment variables are set
+if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSDB_PASSWORD'), os.getenv('JAWSDB_DB')]):
+    logging.error("One or more JAWSDB environment variables are not set")
+    raise EnvironmentError("Database environment variables are not set")
+
+
 # Error handling
 @app.errorhandler(404)
 def page_not_found(e):
