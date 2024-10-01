@@ -52,17 +52,19 @@ def internal_server_error(e):
 # Function to establish the connection to the database
 def get_sql_connection():
     try:
-        connection = mysql.connector.connect(
-            host="127.0.0.1",          # Replace with your MySQL server host
-            user="root",               # Replace with your MySQL username
-            password="12345Tsl",       # Replace with your MySQL password
-            database="Invoice"         # Replace with your database name
+        connection = pymysql.connect(
+            host=os.getenv('JAWSDB_HOST'),
+            user=os.getenv('JAWSDB_USER'),
+            password=os.getenv('JAWSDB_PASSWORD'),
+            database=os.getenv('JAWSDB_DB'),
+            cursorclass=pymysql.cursors.DictCursor
         )
+        logging.info("Database connection successful")
         return connection
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        return None
-
+    except pymysql.MySQLError as err:
+        logging.error(f"Database connection failed: {e}")
+        raise e
+        
 # Function to check if a record already exists
 def record_exists(cursor, client_name, town, city):
     query = """
