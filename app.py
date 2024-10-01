@@ -34,10 +34,11 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 M
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 
 # Database configuration from environment variables
-app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'user')
-app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'password')
-app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'database')
+# Note: Using 'JAWSDB_HOST', 'JAWSDB_USER', etc. for Heroku
+app.config['MYSQL_HOST'] = os.getenv('JAWSDB_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.getenv('JAWSDB_USER', 'user')
+app.config['MYSQL_PASSWORD'] = os.getenv('JAWSDB_PASSWORD', 'password')
+app.config['MYSQL_DB'] = os.getenv('JAWSDB_DB', 'database')
 
 # Error handling
 @app.errorhandler(404)
@@ -48,22 +49,21 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
-
 # Function to establish the connection to the database
 def get_sql_connection():
     try:
         connection = pymysql.connect(
-            host=os.getenv('JAWSDB_HOST'),
-            user=os.getenv('JAWSDB_USER'),
-            password=os.getenv('JAWSDB_PASSWORD'),
-            database=os.getenv('JAWSDB_DB'),
+            host=app.config['MYSQL_HOST'],
+            user=app.config['MYSQL_USER'],
+            password=app.config['MYSQL_PASSWORD'],
+            database=app.config['MYSQL_DB'],
             cursorclass=pymysql.cursors.DictCursor
         )
         logging.info("Database connection successful")
         return connection
     except pymysql.MySQLError as e:
         logging.error(f"Database connection failed: {e}")
-        raise e
+        return None  # Return None to allow error handling in calling code
 
 # Function to check if a record already exists
 def record_exists(cursor, client_name, town, city):
