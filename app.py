@@ -61,10 +61,10 @@ def get_sql_connection():
         )
         logging.info("Database connection successful")
         return connection
-    except pymysql.MySQLError as err:
+    except pymysql.MySQLError as e:
         logging.error(f"Database connection failed: {e}")
         raise e
-        
+
 # Function to check if a record already exists
 def record_exists(cursor, client_name, town, city):
     query = """
