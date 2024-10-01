@@ -53,10 +53,10 @@ def internal_server_error(e):
 def get_sql_connection():
     try:
         connection = pymysql.connect(
-            host=app.config['MYSQL_HOST'],
-            user=app.config['MYSQL_USER'],
-            password=app.config['MYSQL_PASSWORD'],
-            database=app.config['MYSQL_DB'],
+            host=app.config['JAWSDB_HOST'],
+            user=app.config['JAWSDB_USER'],
+            password=app.config['JAWSDB_PASSWORD'],
+            database=app.config['JAWSDB_DB'],
             cursorclass=pymysql.cursors.DictCursor
         )
         logging.info("Database connection successful")
@@ -1093,7 +1093,7 @@ if __name__ == '__main__':
     # Use the port from environment variables; default to 5000 for local development
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-    
+
     # Ensure the upload folder exists
 #    if not os.path.exists(UPLOAD_FOLDER):
 #        os.makedirs(uploads)
