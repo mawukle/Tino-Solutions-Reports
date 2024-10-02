@@ -59,10 +59,10 @@ def internal_server_error(e):
 def get_sql_connection():
     try:
         connection = pymysql.connect(
-            host=app.config['JAWSDB_HOST'],
-            user=app.config['JAWSDB_USER'],
-            password=app.config['JAWSDB_PASSWORD'],
-            database=app.config['JAWSDB_DB'],
+            host=os.getenv('JAWSDB_HOST','localhost'),
+            user=os.getenv('JAWSDB_USER', 'root'),
+            password=os.getenv('JAWSDB_PASSWORD', ''),
+            database=os.getenv('JAWSDB_DB', ''),
             cursorclass=pymysql.cursors.DictCursor
         )
         logging.info("Database connection successful")
