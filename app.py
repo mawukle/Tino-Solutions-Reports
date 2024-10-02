@@ -1,13 +1,10 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory
-import mysql.connector
-from mysql.connector import Error
-from werkzeug.utils import secure_filename
-import pandas as pd
-import numpy as np
 import os
 import logging
-import pymysql
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+import pymysql
 
 pymysql.install_as_MySQLdb()
 
@@ -34,17 +31,17 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 M
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 
 # Database configuration from environment variables
-# Note: Using 'JAWSDB_HOST', 'JAWSDB_USER', etc. for Heroku
-app.config['MYSQL_HOST'] = os.getenv('JAWSDB_HOST', 'localhost')
-app.config['MYSQL_USER'] = os.getenv('JAWSDB_USER', 'user')
-app.config['MYSQL_PASSWORD'] = os.getenv('JAWSDB_PASSWORD', 'password')
-app.config['MYSQL_DB'] = os.getenv('JAWSDB_DB', 'database')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('JAWSDB_USER')}:{os.getenv('JAWSDB_PASSWORD')}@{os.getenv('JAWSDB_HOST')}/{os.getenv('JAWSDB_DB')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modifications for performance
+
+# Initialize the database and migration tools
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Check if environment variables are set
 if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSDB_PASSWORD'), os.getenv('JAWSDB_DB')]):
     logging.error("One or more JAWSDB environment variables are not set")
     raise EnvironmentError("Database environment variables are not set")
-
 
 # Error handling
 @app.errorhandler(404)
