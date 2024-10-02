@@ -65,3 +65,4 @@ wcwidth==0.2.13
 webencodings==0.5.1
 Werkzeug==3.0.4
 yarg==0.1.9
+flask_sqlalchemy
