@@ -43,6 +43,14 @@ if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSD
     logging.error("One or more JAWSDB environment variables are not set")
     raise EnvironmentError("Database environment variables are not set")
 
+@app.route('/test_db')
+def test_db():
+    connection = get_sql_connection()
+    if connection:
+        return "Connection successful"
+    return "Connection failed"
+
+
 # Error handling
 @app.errorhandler(404)
 def page_not_found(e):
