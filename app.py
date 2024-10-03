@@ -12,7 +12,8 @@ pymysql.install_as_MySQLdb()
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)  # Set to INFO for production
+#logging.basicConfig(level=logging.INFO)  # Set to INFO for production
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, static_folder='static')
 
@@ -377,6 +378,7 @@ def client_list():
         cursor = connection.cursor()
         cursor.execute("SELECT Client_Unique_ID, Client_Name, Town, City, Phone_Number, Client_Code, Contact_Person, email_address FROM Client_List ORDER BY Client_Unique_ID")
         clients = cursor.fetchall()
+        logging.debug(f"Clients fetched: {clients}")  # Log the fetched data
         # Process the data to replace None with empty strings
         clients = [[(value if value is not None else '') for value in row] for row in clients]
         cursor.close()
