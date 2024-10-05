@@ -367,6 +367,19 @@ def newClient_entryForm():
 
     return render_template('newClient_entryForm.html', message=message)
 
+# Define the Client model
+class Client(db.Model):
+    __tablename__ = 'Client_List'
+    Client_Unique_ID = db.Column(db.Integer, primary_key=True)
+    Client_Name = db.Column(db.String(100))
+    Town = db.Column(db.String(100))
+    City = db.Column(db.String(100))
+    Phone_Number = db.Column(db.String(20))
+    Client_Code = db.Column(db.String(20))
+    Contact_Person = db.Column(db.String(100))
+    email_address = db.Column(db.String(100))
+
+
 # Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
 def client_list():
