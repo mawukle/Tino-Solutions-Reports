@@ -372,7 +372,7 @@ def newClient_entryForm():
                 message = 'Database connection failed'
 
     return render_template('newClient_entryForm.html', message=message)
-
+"""
 # Define the Client model
 class Client(db.Model):
     __tablename__ = 'Client_List'
@@ -384,7 +384,7 @@ class Client(db.Model):
     Client_Code = db.Column(db.String(20))
     Contact_Person = db.Column(db.String(100))
     email_address = db.Column(db.String(100))
-
+"""
 
 # Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
@@ -579,6 +579,8 @@ def delete_client(client_id):
 
     return redirect(url_for('client_list', message=message))
 """
+
+"""
 class Item(db.Model):
     __tablename__ = 'Items_List'
     Item_ID = Column(Integer, primary_key=True)
@@ -589,6 +591,7 @@ class Item(db.Model):
     End_User_GHC = Column(Float)
     Super_Dealer_USD = Column(Float)
     Super_Dealer_GHC = Column(Float)
+"""
 
 @app.route('/item_list', methods=['GET', 'POST'])
 def item_list():
