@@ -504,9 +504,9 @@ def update_client():
         email_addresses = request.form.getlist('email_addresses')
 
         update_query = """
-        UPDATE Client_List
-        SET Client_Name = %s, Town = %s, City = %s, Phone_Number = %s, Client_Code = %s, Contact_Person = %s, email_address = %s
-        WHERE Client_Unique_ID = %s
+#        UPDATE Client_List
+#        SET Client_Name = %s, Town = %s, City = %s, Phone_Number = %s, Client_Code = %s, Contact_Person = %s, email_address = %s
+#        WHERE Client_Unique_ID = %s
         """
 
         for i in range(len(client_ids)):
