@@ -367,6 +367,36 @@ def newClient_entryForm():
 
     return render_template('newClient_entryForm.html', message=message)
 
+# Route for displaying the client list sorted by Client_Unique_ID
+@app.route('/client_list', methods=['GET'])
+def client_list():
+    message = request.args.get('message', '')  # Retrieve the message from query params if available
+
+    try:
+        # Query the clients sorted by Client_Unique_ID using SQLAlchemy
+        clients = Client.query.order_by(Client.Client_Unique_ID).all()
+
+        # Convert None values to empty strings and prepare the data for rendering
+        clients = [[
+            client.Client_Unique_ID,
+            client.Client_Name or '',
+            client.Town or '',
+            client.City or '',
+            client.Phone_Number or '',
+            client.Client_Code or '',
+            client.Contact_Person or '',
+            client.email_address or ''
+        ] for client in clients]
+
+    except Exception as e:
+        logging.error(f"Error fetching clients: {e}")
+        message = 'Database query failed'
+        clients = []
+
+    return render_template('client_list.html', clients=clients, message=message)
+
+
+"""
 class Client(db.Model):
     __tablename__ = 'Client_List'
     Client_Unique_ID = db.Column(db.Integer, primary_key=True)
@@ -382,7 +412,7 @@ class Client(db.Model):
 def client_list():
     clients = Client.query.order_by(Client.Client_Unique_ID).all()
     return render_template('client_list.html', clients=clients)
-
+"""
 
 """
 # Route for displaying the client list sorted by Client_Unique_ID
@@ -405,6 +435,7 @@ def client_list():
 
     return render_template('client_list.html', clients=clients, message=message)
 """
+
 @app.route('/update_client', methods=['POST'])
 def update_client():
     connection = get_sql_connection()
