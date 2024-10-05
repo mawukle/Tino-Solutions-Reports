@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import Client
-from models import Item
+from models import db, Client, Item
+#from models import Item
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import Column, Integer, String, Float
@@ -45,6 +45,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modificati
 # Initialize the database and migration tools
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Initialize the SQLAlchemy object
+db.init_app(app)
+
+db.create_all()
+
 
 # Check if environment variables are set
 if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSDB_PASSWORD'), os.getenv('JAWSDB_DB')]):
