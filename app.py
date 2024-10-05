@@ -667,10 +667,12 @@ def item_list():
                     # Loop through DataFrame rows and insert data into MySQL table
                     for index, row in data.iterrows():
                         try:
-                            cursor.execute("""
-                                INSERT INTO Items_List (Item_ID, Item_Description, Retail_Price_With_Tax, Super_Dealer_Price_With_Tax, End_User_USD, End_User_GHC, Super_Dealer_USD, Super_Dealer_GHC)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (
+"""
+#                            cursor.execute("""
+#                                INSERT INTO Items_List (Item_ID, Item_Description, Retail_Price_With_Tax, Super_Dealer_Price_With_Tax, End_User_USD, End_User_GHC, Super_Dealer_USD, Super_Dealer_GHC)
+#                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+#                            """, (
+"""
                                 row['Item_ID'], row['Item_Description'], row['Retail_Price_With_Tax'], row['Super_Dealer_Price_With_Tax'],
                                 row['End_User_USD'], row['End_User_GHC'], row['Super_Dealer_USD'], row['Super_Dealer_GHC']
                             ))
