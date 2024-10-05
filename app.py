@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
+from models import Client
+from models import Item
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import Column, Integer, String, Float
+from app import db
+import pandas as pd
 
 pymysql.install_as_MySQLdb()
 
@@ -410,24 +417,6 @@ def client_list():
 
 
 """
-class Client(db.Model):
-    __tablename__ = 'Client_List'
-    Client_Unique_ID = db.Column(db.Integer, primary_key=True)
-    Client_Name = db.Column(db.String(100))
-    Town = db.Column(db.String(100))
-    City = db.Column(db.String(100))
-    Phone_Number = db.Column(db.String(20))
-    Client_Code = db.Column(db.String(20))
-    Contact_Person = db.Column(db.String(100))
-    email_address = db.Column(db.String(100))
-
-@app.route('/client_list', methods=['GET'])
-def client_list():
-    clients = Client.query.order_by(Client.Client_Unique_ID).all()
-    return render_template('client_list.html', clients=clients)
-"""
-
-"""
 # Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
 def client_list():
@@ -449,6 +438,55 @@ def client_list():
     return render_template('client_list.html', clients=clients, message=message)
 """
 
+@app.route('/update_client', methods=['POST'])
+def update_client():
+    message = ''  # Initialize an empty message string
+
+    # Get the form data
+    client_ids = request.form.getlist('client_ids')
+    client_names = request.form.getlist('client_names')
+    towns = request.form.getlist('towns')
+    cities = request.form.getlist('cities')
+    phone_numbers = request.form.getlist('phone_numbers')
+    client_codes = request.form.getlist('client_codes')
+    contact_persons = request.form.getlist('contact_persons')
+    email_addresses = request.form.getlist('email_addresses')
+
+    for i in range(len(client_ids)):
+        # Skip rows with blank required values
+        if any(field.strip() == '' for field in [client_names[i], towns[i], cities[i]]):
+            continue
+
+        try:
+            # Fetch the client by ID
+            client = Client.query.get(client_ids[i])
+
+            if client:
+                # Update the client fields
+                client.Client_Name = client_names[i]
+                client.Town = towns[i]
+                client.City = cities[i]
+                client.Phone_Number = phone_numbers[i]
+                client.Client_Code = client_codes[i]
+                client.Contact_Person = contact_persons[i]
+                client.email_address = email_addresses[i]
+
+                # Commit the changes to the database
+                db.session.commit()
+            else:
+                message += f"Client with ID {client_ids[i]} not found.<br>"
+
+        except IntegrityError as e:
+            db.session.rollback()  # Rollback the transaction in case of errors
+            print(f"Duplicate entry error: {e}")
+            message += f"Duplicate entry detected for Client Name: '{client_names[i]}', Town: '{towns[i]}', City: '{cities[i]}'.<br>"
+
+    if message:
+        message = 'Some updates failed due to errors.<br>' + message
+
+    return redirect(url_for('client_list', message=message))
+
+"""
 @app.route('/update_client', methods=['POST'])
 def update_client():
     connection = get_sql_connection()
@@ -497,7 +535,31 @@ def update_client():
         message = 'Database connection failed'
 
     return redirect(url_for('client_list', message=message))
+"""
 
+@app.route('/delete_client/<client_id>', methods=['POST'])
+def delete_client(client_id):
+    try:
+        # Find the client by ID
+        client = Client.query.get(client_id)
+
+        if client:
+            # Delete the client
+            db.session.delete(client)
+            db.session.commit()
+            message = 'Client deleted successfully.'
+        else:
+            message = 'Client not found.'
+
+    except SQLAlchemyError as err:
+        # Rollback the transaction in case of an error
+        db.session.rollback()
+        print(f"Database error: {err}")
+        message = 'Error deleting client.'
+
+    return redirect(url_for('client_list', message=message))
+
+"""
 @app.route('/delete_client/<client_id>', methods=['POST'])
 def delete_client(client_id):
     connection = get_sql_connection()
@@ -517,7 +579,73 @@ def delete_client(client_id):
         message = 'Database connection failed'
 
     return redirect(url_for('client_list', message=message))
+"""
+class Item(db.Model):
+    __tablename__ = 'Items_List'
+    Item_ID = Column(Integer, primary_key=True)
+    Item_Description = Column(String(255))
+    Retail_Price_With_Tax = Column(Float)
+    Super_Dealer_Price_With_Tax = Column(Float)
+    End_User_USD = Column(Float)
+    End_User_GHC = Column(Float)
+    Super_Dealer_USD = Column(Float)
+    Super_Dealer_GHC = Column(Float)
 
+@app.route('/item_list', methods=['GET', 'POST'])
+def item_list():
+    if request.method == 'POST':
+        # Handle file upload
+        if 'file' in request.files and request.files['file'].filename != '':
+            file = request.files['file']
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filepath)
+
+            try:
+                # Read the Excel file using pandas
+                data = pd.read_excel(filepath)
+                # Replace NaN values with None
+                data = data.where(pd.notnull(data), None)
+
+                # Insert data into the database using SQLAlchemy
+                for index, row in data.iterrows():
+                    try:
+                        # Create an Item object for each row
+                        item = Item(
+                            Item_ID=row['Item_ID'],
+                            Item_Description=row['Item_Description'],
+                            Retail_Price_With_Tax=row['Retail_Price_With_Tax'],
+                            Super_Dealer_Price_With_Tax=row['Super_Dealer_Price_With_Tax'],
+                            End_User_USD=row['End_User_USD'],
+                            End_User_GHC=row['End_User_GHC'],
+                            Super_Dealer_USD=row['Super_Dealer_USD'],
+                            Super_Dealer_GHC=row['Super_Dealer_GHC']
+                        )
+                        # Add the item to the session
+                        db.session.add(item)
+                    except SQLAlchemyError as e:
+                        flash(f"Error processing row {index + 1}: {str(e)}")
+
+                # Commit the transaction to insert the rows
+                db.session.commit()
+                flash('File successfully uploaded and data inserted into the database.')
+            except Exception as e:
+                flash(f"Error processing file: {str(e)}")
+            finally:
+                os.remove(filepath)  # Clean up the uploaded file
+
+            return redirect(url_for('newItem_entryForm'))
+
+    # Fetch data from the Items_List table
+    try:
+        # Retrieve all items from the database using SQLAlchemy
+        items = Item.query.all()
+    except SQLAlchemyError as e:
+        items = []
+        flash(f"Error fetching items: {str(e)}")
+
+    return render_template('item_list.html', items=items)
+
+"""
 @app.route('/item_list', methods=['GET', 'POST'])
 def item_list():
     if request.method == 'POST':
@@ -584,7 +712,7 @@ def item_list():
             connection.close()
 
     return render_template('item_list.html', items=items)
-
+"""
 @app.route('/update_item', methods=['POST'])
 def update_item():
     connection = get_sql_connection()
