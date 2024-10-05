@@ -5,12 +5,9 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client, Item
-#from models import Item
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.exc import SQLAlchemyError
+from models import db, Client, Item  # Import db only once from models
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import Column, Integer, String, Float
-from app import db
 import pandas as pd
 
 pymysql.install_as_MySQLdb()
@@ -43,14 +40,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('JAWSDB_USE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modifications for performance
 
 # Initialize the database and migration tools
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)  # This line has been removed to prevent multiple initializations
 migrate = Migrate(app, db)
 
-# Initialize the SQLAlchemy object
+# Initialize the SQLAlchemy object with the app context
 db.init_app(app)
-
-db.create_all()
-
 
 # Check if environment variables are set
 if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSDB_PASSWORD'), os.getenv('JAWSDB_DB')]):
@@ -63,7 +57,6 @@ def test_db():
     if connection:
         return "Connection successful"
     return "Connection failed"
-
 
 # Error handling
 @app.errorhandler(404)
