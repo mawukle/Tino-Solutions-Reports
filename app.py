@@ -502,13 +502,13 @@ def update_client():
         client_codes = request.form.getlist('client_codes')
         contact_persons = request.form.getlist('contact_persons')
         email_addresses = request.form.getlist('email_addresses')
-
-        update_query = """
+"""
+#        update_query = """
 #        UPDATE Client_List
 #        SET Client_Name = %s, Town = %s, City = %s, Phone_Number = %s, Client_Code = %s, Contact_Person = %s, email_address = %s
 #        WHERE Client_Unique_ID = %s
-        """
-
+#        """
+"""
         for i in range(len(client_ids)):
             # Skip rows with blank values
             if any(field.strip() == '' for field in [client_names[i], towns[i], cities[i]]):
