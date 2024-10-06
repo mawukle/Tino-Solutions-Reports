@@ -859,8 +859,8 @@ def autocomplete_member():
 #        SELECT Team_Member_Name
 #        FROM Team_Members
 #        WHERE Team_Member_Name LIKE %s
-    """
-
+#    """
+"""
     try:
         cursor.execute(query, (f"%{search}%",))
         results = cursor.fetchall()
