@@ -1050,8 +1050,8 @@ def assign_job():
             cursor.execute("""
 #                INSERT INTO Job_Tracking (Client_Unique_ID, Client_Name, Town, Phone_Number, Date, Tasks_Performed, Any_Issues, Percentage_Completion)
 #                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (client_unique_id, client_name, town, phone_number, job_date, tasks_performed, any_issues, percentage_completion))
-
+#            """, (client_unique_id, client_name, town, phone_number, job_date, tasks_performed, any_issues, percentage_completion))
+"""
             # Fetch the auto-generated Job_ID
             job_id = cursor.lastrowid
             logging.info(f"Job ID created: {job_id}")
@@ -1061,12 +1061,13 @@ def assign_job():
                 cursor.execute("""
 #                    INSERT INTO Job_Team_Members (Job_ID, Team_Member_ID)
 #                    VALUES (%s, %s)
-                """, (job_id, team_member_id))
+#                """, (job_id, team_member_id))
+"""
                 cursor.execute("""
 #                    INSERT INTO Team_Members_Assigned (Job_ID, Team_Member_ID)
 #                    VALUES (%s, %s)
-                """, (job_id, team_member_id))
-
+#                """, (job_id, team_member_id))
+"""
             logging.info(f"Team members assigned to job ID {job_id}: {team_member_ids}")
 
             # Handle file uploads
@@ -1083,19 +1084,26 @@ def assign_job():
                             cursor.execute("""
 #                                INSERT INTO Job_Pictures (Job_ID, Picture_URL)
 #                                VALUES (%s, %s)
-                            """, (job_id, filename))
+#                            """, (job_id, filename))
+"""
                             logging.info(f"File uploaded and path inserted into DB: {filename}")
                 else:
                     cursor.execute("""
+"""
 #                        INSERT INTO Job_Pictures (Job_ID, Picture_URL)
 #                        VALUES (%s, NULL)
-                    """, (job_id,))
-                    logging.info(f"No pictures uploaded. Inserted Job_ID {job_id} with NULL Picture_URL")
-            else:
-                cursor.execute("""
+#                    """
+#, (job_id,))
+"""
+"""
+#                    logging.info(f"No pictures uploaded. Inserted Job_ID {job_id} with NULL Picture_URL")
+#            else:
+"""
+#                cursor.execute("""
 #                    INSERT INTO Job_Pictures (Job_ID, Picture_URL)
 #                    VALUES (%s, NULL)
-                """, (job_id,))
+#                """, (job_id,))
+"""
                 logging.info(f"No file input provided. Inserted Job_ID {job_id} with NULL Picture_URL")
 
             mydb.commit()
@@ -1223,7 +1231,8 @@ def assign_teams():
 #                    SELECT client_name, location, phone_number, assigned_team
 #                    FROM Assigned_Teams
 #                    WHERE assignment_date = %s
-                """
+#                """
+"""
                 cursor.execute(query, (selected_date,))
                 results = cursor.fetchall()
 
@@ -1256,15 +1265,17 @@ def assign_teams():
 
                 # Insert or update the data in the database
                 for client_name, team_name, location, phone_number in client_team_pairs:
+"""
                     # Insert or update client, team, location, and phone number
-                    query = """
+#                    query = """
 #                        INSERT INTO Assigned_Teams (client_name, assigned_team, assignment_date, location, phone_number)
 #                        VALUES (%s, %s, %s, %s, %s)
 #                        ON DUPLICATE KEY UPDATE
 #                            assigned_team = VALUES(assigned_team),
 #                            location = VALUES(location),
 #                            phone_number = VALUES(phone_number)
-                    """
+#                    """
+"""
                     cursor.execute(query, (client_name, team_name, selected_date, location, phone_number))
 
                 mydb.commit()  # Commit the changes
