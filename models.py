@@ -1,10 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import relationship
 
 # Initialize the database
 db = SQLAlchemy()
 
 # Define the Client model to map to the Client_List table
-class Client(db.Model):
+class Client_List(db.Model):
     __tablename__ = 'Client_List'
     Client_Unique_ID = db.Column(db.Integer, primary_key=True)
     Client_Name = db.Column(db.String(100), nullable=False)
@@ -14,6 +15,8 @@ class Client(db.Model):
     Client_Code = db.Column(db.String(50), nullable=True)
     Contact_Person = db.Column(db.String(100), nullable=True)
     email_address = db.Column(db.String(100), nullable=True)
+
+    jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
 # Define the Items model to map to the Items_List table
 class Item(db.Model):
@@ -28,3 +31,67 @@ class Item(db.Model):
     Super_Dealer_GHC = db.Column(db.Float, nullable=True)
 
 # You can add more models as needed to match other tables
+class Team_Members(db.Model):
+    __tablename__ = 'Team_Members'
+    Team_Member_ID = db.Column(db.Integer, primary_key=True)
+    Team_Member_Name = db.Column(db.String(255), nullable=False)
+
+    jobs = relationship('Job_Team_Members', backref='team_member', lazy=True)
+    team_members_assigned = relationship('Team_Members_Assigned', backref='team_member', lazy=True)
+
+
+class Job_Tracking(db.Model):
+    __tablename__ = 'Job_Tracking'
+    Job_ID = db.Column(db.Integer, primary_key=True)
+    Client_Unique_ID = db.Column(db.Integer, db.ForeignKey('Client_List.Client_Unique_ID'), nullable=False)
+    Client_Name = db.Column(db.String(255))
+    Town = db.Column(db.String(255))
+    Phone_Number = db.Column(db.String(20))
+    Date = db.Column(db.Date, nullable=False)
+    Tasks_Performed = db.Column(db.Text, nullable=True)
+    Any_Issues = db.Column(db.Text, nullable=True)
+    Percentage_Completion = db.Column(db.Float, nullable=True)
+
+
+    team_members = relationship('Job_Team_Members', backref='job', lazy=True)
+    pictures = relationship('Job_Pictures', backref='job', lazy=True)
+
+
+
+class Job_Team_Members(db.Model):
+    __tablename__ = 'Job_Team_Members'
+    Job_Team_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), primary_key=True, nullable=False)
+    Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), primary_key=True, nullable=False)
+
+    job = db.relationship('Job_Tracking', backref=db.backref('team_members', lazy=True))
+    team_member = db.relationship('Team_Members', backref=db.backref('assigned_jobs', lazy=True))
+
+
+class Team_Members_Assigned(db.Model):
+    __tablename__ = 'Team_Members_Assigned'
+    Assignment_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
+    Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), nullable=False)
+
+    job = db.relationship('Job_Tracking', backref=db.backref('team_assignments', lazy=True))
+    team_member = db.relationship('Team_Members', backref=db.backref('job_assignments', lazy=True))
+
+
+class Job_Pictures(db.Model):
+    __tablename__ = 'Job_Pictures'
+    Picture_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
+    Picture_URL = db.Column(db.String(255), nullable=True)
+
+    job = db.relationship('Job_Tracking', backref=db.backref('pictures', lazy=True))
+
+
+class Assigned_Teams(db.Model):
+    __tablename__ = 'Assigned_Teams'
+    Assignment_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    client_name = db.Column(db.String(255), nullable=False)
+    assigned_team = db.Column(db.String(255), nullable=False)
+    assignment_date = db.Column(db.Date, nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)

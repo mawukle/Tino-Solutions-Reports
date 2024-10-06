@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client, Item  # Import db only once from models
+from models import db, Client_List, Item, Team_Members, Assigned_Teams, Job_Team_Members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import Column, Integer, String, Float
+#from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Float, and_, func
 import pandas as pd
 
 pymysql.install_as_MySQLdb()
@@ -393,18 +394,18 @@ def client_list():
 
     try:
         # Query the clients sorted by Client_Unique_ID using SQLAlchemy
-        clients = Client.query.order_by(Client.Client_Unique_ID).all()
+        clients = Client_List.query.order_by(Client_List.Client_Unique_ID).all()
 
         # Convert None values to empty strings and prepare the data for rendering
         clients = [[
-            client.Client_Unique_ID,
-            client.Client_Name or '',
-            client.Town or '',
-            client.City or '',
-            client.Phone_Number or '',
-            client.Client_Code or '',
-            client.Contact_Person or '',
-            client.email_address or ''
+            Client_List.Client_Unique_ID,
+            Client_List.Client_Name or '',
+            Client_List.Town or '',
+            Client_List.City or '',
+            Client_List.Phone_Number or '',
+            Client_List.Client_Code or '',
+            Client_List.Contact_Person or '',
+            Client_List.email_address or ''
         ] for client in clients]
 
     except Exception as e:
@@ -458,17 +459,17 @@ def update_client():
 
         try:
             # Fetch the client by ID
-            client = Client.query.get(client_ids[i])
+            client = Client_List.query.get(client_ids[i])
 
             if client:
                 # Update the client fields
-                client.Client_Name = client_names[i]
-                client.Town = towns[i]
-                client.City = cities[i]
-                client.Phone_Number = phone_numbers[i]
-                client.Client_Code = client_codes[i]
-                client.Contact_Person = contact_persons[i]
-                client.email_address = email_addresses[i]
+                Client_List.Client_Name = client_names[i]
+                Client_List.Town = towns[i]
+                Client_List.City = cities[i]
+                Client_List.Phone_Number = phone_numbers[i]
+                Client_List.Client_Code = client_codes[i]
+                Client_List.Contact_Person = contact_persons[i]
+                Client_List.email_address = email_addresses[i]
 
                 # Commit the changes to the database
                 db.session.commit()
@@ -540,7 +541,7 @@ def update_client():
 def delete_client(client_id):
     try:
         # Find the client by ID
-        client = Client.query.get(client_id)
+        client = Client_List.query.get(client_id)
 
         if client:
             # Delete the client
@@ -554,7 +555,7 @@ def delete_client(client_id):
         # Rollback the transaction in case of an error
         db.session.rollback()
         print(f"Database error: {err}")
-        message = 'Error deleting client.'
+        message = 'Error deleting Client_List.'
 
     return redirect(url_for('client_list', message=message))
 
@@ -570,7 +571,7 @@ def delete_client(client_id):
             message = 'Client deleted successfully.'
         except mysql.connector.Error as err:
             print(f"Database error: {err}")
-            message = 'Error deleting client.'
+            message = 'Error deleting Client_List.'
         finally:
             cursor.close()
             connection.close()
@@ -824,14 +825,40 @@ def autocomplete_member():
 
     logging.debug(f"Received term: {search}")  # Log the search term
 
+    try:
+        # Use SQLAlchemy to query the database
+        suggestions = (
+            db.session.query(Team_Members.Team_Member_Name)
+            .filter(Team_Members.Team_Member_Name.like(f"%{search}%"))
+            .all()
+        )
+
+        # Flatten the list of tuples into a list of names
+        suggestions = [member[0] for member in suggestions]
+
+    except Exception as e:
+        logging.error(f"Error during autocomplete_member query: {e}")
+        suggestions = []
+
+    logging.debug(f"Suggestions: {suggestions}")  # Log the suggestions being returned
+
+    return jsonify(suggestions)
+
+"""
+@app.route('/autocomplete_member', methods=['GET'])
+def autocomplete_member():
+    search = request.args.get('term', '')
+
+    logging.debug(f"Received term: {search}")  # Log the search term
+
     # Establish a new connection
     connection = get_sql_connection()
     cursor = connection.cursor()
 
     query = """
-        SELECT Team_Member_Name
-        FROM Team_Members
-        WHERE Team_Member_Name LIKE %s
+#        SELECT Team_Member_Name
+#        FROM Team_Members
+#        WHERE Team_Member_Name LIKE %s
     """
 
     try:
@@ -849,8 +876,31 @@ def autocomplete_member():
     logging.debug(f"Suggestions: {suggestions}")  # Log the suggestions being returned
 
     return jsonify(suggestions)
+"""
 
+@app.route('/autocomplete_client', methods=['GET'])
+def autocomplete_client():
+    term = request.args.get('term', '')
 
+    try:
+        # Use SQLAlchemy to query the database
+        client_names = (
+            db.session.query(Client_List.Client_Name)
+            .filter(Client_List.Client_Name.like(f"%{term}%"))
+            .limit(10)
+            .all()
+        )
+
+        # Flatten the list of tuples into a list of names
+        client_name_list = [client[0] for client in client_names]
+
+    except Exception as e:
+        logging.error(f"Error during autocomplete_client query: {e}")
+        client_name_list = []
+
+    return jsonify(client_name_list)
+
+"""
 @app.route('/autocomplete_client', methods=['GET'])
 def autocomplete_client():
     term = request.args.get('term')
@@ -867,7 +917,7 @@ def autocomplete_client():
     connection.close()
 
     return jsonify(client_name_list)
-
+"""
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -879,6 +929,95 @@ UPLOAD_FOLDER = 'static/uploads'  # Adjust this path according to your setup
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/assign_job', methods=['GET', 'POST'])
+def assign_job():
+    try:
+        if request.method == 'POST':
+            client_name = request.form['client_name']
+            tasks_performed = request.form['tasks_performed']
+            any_issues = request.form['any_issues']
+            percentage_completion = request.form['percentage_completion']
+            job_date = request.form['job_date']  # Capture the job date from the form
+            team_member_ids = request.form.getlist('team_members')
+
+            # Retrieve client information
+            client_info = (
+                db.session.query(Client_List.Client_Unique_ID, Client_List.Town, Client_List.Phone_Number)
+                .filter(Client_List.Client_Name == client_name)
+                .first()
+            )
+
+            if not client_info:
+                logging.error(f"Client not found: {client_name}")
+                return "Client not found", 404
+
+            client_unique_id, town, phone_number = client_info
+
+            # Insert into Job_Tracking
+            new_job = Job_Tracking(
+                Client_Unique_ID=client_unique_id,
+                Client_Name=client_name,
+                Town=town,
+                Phone_Number=phone_number,
+                Date=job_date,
+                Tasks_Performed=tasks_performed,
+                Any_Issues=any_issues,
+                Percentage_Completion=percentage_completion
+            )
+            db.session.add(new_job)
+            db.session.commit()
+
+            job_id = new_job.Job_ID
+            logging.info(f"Job ID created: {job_id}")
+
+            # Insert into Job_Team_Members and Team_Members_Assigned
+            for team_member_id in team_member_ids:
+                job_team_member = Job_Team_Members(Job_ID=job_id, Team_Member_ID=team_member_id)
+                team_member_assigned = Team_Members_Assigned(Job_ID=job_id, Team_Member_ID=team_member_id)
+                db.session.add(job_team_member)
+                db.session.add(team_member_assigned)
+
+            logging.info(f"Team members assigned to job ID {job_id}: {team_member_ids}")
+
+            # Handle file uploads
+            if 'job_pictures' in request.files:
+                files = request.files.getlist('job_pictures')
+                if files:
+                    for file in files:
+                        if file and allowed_file(file.filename):
+                            filename = secure_filename(file.filename)
+                            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                            file.save(file_path)
+
+                            # Insert file info into the database
+                            job_picture = Job_Pictures(Job_ID=job_id, Picture_URL=filename)
+                            db.session.add(job_picture)
+                            logging.info(f"File uploaded and path inserted into DB: {filename}")
+                else:
+                    job_picture = Job_Pictures(Job_ID=job_id, Picture_URL=None)
+                    db.session.add(job_picture)
+                    logging.info(f"No pictures uploaded. Inserted Job_ID {job_id} with NULL Picture_URL")
+            else:
+                job_picture = Job_Pictures(Job_ID=job_id, Picture_URL=None)
+                db.session.add(job_picture)
+                logging.info(f"No file input provided. Inserted Job_ID {job_id} with NULL Picture_URL")
+
+            db.session.commit()
+            logging.info("Job assignment committed to the database.")
+            return redirect(url_for('index'))
+
+        # Fetch team members for GET request
+        team_members = db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name).all()
+
+        return render_template('assign_job.html', team_members=team_members)
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        db.session.rollback()
+        return str(e)
+
+
+"""
 @app.route('/assign_job', methods=['GET', 'POST'])
 def assign_job():
     try:
@@ -895,9 +1034,9 @@ def assign_job():
 
             # Retrieve client information
             cursor.execute("""
-                SELECT Client_Unique_ID, Town, Phone_Number
-                FROM Client_List
-                WHERE Client_Name = %s
+#                SELECT Client_Unique_ID, Town, Phone_Number
+#                FROM Client_List
+#                WHERE Client_Name = %s
             """, (client_name,))
             client_info = cursor.fetchone()
 
@@ -909,8 +1048,8 @@ def assign_job():
 
             # Insert into Job_Tracking and retrieve the generated Job_ID
             cursor.execute("""
-                INSERT INTO Job_Tracking (Client_Unique_ID, Client_Name, Town, Phone_Number, Date, Tasks_Performed, Any_Issues, Percentage_Completion)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+#                INSERT INTO Job_Tracking (Client_Unique_ID, Client_Name, Town, Phone_Number, Date, Tasks_Performed, Any_Issues, Percentage_Completion)
+#                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (client_unique_id, client_name, town, phone_number, job_date, tasks_performed, any_issues, percentage_completion))
 
             # Fetch the auto-generated Job_ID
@@ -920,12 +1059,12 @@ def assign_job():
             # Insert into Job_Team_Members and Team_Members_Assigned
             for team_member_id in team_member_ids:
                 cursor.execute("""
-                    INSERT INTO Job_Team_Members (Job_ID, Team_Member_ID)
-                    VALUES (%s, %s)
+#                    INSERT INTO Job_Team_Members (Job_ID, Team_Member_ID)
+#                    VALUES (%s, %s)
                 """, (job_id, team_member_id))
                 cursor.execute("""
-                    INSERT INTO Team_Members_Assigned (Job_ID, Team_Member_ID)
-                    VALUES (%s, %s)
+#                    INSERT INTO Team_Members_Assigned (Job_ID, Team_Member_ID)
+#                    VALUES (%s, %s)
                 """, (job_id, team_member_id))
 
             logging.info(f"Team members assigned to job ID {job_id}: {team_member_ids}")
@@ -942,20 +1081,20 @@ def assign_job():
 
                             # Insert file info into the database
                             cursor.execute("""
-                                INSERT INTO Job_Pictures (Job_ID, Picture_URL)
-                                VALUES (%s, %s)
+#                                INSERT INTO Job_Pictures (Job_ID, Picture_URL)
+#                                VALUES (%s, %s)
                             """, (job_id, filename))
                             logging.info(f"File uploaded and path inserted into DB: {filename}")
                 else:
                     cursor.execute("""
-                        INSERT INTO Job_Pictures (Job_ID, Picture_URL)
-                        VALUES (%s, NULL)
+#                        INSERT INTO Job_Pictures (Job_ID, Picture_URL)
+#                        VALUES (%s, NULL)
                     """, (job_id,))
                     logging.info(f"No pictures uploaded. Inserted Job_ID {job_id} with NULL Picture_URL")
             else:
                 cursor.execute("""
-                    INSERT INTO Job_Pictures (Job_ID, Picture_URL)
-                    VALUES (%s, NULL)
+#                    INSERT INTO Job_Pictures (Job_ID, Picture_URL)
+#                    VALUES (%s, NULL)
                 """, (job_id,))
                 logging.info(f"No file input provided. Inserted Job_ID {job_id} with NULL Picture_URL")
 
@@ -980,9 +1119,90 @@ def assign_job():
             cursor.close()
         if 'mydb' in locals():
             mydb.close()
+"""
 
 from datetime import datetime
 
+@app.route('/assign_teams', methods=['GET', 'POST'])
+def assign_teams():
+    try:
+        if request.method == 'POST':
+            # Retrieve the submitted date
+            selected_date = request.form['date']
+
+            # Check if no client and team details are provided
+            client_provided = any(key.startswith('client_') for key in request.form)
+            team_provided = any(key.startswith('team_') for key in request.form)
+
+            if not client_provided and not team_provided:
+                # Query the database for records corresponding to the selected date
+                results = Assigned_Teams.query.filter_by(assignment_date=selected_date).all()
+
+                if results:
+                    # Prepare the data to populate the form fields
+                    data_to_display = []
+                    for row in results:
+                        data_to_display.append({
+                            'client_name': row.client_name,
+                            'location': row.location,
+                            'phone_number': row.phone_number,
+                            'assigned_team': row.assigned_team
+                        })
+
+                    return render_template('assign_teams.html',
+                                           selected_date=selected_date,
+                                           data_to_display=data_to_display)
+
+            else:
+                # Client and team details are provided, handle submission
+                client_team_pairs = []
+                for key, value in request.form.items():
+                    if 'client_' in key:
+                        client_index = key.split('_')[1]  # Extract index from the key
+                        client_name = value
+                        team_name = request.form.get(f'team_{client_index}')
+                        location = request.form.get(f'location_{client_index}')  # Get location
+                        phone_number = request.form.get(f'phone_{client_index}')  # Get phone number
+                        client_team_pairs.append((client_name, team_name, location, phone_number))
+
+                # Insert or update the data in the database
+                for client_name, team_name, location, phone_number in client_team_pairs:
+                    existing_assignment = Assigned_Teams.query.filter_by(client_name=client_name, assignment_date=selected_date).first()
+
+                    if existing_assignment:
+                        # Update existing assignment
+                        existing_assignment.assigned_team = team_name
+                        existing_assignment.location = location
+                        existing_assignment.phone_number = phone_number
+                    else:
+                        # Create a new assignment
+                        new_assignment = Assigned_Teams(
+                            client_name=client_name,
+                            assigned_team=team_name,
+                            assignment_date=selected_date,
+                            location=location,
+                            phone_number=phone_number
+                        )
+                        db.session.add(new_assignment)
+
+                db.session.commit()  # Commit the changes
+                return redirect(url_for('assign_teams'))
+
+        # Fetch clients and team members for the form's autocomplete
+        clients = Client_List.query.all()
+        team_members = Team_Members.query.all()
+
+        return render_template('assign_teams.html', clients=clients, team_members=team_members)
+
+    except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy error during team assignment: {e}")
+        db.session.rollback()
+        return str(e)
+
+    finally:
+        db.session.close()
+
+"""
 @app.route('/assign_teams', methods=['GET', 'POST'])
 def assign_teams():
     try:
@@ -1000,9 +1220,9 @@ def assign_teams():
             if not client_provided and not team_provided:
                 # Query the database for records corresponding to the selected date
                 query = """
-                    SELECT client_name, location, phone_number, assigned_team
-                    FROM Assigned_Teams
-                    WHERE assignment_date = %s
+#                    SELECT client_name, location, phone_number, assigned_team
+#                    FROM Assigned_Teams
+#                    WHERE assignment_date = %s
                 """
                 cursor.execute(query, (selected_date,))
                 results = cursor.fetchall()
@@ -1038,12 +1258,12 @@ def assign_teams():
                 for client_name, team_name, location, phone_number in client_team_pairs:
                     # Insert or update client, team, location, and phone number
                     query = """
-                        INSERT INTO Assigned_Teams (client_name, assigned_team, assignment_date, location, phone_number)
-                        VALUES (%s, %s, %s, %s, %s)
-                        ON DUPLICATE KEY UPDATE
-                            assigned_team = VALUES(assigned_team),
-                            location = VALUES(location),
-                            phone_number = VALUES(phone_number)
+#                        INSERT INTO Assigned_Teams (client_name, assigned_team, assignment_date, location, phone_number)
+#                        VALUES (%s, %s, %s, %s, %s)
+#                        ON DUPLICATE KEY UPDATE
+#                            assigned_team = VALUES(assigned_team),
+#                            location = VALUES(location),
+#                            phone_number = VALUES(phone_number)
                     """
                     cursor.execute(query, (client_name, team_name, selected_date, location, phone_number))
 
@@ -1069,7 +1289,29 @@ def assign_teams():
             cursor.close()
         if 'mydb' in locals():
             mydb.close()
+"""
 
+
+@app.route('/get_client_details', methods=['GET'])
+def get_client_details():
+    client_name = request.args.get('client_name')
+    try:
+        # Query to get the town and phone number based on the client name
+        result = Client_List.query.filter_by(Client_Name=client_name).first()
+
+        if result:
+            return jsonify({'town': result.Town, 'phone_number': result.Phone_Number})
+        else:
+            return jsonify({'town': '', 'phone_number': ''})
+
+    except Exception as e:
+        logging.error(f"Error fetching client details: {e}")
+        return jsonify({'town': '', 'phone_number': ''})
+
+    finally:
+        db.session.close()
+
+"""
 @app.route('/get_client_details', methods=['GET'])
 def get_client_details():
     client_name = request.args.get('client_name')
@@ -1096,8 +1338,95 @@ def get_client_details():
             cursor.close()
         if 'mydb' in locals():
             mydb.close()
+"""
 
+@app.route('/summary', methods=['GET', 'POST'])
+def summary():
+    try:
+        if request.method == 'POST':
+            filter_type = request.form['filter_type']
+            team_member_name = request.form['team_member']
+            start_date = request.form['start_date']
+            end_date = request.form['end_date']
+            group_by = request.form['group_by']
 
+            logging.debug(f"Filter Type: {filter_type}")
+            logging.debug(f"Team Member Name: {team_member_name}")
+            logging.debug(f"Start Date: {start_date}")
+            logging.debug(f"End Date: {end_date}")
+            logging.debug(f"Group By: {group_by}")
+
+            conditions = []
+
+            # Filtering based on the filter type
+            if filter_type == 'team_member' and team_member_name:
+                team_member = Team_Members.query.filter_by(Team_Member_Name=team_member_name).first()
+                if not team_member:
+                    logging.error(f"No team member found with name: {team_member_name}")
+                    return render_template('summary.html', error="No job details to display.")
+                conditions.append(Job_Team_Members.Team_Member_ID == team_member.Team_Member_ID)
+
+            if (filter_type == 'date' or filter_type == 'both') and start_date and end_date:
+                conditions.append(Job_Tracking.Date.between(start_date, end_date))
+
+            # Handle grouping
+            group_column_map = {
+                "Client_Name": Client_List.Client_Name,
+                "Town": Client_List.Town,
+                "Date": Job_Tracking.Date
+            }
+
+            group_column = group_column_map.get(group_by, Job_Tracking.Job_ID)  # Default to Job_ID if no valid group_by
+
+            # Query to get the job details with filters
+            jobs_query = db.session.query(
+                Job_Tracking.Job_ID,
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(Client_List.Town).label('Town'),
+                func.max(Client_List.Phone_Number).label('Phone_Number'),
+                Job_Tracking.Date,
+                func.max(Job_Tracking.Tasks_Performed).label('Tasks_Performed'),
+                func.max(Job_Tracking.Any_Issues).label('Any_Issues'),
+                func.max(Job_Tracking.Percentage_Completion).label('Percentage_Completion'),
+                func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers'),
+                func.group_concat(func.distinct(Job_Pictures.Picture_URL)).label('Pictures')
+            ).join(Client, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
+            ).outerjoin(Job_Team_Members, Job_Tracking.Job_ID == Job_Team_Members.Job_ID
+            ).outerjoin(Team_Members, Job_Team_Members.Team_Member_ID == Team_Members.Team_Member_ID
+            ).outerjoin(Job_Pictures, Job_Tracking.Job_ID == Job_Pictures.Job_ID
+            ).filter(and_(*conditions)
+            ).group_by(Job_Tracking.Job_ID, group_column
+            ).order_by(Job_Tracking.Date.desc())
+
+            jobs = jobs_query.all()
+
+            # Fetch team members for the dropdown
+            team_members = Team_Members.query.all()
+
+            # Group jobs by selected group_by option
+            grouped_jobs = {}
+            for job in jobs:
+                group_key = job.Client_Name if group_by == "Client_Name" else job.Town if group_by == "Town" else job.Date
+                if group_key not in grouped_jobs:
+                    grouped_jobs[group_key] = []
+                grouped_jobs[group_key].append(job)
+
+            return render_template('summary.html', grouped_jobs=grouped_jobs, team_members=team_members)
+
+        # Fetch team members for the dropdown
+        team_members = Team_Members.query.all()
+
+        return render_template('summary.html', team_members=team_members)
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error occurred: {e}")
+        return str(e)
+
+    finally:
+        db.session.close()
+
+"""
 @app.route('/summary', methods=['GET', 'POST'])
 def summary():
     try:
@@ -1149,30 +1478,27 @@ def summary():
             where_clause = " AND ".join(conditions) if conditions else "1"
 
             query = f"""
-                SELECT
-                    j.Job_ID,
-                    MAX(c.Client_Name) AS Client_Name,
-                    MAX(c.Town) AS Town,
-                    MAX(c.Phone_Number) AS Phone_Number,
-                    j.Date,
-                    MAX(j.Tasks_Performed) AS Tasks_Performed,
-                    MAX(j.Any_Issues) AS Any_Issues,
-                    MAX(j.Percentage_Completion) AS Percentage_Completion,
-                    GROUP_CONCAT(DISTINCT tm.Team_Member_Name) as Engineers,
-                    GROUP_CONCAT(DISTINCT jp.Picture_URL) as Pictures
-                FROM
-                    Job_Tracking j
-                JOIN
-                    Client_List c ON j.Client_Unique_ID = c.Client_Unique_ID
-                LEFT JOIN
-                    Job_Team_Members jtm ON j.Job_ID = jtm.Job_ID
-                LEFT JOIN
-                    Team_Members tm ON jtm.Team_Member_ID = tm.Team_Member_ID
-                LEFT JOIN
-                    Job_Pictures jp ON j.Job_ID = jp.Job_ID
-                WHERE {where_clause}
-                GROUP BY j.Job_ID, {group_column}
-                ORDER BY j.Date DESC
+#                SELECT
+#                    j.Job_ID,
+#                    MAX(c.Client_Name) AS Client_Name,
+#                    MAX(c.Town) AS Town,
+##                    j.Date,
+#                    MAX(j.Tasks_Performed) AS Tasks_Performed,
+#                    MAX(j.Any_Issues) AS Any_Issues,
+#                    MAX(j.Percentage_Completion) AS Percentage_Completion,
+#                    GROUP_CONCAT(DISTINCT tm.Team_Member_Name) as Engineers,
+#                    GROUP_CONCAT(DISTINCT jp.Picture_URL) as Pictures
+#                    Job_Tracking j
+#                JOIN
+#                    Client_List c ON j.Client_Unique_ID = c.Client_Unique_ID
+#                LEFT JOIN
+#                    Job_Team_Members jtm ON j.Job_ID = jtm.Job_ID
+#                LEFT JOIN
+#                    Team_Members tm ON jtm.Team_Member_ID = tm.Team_Member_ID
+#                LEFT JOIN
+##                WHERE {where_clause}
+#                GROUP BY j.Job_ID, {group_column}
+#                ORDER BY j.Date DESC
             """
 
 
@@ -1212,9 +1538,80 @@ def summary():
         if 'mydb' in locals():
             mydb.close()
 
+"""
+
+@app.route('/client_summary', methods=['GET', 'POST'])
+def client_summary():
+    try:
+        jobs = []
+        grouped_jobs = None  # Initialize 'grouped_jobs' as None
+
+        if request.method == 'POST':
+            filter_type = request.form.get('filter_type')
+            client_name = request.form.get('client_name')
+            start_date = request.form.get('start_date')
+            end_date = request.form.get('end_date')
+            group_by = request.form.get('group_by')
+
+            # Base query
+            query = db.session.query(
+                Job_Tracking.Job_ID,
+                Client_List.Client_Name,
+                Client_List.Town,
+                Client_List.Phone_Number,
+                Job_Tracking.Date,
+                Job_Tracking.Tasks_Performed,
+                Job_Tracking.Any_Issues,
+                Job_Tracking.Percentage_Completion,
+                func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers'),
+                func.group_concat(func.distinct(Job_Pictures.Picture_URL)).label('Pictures')
+            ).join(Client_List, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
+            ).outerjoin(Team_Members_Assigned, Job_Tracking.Job_ID == Team_Members_Assigned.Job_ID
+            ).outerjoin(Team_Members, Team_Members_Assigned.Team_Member_ID == Team_Members.Team_Member_ID
+            ).outerjoin(Job_Pictures, Job_Tracking.Job_ID == Job_Pictures.Job_ID
+            ).filter(True)  # Placeholder for dynamic filtering conditions
+
+            # Apply filters based on user input
+            if client_name:
+                query = query.filter(Client_List.Client_Name == client_name)
+            if start_date and end_date:
+                query = query.filter(Job_Tracking.Date.between(start_date, end_date))
+
+            # Group by and order
+            query = query.group_by(Job_Tracking.Job_ID, Client_List.Client_Name).order_by(Job_Tracking.Date.desc())
+
+            jobs = query.all()
+
+            # Grouping logic based on selected group_by option
+            group_by_mapping = {
+                'Client_Name': lambda job: job.Client_Name,
+                'Town': lambda job: job.Town,
+                'Date': lambda job: job.Date,
+                'Engineers': lambda job: job.Engineers
+            }
+
+            if group_by:
+                grouped_jobs = {}
+                group_key_fn = group_by_mapping.get(group_by)
+                if group_key_fn:
+                    for job in jobs:
+                        group_key = group_key_fn(job)
+                        if group_key not in grouped_jobs:
+                            grouped_jobs[group_key] = []
+                        grouped_jobs[group_key].append(job)
+
+        return render_template('client_summary.html', grouped_jobs=grouped_jobs, jobs=jobs if not grouped_jobs else None)
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error occurred: {e}")
+        return str(e)
+
+    finally:
+        db.session.close()
 
 
-
+"""
 @app.route('/client_summary', methods=['GET', 'POST'])
 def client_summary():
     try:
@@ -1233,15 +1630,15 @@ def client_summary():
 
             # Base query
             query = """
-                SELECT jt.Job_ID, cl.Client_Name, cl.Town, cl.Phone_Number, jt.Date, jt.Tasks_Performed, jt.Any_Issues, jt.Percentage_Completion,
-                       GROUP_CONCAT(DISTINCT tm.Team_Member_Name SEPARATOR ', ') AS Engineers,
-                       GROUP_CONCAT(DISTINCT jp.Picture_URL SEPARATOR ', ') AS Pictures
-                FROM Job_Tracking jt
-                JOIN Client_List cl ON jt.Client_Unique_ID = cl.Client_Unique_ID
-                LEFT JOIN Team_Members_Assigned tma ON jt.Job_ID = tma.Job_ID
-                LEFT JOIN Team_Members tm ON tma.Team_Member_ID = tm.Team_Member_ID
-                LEFT JOIN Job_Pictures jp ON jt.Job_ID = jp.Job_ID
-                WHERE 1=1
+#                SELECT jt.Job_ID, cl.Client_Name, cl.Town, cl.Phone_Number, jt.Date, jt.Tasks_Performed, jt.Any_Issues, jt.Percentage_Completion,
+#                       GROUP_CONCAT(DISTINCT tm.Team_Member_Name SEPARATOR ', ') AS Engineers,
+#                       GROUP_CONCAT(DISTINCT jp.Picture_URL SEPARATOR ', ') AS Pictures
+#                FROM Job_Tracking jt
+#                JOIN Client_List cl ON jt.Client_Unique_ID = cl.Client_Unique_ID
+#                LEFT JOIN Team_Members_Assigned tma ON jt.Job_ID = tma.Job_ID
+#                LEFT JOIN Team_Members tm ON tma.Team_Member_ID = tm.Team_Member_ID
+#                LEFT JOIN Job_Pictures jp ON jt.Job_ID = jp.Job_ID
+#                WHERE 1=1
             """
 
             # Append filters based on user input
@@ -1254,8 +1651,8 @@ def client_summary():
                 params.extend([start_date, end_date])
 
             query += """
-                GROUP BY jt.Job_ID, Client_Name
-                ORDER BY jt.Date DESC;
+#                GROUP BY jt.Job_ID, Client_Name
+#                ORDER BY jt.Date DESC;
             """
 
             cursor.execute(query, params)
@@ -1287,7 +1684,7 @@ def client_summary():
             cursor.close()
         if 'mydb' in locals():
             mydb.close()
-
+"""
 # Assuming UPLOAD_FOLDER is defined elsewhere in your app.py
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 
