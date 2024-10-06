@@ -1510,8 +1510,8 @@ def summary():
 ##                WHERE {where_clause}
 #                GROUP BY j.Job_ID, {group_column}
 #                ORDER BY j.Date DESC
-            """
-
+#            """
+"""
 
             logging.debug(f"Final Query: {query}")
             cursor.execute(query, params)
