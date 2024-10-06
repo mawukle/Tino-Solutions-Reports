@@ -1037,8 +1037,8 @@ def assign_job():
 #                SELECT Client_Unique_ID, Town, Phone_Number
 #                FROM Client_List
 #                WHERE Client_Name = %s
-            """, (client_name,))
-            client_info = cursor.fetchone()
+#            """, (client_name,))
+"""            client_info = cursor.fetchone()
 
             if not client_info:
                 logging.error(f"Client not found: {client_name}")
