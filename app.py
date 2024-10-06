@@ -1650,8 +1650,8 @@ def client_summary():
 #                LEFT JOIN Team_Members tm ON tma.Team_Member_ID = tm.Team_Member_ID
 #                LEFT JOIN Job_Pictures jp ON jt.Job_ID = jp.Job_ID
 #                WHERE 1=1
-            """
-
+#            """
+"""
             # Append filters based on user input
             params = []
             if client_name:
@@ -1664,8 +1664,8 @@ def client_summary():
             query += """
 #                GROUP BY jt.Job_ID, Client_Name
 #                ORDER BY jt.Date DESC;
-            """
-
+#            """
+"""
             cursor.execute(query, params)
             jobs = cursor.fetchall()
 
