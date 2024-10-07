@@ -30,16 +30,17 @@ class Item(db.Model):
     Super_Dealer_USD = db.Column(db.Float, nullable=True)
     Super_Dealer_GHC = db.Column(db.Float, nullable=True)
 
-# You can add more models as needed to match other tables
+# Define the Team Members model
 class Team_Members(db.Model):
     __tablename__ = 'Team_Members'
     Team_Member_ID = db.Column(db.Integer, primary_key=True)
     Team_Member_Name = db.Column(db.String(255), nullable=False)
 
-    jobs = relationship('Job_Team_Members', backref='team_member', lazy=True)
-    team_members_assigned = relationship('Team_Members_Assigned', backref='team_member', lazy=True)
+    # Adjusting backref names to prevent conflicts
+    job_teams = relationship('Job_Team_Members', backref='team_member', lazy=True)
+    assigned_jobs = relationship('Team_Members_Assigned', backref='assigned_member', lazy=True)
 
-
+# Define the Job Tracking model
 class Job_Tracking(db.Model):
     __tablename__ = 'Job_Tracking'
     Job_ID = db.Column(db.Integer, primary_key=True)
@@ -52,41 +53,32 @@ class Job_Tracking(db.Model):
     Any_Issues = db.Column(db.Text, nullable=True)
     Percentage_Completion = db.Column(db.Float, nullable=True)
 
+    # Adjusting backrefs
+    team_members = relationship('Job_Team_Members', backref='job_tracking', lazy=True)
+    pictures = relationship('Job_Pictures', backref='job_tracking', lazy=True)
 
-    team_members = relationship('Job_Team_Members', backref='job', lazy=True)
-    pictures = relationship('Job_Pictures', backref='job', lazy=True)
-
-
-
+# Define the Job_Team_Members model
 class Job_Team_Members(db.Model):
     __tablename__ = 'Job_Team_Members'
     Job_Team_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), primary_key=True, nullable=False)
-    Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), primary_key=True, nullable=False)
+    Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
+    Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), nullable=False)
 
-    job = db.relationship('Job_Tracking', backref=db.backref('team_members', lazy=True))
-    team_member = db.relationship('Team_Members', backref=db.backref('assigned_jobs', lazy=True))
-
-
+# Define the Team_Members_Assigned model
 class Team_Members_Assigned(db.Model):
     __tablename__ = 'Team_Members_Assigned'
     Assignment_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
     Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), nullable=False)
 
-    job = db.relationship('Job_Tracking', backref=db.backref('team_assignments', lazy=True))
-    team_member = db.relationship('Team_Members', backref=db.backref('job_assignments', lazy=True))
-
-
+# Define the Job Pictures model
 class Job_Pictures(db.Model):
     __tablename__ = 'Job_Pictures'
     Picture_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
     Picture_URL = db.Column(db.String(255), nullable=True)
 
-    job = db.relationship('Job_Tracking', backref=db.backref('pictures', lazy=True))
-
-
+# Define the Assigned Teams model
 class Assigned_Teams(db.Model):
     __tablename__ = 'Assigned_Teams'
     Assignment_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
