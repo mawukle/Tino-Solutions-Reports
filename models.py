@@ -37,7 +37,7 @@ class Team_Members(db.Model):
     Team_Member_Name = db.Column(db.String(255), nullable=False)
 
     # Adjusting backref names to prevent conflicts
-    job_teams = relationship('Job_Team_Members', backref='team_member', lazy=True)
+    job_teams = relationship('job_team_members', backref='team_member', lazy=True)
     assigned_jobs = relationship('Team_Members_Assigned', backref='assigned_member', lazy=True)
 
 # Define the Job Tracking model
@@ -54,12 +54,12 @@ class Job_Tracking(db.Model):
     Percentage_Completion = db.Column(db.Float, nullable=True)
 
     # Adjusting backrefs
-    team_members = relationship('Job_Team_Members', backref='job_tracking', lazy=True)
+    team_members = relationship('job_team_members', backref='job_tracking', lazy=True)
     pictures = relationship('Job_Pictures', backref='job_tracking', lazy=True)
 
-# Define the Job_Team_Members model
-class Job_Team_Members(db.Model):
-    __tablename__ = 'Job_Team_Members'
+# Define the job_team_members model
+class job_team_members(db.Model):
+    __tablename__ = 'job_team_members'
     Job_Team_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Job_ID = db.Column(db.Integer, db.ForeignKey('Job_Tracking.Job_ID'), nullable=False)
     Team_Member_ID = db.Column(db.Integer, db.ForeignKey('Team_Members.Team_Member_ID'), nullable=False)

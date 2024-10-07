@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Item, Team_Members, Assigned_Teams, Job_Team_Members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
+from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func
@@ -970,9 +970,9 @@ def assign_job():
             job_id = new_job.Job_ID
             logging.info(f"Job ID created: {job_id}")
 
-            # Insert into Job_Team_Members and Team_Members_Assigned
+            # Insert into job_team_members and Team_Members_Assigned
             for team_member_id in team_member_ids:
-                job_team_member = Job_Team_Members(Job_ID=job_id, Team_Member_ID=team_member_id)
+                job_team_member = job_team_members(Job_ID=job_id, Team_Member_ID=team_member_id)
                 team_member_assigned = Team_Members_Assigned(Job_ID=job_id, Team_Member_ID=team_member_id)
                 db.session.add(job_team_member)
                 db.session.add(team_member_assigned)
@@ -1375,7 +1375,7 @@ def summary():
                 if not team_member:
                     logging.error(f"No team member found with name: {team_member_name}")
                     return render_template('summary.html', error="No job details to display.")
-                conditions.append(Job_Team_Members.Team_Member_ID == team_member.Team_Member_ID)
+                conditions.append(job_team_members.Team_Member_ID == team_member.Team_Member_ID)
 
             if (filter_type == 'date' or filter_type == 'both') and start_date and end_date:
                 conditions.append(Job_Tracking.Date.between(start_date, end_date))
@@ -1402,8 +1402,8 @@ def summary():
                 func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers'),
                 func.group_concat(func.distinct(Job_Pictures.Picture_URL)).label('Pictures')
             ).join(Client_List, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
-            ).outerjoin(Job_Team_Members, Job_Tracking.Job_ID == Job_Team_Members.Job_ID
-            ).outerjoin(Team_Members, Job_Team_Members.Team_Member_ID == Team_Members.Team_Member_ID
+            ).outerjoin(job_team_members, Job_Tracking.Job_ID == job_team_members.Job_ID
+            ).outerjoin(Team_Members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).outerjoin(Job_Pictures, Job_Tracking.Job_ID == Job_Pictures.Job_ID
             ).filter(and_(*conditions)
             ).group_by(Job_Tracking.Job_ID, group_column
