@@ -398,14 +398,14 @@ def client_list():
 
         # Convert None values to empty strings and prepare the data for rendering
         clients = [[
-            Client_List.Client_Unique_ID,
-            Client_List.Client_Name or '',
-            Client_List.Town or '',
-            Client_List.City or '',
-            Client_List.Phone_Number or '',
-            Client_List.Client_Code or '',
-            Client_List.Contact_Person or '',
-            Client_List.email_address or ''
+            client.Client_Unique_ID,
+            client.Client_Name or '',
+            client.Town or '',
+            client.City or '',
+            client.Phone_Number or '',
+            client.Client_Code or '',
+            client.Contact_Person or '',
+            client.email_address or ''
         ] for client in clients]
 
     except Exception as e:
