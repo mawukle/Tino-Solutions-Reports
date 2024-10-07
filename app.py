@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort
 import os
 import logging
 from dotenv import load_dotenv
@@ -924,7 +924,7 @@ def allowed_file(filename):
 
 # Define the allowed extensions for file uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-UPLOAD_FOLDER = 'static/uploads'  # Adjust this path according to your setup
+#UPLOAD_FOLDER = 'static/uploads'  # Adjust this path according to your setup
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1704,12 +1704,14 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
+
+    # Ensure the upload folder exists
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
     # Use the port from environment variables; default to 5000 for local development
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
 
-    # Ensure the upload folder exists
-#    if not os.path.exists(UPLOAD_FOLDER):
-#        os.makedirs(uploads)
 
 #    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))  # Use environment variable for port
