@@ -81,7 +81,7 @@ class Job_Pictures(db.Model):
 # Define the Assigned Teams model
 class Assigned_Teams(db.Model):
     __tablename__ = 'Assigned_Teams'
-    Assignment_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     client_name = db.Column(db.String(255), nullable=False)
     assigned_team = db.Column(db.String(255), nullable=False)
     assignment_date = db.Column(db.Date, nullable=False)
