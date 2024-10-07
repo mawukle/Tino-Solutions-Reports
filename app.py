@@ -1401,7 +1401,7 @@ def summary():
                 func.max(Job_Tracking.Percentage_Completion).label('Percentage_Completion'),
                 func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers'),
                 func.group_concat(func.distinct(Job_Pictures.Picture_URL)).label('Pictures')
-            ).join(Client, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
+            ).join(Client_List, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
             ).outerjoin(Job_Team_Members, Job_Tracking.Job_ID == Job_Team_Members.Job_ID
             ).outerjoin(Team_Members, Job_Team_Members.Team_Member_ID == Team_Members.Team_Member_ID
             ).outerjoin(Job_Pictures, Job_Tracking.Job_ID == Job_Pictures.Job_ID
