@@ -1701,13 +1701,23 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+    # Log the file path for debugging
+    app.logger.info(f"Requested file: {file_path}")
+
+    if not os.path.exists(file_path):
+        app.logger.error(f"File not found: {file_path}")
+        return jsonify({"error": "File not found"}), 404
+
+
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
+    #if not os.path.exists(UPLOAD_FOLDER):
+    #    os.makedirs(UPLOAD_FOLDER)
 
     # Use the port from environment variables; default to 5000 for local development
     port = int(os.environ.get('PORT', 5000))
