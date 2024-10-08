@@ -8,7 +8,7 @@ import pymysql
 from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, and_, func
+from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column
 import pandas as pd
 
 pymysql.install_as_MySQLdb()
@@ -890,15 +890,20 @@ def autocomplete_member():
     return jsonify(suggestions)
 """
 
+from sqlalchemy import literal_column
+
 @app.route('/autocomplete_client', methods=['GET'])
 def autocomplete_client():
     term = request.args.get('term', '')
 
     try:
+        # Ensure term is safe and properly escaped
+        term = literal_column(f"'%{term}%'")  # Explicitly declare as a literal column
+
         # Use SQLAlchemy to query the database
         client_names = (
             db.session.query(Client_List.Client_Name)
-            .filter(Client_List.Client_Name.like(f"%{term}%"))
+            .filter(Client_List.Client_Name.like(term))
             .limit(10)
             .all()
         )
