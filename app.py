@@ -87,6 +87,7 @@ def get_sql_connection():
 # Function to check if a record already exists
 import logging
 
+# Function to check if a record already exists
 def record_exists(cursor, client_name, town, city):
     query = """
     SELECT COUNT(*) FROM Client_List WHERE
@@ -94,10 +95,11 @@ def record_exists(cursor, client_name, town, city):
     """
     cursor.execute(query, (client_name, town, city))
 
+    # Fetch the result
     result = cursor.fetchone()
-    logging.info(f"Record exists query result: {result}")
 
-    if result and result[0] > 0:
+    # Check if the query result exists and return based on 'COUNT(*)'
+    if result and result.get('COUNT(*)', 0) > 0:
         return True
     else:
         return False
