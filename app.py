@@ -85,13 +85,23 @@ def get_sql_connection():
         return None  # Return None to allow error handling in calling code
 
 # Function to check if a record already exists
+import logging
+
 def record_exists(cursor, client_name, town, city):
     query = """
     SELECT COUNT(*) FROM Client_List WHERE
     Client_Name = %s AND Town = %s AND City = %s
     """
     cursor.execute(query, (client_name, town, city))
-    return cursor.fetchone()[0] > 0
+
+    result = cursor.fetchone()
+    logging.info(f"Record exists query result: {result}")
+
+    if result and result[0] > 0:
+        return True
+    else:
+        return False
+
 
 # Function to delete duplicate records
 def delete_duplicates():
