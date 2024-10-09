@@ -256,6 +256,17 @@ nav a:hover {
     overflow: visible; /* Ensure the content doesn't scroll */
 }
 
+.container_5 {
+    position: relative;
+    max-width: 300px;
+    margin: auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
 
 /* Adjusting the filter form for compact layout */
 /*#client_filter input,*/
