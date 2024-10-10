@@ -92,7 +92,8 @@
                         <td>{{ job[5] }}</td>
                         <td>{{ job[6] }}</td>
                         <td>{{ job[7] }}%</td>
-                        <td>{{ job[8].replace(',', ', ') }}</td>
+                        <td>{{ job[8].replace(',', ', ') if job[8] else '' }}</td>
+
                         <!--td>
                             {% if job[9] %}
                                 {% for picture in job[9].split(',') %}
