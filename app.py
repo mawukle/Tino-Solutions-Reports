@@ -1368,6 +1368,8 @@ def get_client_details():
             mydb.close()
 """
 
+from sqlalchemy import text
+
 @app.route('/summary', methods=['GET', 'POST'])
 def summary():
     try:
@@ -1424,7 +1426,11 @@ def summary():
                 "Date": Job_Tracking.Date
             }
 
-            group_column = group_column_map.get(group_by, Job_Tracking.Job_ID)  # Default to Job_ID if no valid group_by
+            # Ensure group_column is a valid column or wrap it in text() for string literals
+            if group_by in group_column_map:
+                group_column = group_column_map[group_by]
+            else:
+                group_column = text(group_by)
 
             # Query to get the job details with filters
             jobs_query = db.session.query(
