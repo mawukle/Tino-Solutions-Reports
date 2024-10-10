@@ -1021,7 +1021,7 @@ def assign_job():
 
             db.session.commit()
             logging.info("Job assignment committed to the database.")
-            return redirect(url_for('index'))
+            return redirect(url_for('assign_job'))
 
         # Fetch team members for GET request
         team_members = db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name).all()
