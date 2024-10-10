@@ -74,7 +74,7 @@
                         <th>Any Issues</th>
                         <th>% Completion</th>
                         <th>Engineers</th>
-                        <th>Pictures</th>
+                        <!--th>Pictures</th-->
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +93,7 @@
                         <td>{{ job[6] }}</td>
                         <td>{{ job[7] }}%</td>
                         <td>{{ job[8].replace(',', ', ') }}</td>
-                        <td>
+                        <!--td>
                             {% if job[9] %}
                                 {% for picture in job[9].split(',') %}
                                     <a href="{{ url_for('uploaded_file', filename=picture.strip()) }}" target="_blank">
@@ -103,7 +103,7 @@
                             {% else %}
                                 No pictures available
                             {% endif %}
-                        </td>
+                        </td-->
 
                     </tr>
                     {% endfor %}
