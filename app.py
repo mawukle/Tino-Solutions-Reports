@@ -1371,12 +1371,23 @@ def get_client_details():
 @app.route('/summary', methods=['GET', 'POST'])
 def summary():
     try:
+        # Initialize variables for form data
+        filter_type = ''
+        team_member_name = ''
+        start_date = ''
+        end_date = ''
+        group_by = 'Client_Name'  # Default grouping by Client Name
+
+        # Fetch team members for autocomplete/dropdown
+        team_members = Team_Members.query.all()
+
         if request.method == 'POST':
-            filter_type = request.form['filter_type']
-            team_member_name = request.form['team_member']
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
-            group_by = request.form['group_by']
+            # Get the form data
+            filter_type = request.form.get('filter_type', '')
+            team_member_name = request.form.get('team_member', '')
+            start_date = request.form.get('start_date', '')
+            end_date = request.form.get('end_date', '')
+            group_by = request.form.get('group_by', 'Client_Name')  # Default to Client_Name if not provided
 
             logging.debug(f"Filter Type: {filter_type}")
             logging.debug(f"Team Member Name: {team_member_name}")
@@ -1391,7 +1402,16 @@ def summary():
                 team_member = Team_Members.query.filter_by(Team_Member_Name=team_member_name).first()
                 if not team_member:
                     logging.error(f"No team member found with name: {team_member_name}")
-                    return render_template('summary.html', error="No job details to display.")
+                    return render_template(
+                        'summary.html',
+                        error="No job details to display.",
+                        team_members=team_members,
+                        filter_type=filter_type,
+                        team_member_name=team_member_name,
+                        start_date=start_date,
+                        end_date=end_date,
+                        group_by=group_by
+                    )
                 conditions.append(job_team_members.Team_Member_ID == team_member.Team_Member_ID)
 
             if (filter_type == 'date' or filter_type == 'both') and start_date and end_date:
@@ -1416,20 +1436,15 @@ def summary():
                 func.max(Job_Tracking.Tasks_Performed).label('Tasks_Performed'),
                 func.max(Job_Tracking.Any_Issues).label('Any_Issues'),
                 func.max(Job_Tracking.Percentage_Completion).label('Percentage_Completion'),
-                func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers'),
-#                func.group_concat(func.distinct(Job_Pictures.Picture_URL)).label('Pictures')
+                func.group_concat(func.distinct(Team_Members.Team_Member_Name)).label('Engineers')
             ).join(Client_List, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID
             ).outerjoin(job_team_members, Job_Tracking.Job_ID == job_team_members.Job_ID
             ).outerjoin(Team_Members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
-#            ).outerjoin(Job_Pictures, Job_Tracking.Job_ID == Job_Pictures.Job_ID
             ).filter(and_(*conditions)
             ).group_by(Job_Tracking.Job_ID, group_column
             ).order_by(Job_Tracking.Date.desc())
 
             jobs = jobs_query.all()
-
-            # Fetch team members for the dropdown
-            team_members = Team_Members.query.all()
 
             # Group jobs by selected group_by option
             grouped_jobs = {}
@@ -1439,12 +1454,27 @@ def summary():
                     grouped_jobs[group_key] = []
                 grouped_jobs[group_key].append(job)
 
-            return render_template('summary.html', grouped_jobs=grouped_jobs, team_members=team_members)
+            return render_template(
+                'summary.html',
+                grouped_jobs=grouped_jobs,
+                team_members=team_members,
+                filter_type=filter_type,
+                team_member_name=team_member_name,
+                start_date=start_date,
+                end_date=end_date,
+                group_by=group_by
+            )
 
-        # Fetch team members for the dropdown
-        team_members = Team_Members.query.all()
-
-        return render_template('summary.html', team_members=team_members)
+        # If GET request, render the form without any filtering applied
+        return render_template(
+            'summary.html',
+            team_members=team_members,
+            filter_type=filter_type,
+            team_member_name=team_member_name,
+            start_date=start_date,
+            end_date=end_date,
+            group_by=group_by
+        )
 
     except Exception as e:
         db.session.rollback()

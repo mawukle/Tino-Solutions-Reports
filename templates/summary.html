@@ -22,41 +22,41 @@
         <form action="{{ url_for('summary') }}" method="post" class="filter-form">
             <div class="filter-options">
                 <label for="filter_type">Filter by:</label><br>
-                <input type="radio" id="by_member" name="filter_type" value="team_member" checked>
+                <input type="radio" id="by_member" name="filter_type" value="team_member" {% if request.form.filter_type == 'team_member' %} checked {% endif %}>
                 <label for="by_member">Team Member</label><br>
-                <input type="radio" id="by_date" name="filter_type" value="date">
+                <input type="radio" id="by_date" name="filter_type" value="date" {% if request.form.filter_type == 'date' %} checked {% endif %}>
                 <label for="by_date">Date</label><br>
-                <input type="radio" id="by_both" name="filter_type" value="both">
+                <input type="radio" id="by_both" name="filter_type" value="both" {% if request.form.filter_type == 'both' %} checked {% endif %}>
                 <label for="by_both">Team Member and Date</label><br><br>
             </div>
 
             <div class="form-filters">
                 <div id="member_filter">
                     <label for="team_member">Team Member:</label>
-                    <input type="text" id="team_member" name="team_member" autocomplete="off">
+                    <input type="text" id="team_member" name="team_member" value="{{ request.form.team_member or '' }}" autocomplete="off">
                 </div>
 
                 <div id="date_filter">
                     <label for="start_date">Start Date:</label>
-                    <input type="date" id="start_date" name="start_date"><br><br>
+                    <input type="date" id="start_date" name="start_date" value="{{ request.form.start_date or '' }}"><br><br>
 
                     <label for="end_date">End Date:</label>
-                    <input type="date" id="end_date" name="end_date">
+                    <input type="date" id="end_date" name="end_date" value="{{ request.form.end_date or '' }}">
                 </div>
             </div>
 
             <div id="group_filter">
                 <label for="group_by">Group By:</label>
                 <select id="group_by" name="group_by">
-                    <!--<option value="Team_Member">Team Member</option>-->
-                    <option value="Client_Name">Client Name</option>
-                    <option value="Date">Date</option>
-                    <option value="Town">Town</option>
+                    <option value="Client_Name" {% if request.form.group_by == 'Client_Name' %} selected {% endif %}>Client Name</option>
+                    <option value="Date" {% if request.form.group_by == 'Date' %} selected {% endif %}>Date</option>
+                    <option value="Town" {% if request.form.group_by == 'Town' %} selected {% endif %}>Town</option>
                 </select>
             </div>
 
             <button type="submit" class="filter-button">Submit</button>
         </form>
+
 
         <!-- Display job details after submission -->
         {% if grouped_jobs %}
