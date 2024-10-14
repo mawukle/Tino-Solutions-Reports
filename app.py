@@ -205,10 +205,11 @@ def team_ranking():
 
             # Query for total days at clients
             total_days_at_clients_query = db.session.query(
-                Job_Tracking.Job_ID,
+                job_team_members.Job_ID,
                 func.count(Job_Tracking.Date.distinct()).label('days_clients_visited')
+            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Job_Tracking.Job_ID).subquery()
+            ).group_by(job_team_members.Job_ID).subquery()
 
             # Final ranking query
             ranking_query = db.session.query(
@@ -222,7 +223,7 @@ def team_ranking():
                 ).label('ranking_score')
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
             ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
-            ).outerjoin(total_days_at_clients_query, total_days_at_clients_query.c.Job_ID == Job_Tracking.Job_ID
+            ).outerjoin(total_days_at_clients_query, total_days_at_clients_query.c.Job_ID == job_team_members.Job_ID
             ).group_by(Team_Members.Team_Member_Name
             ).order_by(desc('ranking_score'))
 
