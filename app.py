@@ -177,7 +177,6 @@ def invoice_sheet():
     # Render the invoice_sheet.html with the selected items
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
-
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
     try:
@@ -219,15 +218,19 @@ def team_ranking():
                 clients_visited_query.c.clients_visited,
                 func.coalesce(
                     func.sum(case(
-                        # Sum the total days at clients based on the clients visited by the team member
-                        [(total_days_at_clients_query.c.Client_Unique_ID == client_id, total_days_at_clients_query.c.total_days_visited)
-                         for client_id in clients_visited_query.c.visited_clients]
+                        # Use a subquery to sum total days for clients visited
+                        [
+                            (total_days_at_clients_query.c.total_days_visited, total_days_at_clients_query.c.Client_Unique_ID == client_id)
+                            for client_id in clients_visited_query.c.visited_clients
+                        ]
                     )), 0).label('days_clients_visited'),
                 (days_worked_query.c.days_worked +
                  func.coalesce(func.sum(
                      case(
-                         [(total_days_at_clients_query.c.Client_Unique_ID == client_id, total_days_at_clients_query.c.total_days_visited)
-                          for client_id in clients_visited_query.c.visited_clients]
+                         [
+                             (total_days_at_clients_query.c.total_days_visited, total_days_at_clients_query.c.Client_Unique_ID == client_id)
+                             for client_id in clients_visited_query.c.visited_clients
+                         ]
                      )), 0)
                  ).label('ranking_score')
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
