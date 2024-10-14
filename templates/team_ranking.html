@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assign Teams to Clients</title>
+    <title>Team Ranking</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -35,17 +35,19 @@
                 </tr>
             </thead>
             <tbody>
-                {% for team_member, days_worked, clients_visited, days_clients_visited, ranking_score in team_rankings %}
+                {% for ranking in team_rankings %}
                 <tr>
-                    <td>{{ team_member }}</td>
-                    <td>{{ days_worked }}</td>
-                    <td>{{ clients_visited }}</td>
-                    <td>{{ days_clients_visited }}</td>
-                    <td>{{ ranking_score }}</td>
+                    <td>{{ ranking[0] }}</td>  <!-- Team Member Name -->
+                    <td>{{ ranking[1] }}</td>  <!-- Days Worked -->
+                    <td>{{ ranking[2] }}</td>  <!-- Clients Visited -->
+                    <td>{{ ranking[3] }}</td>  <!-- Total Days at Clients -->
+                    <td>{{ ranking[4] }}</td>  <!-- Ranking Score -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p>No rankings available for the selected period.</p>
         {% endif %}
     </div>
 </body>
