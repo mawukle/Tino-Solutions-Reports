@@ -185,7 +185,7 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Base query to start from Team_Members
+            # Base query for days worked
             days_worked_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('days_worked')
@@ -193,7 +193,7 @@ def team_ranking():
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Query for clients visited
+            # Base query for clients visited
             clients_visited_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
@@ -201,7 +201,7 @@ def team_ranking():
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Subquery to calculate days_clients_visited
+            # Subquery for days clients visited
             days_clients_visited_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('total_days_visited')
@@ -209,7 +209,7 @@ def team_ranking():
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Final ranking query
+            # Final ranking query with explicit joins
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
@@ -242,7 +242,9 @@ def team_ranking():
                      ), 0
                  )
                 ).label('ranking_score')
-            ).select_from(Team_Members).join(days_worked_query).join(clients_visited_query).group_by(
+            ).select_from(Team_Members).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .group_by(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
                 clients_visited_query.c.clients_visited
