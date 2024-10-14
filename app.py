@@ -192,7 +192,7 @@ def team_ranking():
                 func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited'),
                 func.sum(case(
                     # Calculate total days visited for clients specific to this team member
-                    [(Job_Tracking.Client_Unique_ID, total_days_at_clients_query.c.total_days_visited)
+                    [(Job_Tracking.Client_Unique_ID == client_id, func.count(func.distinct(Job_Tracking.Date)))
                      for client_id in db.session.query(Job_Tracking.Client_Unique_ID)
                      .join(job_team_members)
                      .filter(
