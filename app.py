@@ -86,7 +86,7 @@ def get_sql_connection():
         return None  # Return None to allow error handling in calling code
 
 # Function to check if a record already exists
-import logging
+#import logging
 
 # Function to check if a record already exists
 def record_exists(cursor, client_name, town, city):
