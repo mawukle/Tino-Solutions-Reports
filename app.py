@@ -185,7 +185,7 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Query: Calculate days worked, clients visited, and total days at clients in a single pass
+            # Base query to start from Team_Members
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('days_worked'),
@@ -204,7 +204,9 @@ def team_ranking():
                         else_=0
                     )
                 ).label('days_clients_visited')
-            ).join(job_team_members).join(Job_Tracking).filter(
+            ).select_from(Team_Members)  # Explicitly set the starting point
+            # Joining the necessary tables
+            ranking_query = ranking_query.join(job_team_members).join(Job_Tracking).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).order_by(desc('days_clients_visited'))
 
