@@ -176,6 +176,58 @@ def invoice_sheet():
     # Render the invoice_sheet.html with the selected items
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
+@app.route('/team_ranking', methods=['GET', 'POST'])
+def team_ranking():
+    try:
+        if request.method == 'POST':
+            # Get the date range from the form
+            start_date = request.form['start_date']
+            end_date = request.form['end_date']
+
+            # Query to get the number of days worked by each team member
+            days_worked_query = db.session.query(
+                Team_Members.Team_Member_Name,
+                func.count(Job_Tracking.Date.distinct()).label('days_worked')
+            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
+            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
+            ).filter(Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(Team_Members.Team_Member_Name).subquery()
+
+            # Query to get the number of clients visited and sum of days clients were visited
+            clients_visited_query = db.session.query(
+                Team_Members.Team_Member_Name,
+                func.count(Job_Tracking.Client_Unique_ID.distinct()).label('clients_visited'),
+                func.sum(func.count(Job_Tracking.Client_Unique_ID)).label('days_clients_visited')
+            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
+            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
+            ).filter(Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(Team_Members.Team_Member_Name, Job_Tracking.Client_Unique_ID).subquery()
+
+            # Combine both queries and apply the ranking formula
+            ranking_query = db.session.query(
+                Team_Members.Team_Member_Name,
+                (days_worked_query.c.days_worked +
+                 (clients_visited_query.c.clients_visited / clients_visited_query.c.days_clients_visited)
+                ).label('ranking_score')
+            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
+            ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
+            ).order_by(desc('ranking_score'))
+
+            team_rankings = ranking_query.all()
+
+            return render_template('team_ranking.html', team_rankings=team_rankings)
+
+        return render_template('team_ranking.html')
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error occurred: {e}")
+        return str(e)
+
+    finally:
+        db.session.close()
+
+
 '''
 @app.route('/item_list', methods=['GET', 'POST'])
 def item_list():

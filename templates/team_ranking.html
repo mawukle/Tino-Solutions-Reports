@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Teams to Clients</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <a href="{{ url_for('assign_teams') }}" class="back-link">The Renewable Energy Experts</a>
+        <h1>TEAM RANKING</h1>
+        <form method="POST" action="/team_ranking">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" required>
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" required>
+
+            <button type="submit">Get Rankings</button>
+        </form>
+
+        {% if team_rankings %}
+            <h2>Team Member Rankings</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team Member</th>
+                        <th>Ranking Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team_member, ranking_score in team_rankings %}
+                        <tr>
+                            <td>{{ team_member }}</td>
+                            <td>{{ ranking_score }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No data to display</p>
+        {% endif %}
+
+    </div>
+</body>
+</html>
