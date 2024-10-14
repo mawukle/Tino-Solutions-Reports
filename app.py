@@ -187,21 +187,21 @@ def team_ranking():
             # Query to get the number of days worked by each team member
             days_worked_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.count(Job_Tracking.Date.distinct()).label('days_worked')
+                func.count(func.distinct(Job_Tracking.Date)).label('days_worked')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Query to get the number of clients visited and sum of days clients were visited
+            # Query to get the number of clients visited and the total number of days clients were visited
             clients_visited_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.count(Job_Tracking.Client_Unique_ID.distinct()).label('clients_visited'),
-                func.sum(func.count(Job_Tracking.Client_Unique_ID)).label('days_clients_visited')
+                func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited'),
+                func.sum(func.distinct(Job_Tracking.Date)).label('days_clients_visited')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Team_Members.Team_Member_Name, Job_Tracking.Client_Unique_ID).subquery()
+            ).group_by(Team_Members.Team_Member_Name).subquery()
 
             # Combine both queries and apply the ranking formula
             ranking_query = db.session.query(
@@ -213,19 +213,24 @@ def team_ranking():
             ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
             ).order_by(desc('ranking_score'))
 
+            # Fetch the rankings from the query
             team_rankings = ranking_query.all()
 
             return render_template('team_ranking.html', team_rankings=team_rankings)
 
+        # Render the page if it's a GET request
         return render_template('team_ranking.html')
 
     except Exception as e:
+        # Handle exceptions and log the error
         db.session.rollback()
         logging.error(f"Error occurred: {e}")
         return str(e)
 
     finally:
+        # Close the database session
         db.session.close()
+
 
 
 '''
