@@ -189,8 +189,8 @@ def team_ranking():
             days_worked_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('days_worked')
-            ).join(job_team_members, job_team_members.c.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.c.Job_ID) \
+            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
+             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
@@ -198,8 +198,8 @@ def team_ranking():
             clients_visited_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
-            ).join(job_team_members, job_team_members.c.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.c.Job_ID) \
+            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
+             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
@@ -222,8 +222,8 @@ def team_ranking():
                             *[
                                 (days_clients_visited_query.c.total_days_visited, days_clients_visited_query.c.Client_Unique_ID == client_id)
                                 for client_id in db.session.query(Job_Tracking.Client_Unique_ID)
-                                .join(job_team_members, job_team_members.c.Job_ID == Job_Tracking.Job_ID)
-                                .filter(job_team_members.c.Team_Member_ID == Team_Members.Team_Member_ID)
+                                .join(job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID)
+                                .filter(job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
                                 .distinct()
                             ]
                         )
@@ -236,8 +236,8 @@ def team_ranking():
                              *[
                                  (days_clients_visited_query.c.total_days_visited, days_clients_visited_query.c.Client_Unique_ID == client_id)
                                  for client_id in db.session.query(Job_Tracking.Client_Unique_ID)
-                                 .join(job_team_members, job_team_members.c.Job_ID == Job_Tracking.Job_ID)
-                                 .filter(job_team_members.c.Team_Member_ID == Team_Members.Team_Member_ID)
+                                 .join(job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID)
+                                 .filter(job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
                                  .distinct()
                              ]
                          )
