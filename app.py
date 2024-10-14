@@ -8,7 +8,8 @@ import pymysql
 from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc
+from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine
+from sqlalchemy.orm import sessionmaker
 import pandas as pd
 
 pymysql.install_as_MySQLdb()
@@ -179,66 +180,71 @@ def invoice_sheet():
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
+    session = Session()
+
+    # Define date range for filtering if needed
+    # You can get these from the request or define them here
+    start_date = request.form.get('start_date', '2024-09-01')
+    end_date = request.form.get('end_date', '2024-09-30')
+
+    # SQL Query to calculate rankings
     try:
-        if request.method == 'POST':
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
-
-            # Query for days worked
-            days_worked_query = db.session.query(
-                Team_Members.Team_Member_Name,
-                func.count(Job_Tracking.Date.distinct()).label('days_worked')
-            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
-            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
-            ).filter(Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Team_Members.Team_Member_Name).subquery()
-
-            # Query for clients visited
-            clients_visited_query = db.session.query(
-                Team_Members.Team_Member_Name,
-                func.count(Job_Tracking.Client_Unique_ID.distinct()).label('clients_visited')
-            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
-            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
-            ).filter(Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Team_Members.Team_Member_Name).subquery()
-
-            # Query for total days at clients
-            total_days_at_clients_query = db.session.query(
+        days_clients_visited = (
+            select(
                 Job_Tracking.Client_Unique_ID,
-                func.count(Job_Tracking.Date.distinct()).label('days_clients_visited')
-            ).filter(Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Job_Tracking.Client_Unique_ID).subquery()
+                func.count(distinct(Job_Tracking.Date)).label('days_clients_visited')
+            )
+            .filter(Job_Tracking.Date.between(start_date, end_date))
+            .group_by(Job_Tracking.Client_Unique_ID)
+        ).subquery()
 
-            # Final ranking query
-            ranking_query = db.session.query(
+        team_rankings = (
+            select(
                 Team_Members.Team_Member_Name,
-                days_worked_query.c.days_worked,
-                clients_visited_query.c.clients_visited,
-                func.coalesce(func.sum(total_days_at_clients_query.c.days_clients_visited), 0).label('total_days_at_clients'),
-                (days_worked_query.c.days_worked +
-                 func.coalesce(clients_visited_query.c.clients_visited /
-                 func.nullif(func.sum(total_days_at_clients_query.c.days_clients_visited), 0), 0)
-                ).label('ranking_score')
-            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
-            ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
-            ).outerjoin(total_days_at_clients_query, total_days_at_clients_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID
-            ).group_by(Team_Members.Team_Member_Name
-            ).order_by(desc('ranking_score'))
+                func.count(distinct(Job_Tracking.Date)).label('days_worked'),
+                func.count(distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited'),
+                func.coalesce(func.sum(days_clients_visited.c.days_clients_visited), 0).label('total_days_at_clients'),
+                (func.count(distinct(Job_Tracking.Date)) +
+                 func.count(distinct(Job_Tracking.Client_Unique_ID)) /
+                 func.coalesce(func.sum(days_clients_visited.c.days_clients_visited), 1)).label('ranking_score')
+            )
+            .select_from(Team_Members)
+            .outerjoin(
+                Job_Tracking,
+                Team_Members.Team_Member_ID == Job_Tracking.Team_Member_ID
+            )
+            .outerjoin(
+                days_clients_visited,
+                Job_Tracking.Client_Unique_ID == days_clients_visited.c.Client_Unique_ID
+            )
+            .filter(Job_Tracking.Date.between(start_date, end_date))  # Filtering for the date range
+            .group_by(Team_Members.Team_Member_Name)
+            .order_by(func.rank().desc())
+        )
 
-            team_rankings = ranking_query.all()
+        # Execute the query
+        rankings_result = session.execute(team_rankings).fetchall()
 
-            return render_template('team_ranking.html', team_rankings=team_rankings)
+        # Format the results
+        rankings = [
+            {
+                "team_member": row[0],
+                "days_worked": row[1],
+                "clients_visited": row[2],
+                "total_days_at_clients": row[3],
+                "ranking_score": row[4],
+            }
+            for row in rankings_result
+        ]
 
-        return render_template('team_ranking.html')
+        return jsonify(rankings)
 
     except Exception as e:
-        db.session.rollback()
-        logging.error(f"Error occurred: {e}")
-        return str(e)
+        app.logger.error(f"Error occurred: {e}")
+        return jsonify({"error": str(e)}), 500
 
     finally:
-        db.session.close()
-
+        session.close()
 
 
 '''
