@@ -18,35 +18,35 @@
         <form method="POST" action="/team_ranking">
             <label for="start_date">Start Date:</label>
             <input type="date" id="start_date" name="start_date" required>
-
             <label for="end_date">End Date:</label>
             <input type="date" id="end_date" name="end_date" required>
-
             <button type="submit">Get Rankings</button>
         </form>
 
         {% if team_rankings %}
-            <h2>Team Member Rankings</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Team Member</th>
-                        <th>Ranking Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for team_member, ranking_score in team_rankings %}
-                        <tr>
-                            <td>{{ team_member }}</td>
-                            <td>{{ ranking_score }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No data to display</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Team Member</th>
+                    <th>Days Worked</th>
+                    <th>Clients Visited</th>
+                    <th>Total Days at Clients</th>
+                    <th>Ranking Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team_member, days_worked, clients_visited, days_clients_visited, ranking_score in team_rankings %}
+                <tr>
+                    <td>{{ team_member }}</td>
+                    <td>{{ days_worked }}</td>
+                    <td>{{ clients_visited }}</td>
+                    <td>{{ days_clients_visited }}</td>
+                    <td>{{ ranking_score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% endif %}
-
     </div>
 </body>
 </html>
