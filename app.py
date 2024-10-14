@@ -185,67 +185,47 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Query 1: Days worked by each team member
+            # Query to get the number of days worked by each team member
             days_worked_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.count(func.distinct(Job_Tracking.Date)).label('days_worked')
+                func.count(Job_Tracking.Date.distinct()).label('days_worked')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Query 2: Clients visited by each team member
+            # Query to get the number of clients visited by each team member
             clients_visited_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
+                func.count(Job_Tracking.Client_Unique_ID.distinct()).label('clients_visited')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Query 3: Total days each client was visited by any team member
+            # Query to calculate the total days at clients for the clients each team member visited
             total_days_at_clients_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
-                func.count(func.distinct(Job_Tracking.Date)).label('total_days_visited')
+                func.count(Job_Tracking.Date.distinct()).label('days_clients_visited')
             ).filter(Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Query 4: Calculate the total days at clients visited by "A"
-            total_days_for_clients_visited_query = db.session.query(
-                func.sum(total_days_at_clients_query.c.total_days_visited).label('days_clients_visited')
-            ).filter(
-                total_days_at_clients_query.c.Client_Unique_ID.in_(
-                    db.session.query(Job_Tracking.Client_Unique_ID)
-                    .join(job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID)
-                    .filter(
-                        job_team_members.Team_Member_ID.in_(
-                            db.session.query(Team_Members.Team_Member_ID)
-                            .join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
-                            .filter(Job_Tracking.Date.between(start_date, end_date))
-                        )
-                    )
-                )
-            ).scalar_subquery()
-
-            # Combine the queries into the final ranking formula
+            # Combine the queries to compute the ranking score for each team member
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
                 clients_visited_query.c.clients_visited,
-                total_days_for_clients_visited_query.label('days_clients_visited'),
+                func.sum(total_days_at_clients_query.c.days_clients_visited).label('total_days_at_clients'),
                 (days_worked_query.c.days_worked +
-                 (clients_visited_query.c.clients_visited / total_days_for_clients_visited_query)
+                 (clients_visited_query.c.clients_visited / func.sum(total_days_at_clients_query.c.days_clients_visited))
                 ).label('ranking_score')
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
             ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
-            ).group_by(
-                Team_Members.Team_Member_Name,
-                days_worked_query.c.days_worked,
-                clients_visited_query.c.clients_visited,
-                total_days_for_clients_visited_query
+            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
+            ).filter(Job_Tracking.Client_Unique_ID == total_days_at_clients_query.c.Client_Unique_ID
+            ).group_by(Team_Members.Team_Member_Name
             ).order_by(desc('ranking_score'))
 
-            # Fetch the rankings
             team_rankings = ranking_query.all()
 
             return render_template('team_ranking.html', team_rankings=team_rankings)
