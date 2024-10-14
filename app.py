@@ -8,7 +8,7 @@ import pymysql
 from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column
+from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc
 import pandas as pd
 
 pymysql.install_as_MySQLdb()
