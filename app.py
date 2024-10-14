@@ -181,7 +181,6 @@ def invoice_sheet():
 def team_ranking():
     try:
         if request.method == 'POST':
-            # Get the date range from the form
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
@@ -215,14 +214,14 @@ def team_ranking():
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
                 clients_visited_query.c.clients_visited,
-                func.sum(total_days_at_clients_query.c.days_clients_visited).label('total_days_at_clients'),
+                func.coalesce(func.sum(total_days_at_clients_query.c.days_clients_visited), 0).label('total_days_at_clients'),
                 (days_worked_query.c.days_worked +
-                 (clients_visited_query.c.clients_visited / func.sum(total_days_at_clients_query.c.days_clients_visited))
+                 func.coalesce(clients_visited_query.c.clients_visited /
+                 func.sum(total_days_at_clients_query.c.days_clients_visited), 0)
                 ).label('ranking_score')
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name
             ).join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name
-            ).join(Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
-            ).filter(Job_Tracking.Client_Unique_ID == total_days_at_clients_query.c.Client_Unique_ID
+            ).outerjoin(total_days_at_clients_query, total_days_at_clients_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID
             ).group_by(Team_Members.Team_Member_Name
             ).order_by(desc('ranking_score'))
 
