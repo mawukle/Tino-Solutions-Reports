@@ -190,17 +190,20 @@ def team_ranking():
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('days_worked'),
                 func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited'),
-                func.sum(case(
-                    # Calculate total days visited for clients specific to this team member
-                    [(Job_Tracking.Client_Unique_ID == client_id, func.count(func.distinct(Job_Tracking.Date)))
-                     for client_id in db.session.query(Job_Tracking.Client_Unique_ID)
-                     .join(job_team_members)
-                     .filter(
-                         job_team_members.Team_Member_ID == Team_Members.Team_Member_ID,
-                         Job_Tracking.Date.between(start_date, end_date)
-                     ).distinct()],
-                    else_=0
-                )).label('days_clients_visited')
+                func.sum(
+                    case(
+                        *[
+                            (Job_Tracking.Client_Unique_ID == client_id, func.count(func.distinct(Job_Tracking.Date)))
+                            for client_id in db.session.query(Job_Tracking.Client_Unique_ID)
+                            .join(job_team_members)
+                            .filter(
+                                job_team_members.Team_Member_ID == Team_Members.Team_Member_ID,
+                                Job_Tracking.Date.between(start_date, end_date)
+                            ).distinct()
+                        ],
+                        else_=0
+                    )
+                ).label('days_clients_visited')
             ).join(job_team_members).join(Job_Tracking).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Team_Members.Team_Member_Name).order_by(desc('days_clients_visited'))
