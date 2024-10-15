@@ -25,27 +25,36 @@
 
         {% if team_rankings %}
         <table>
-            <thead>
-                <tr>
-                    <th>Team Member</th>
-                    <th>Days Worked</th>
-                    <th>Clients Visited</th>
-                    <th>Total Days at Clients</th>
-                    <th>Ranking Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ranking in team_rankings %}
-                <tr>
-                    <td>{{ ranking[0] }}</td>  <!-- Team Member Name -->
-                    <td>{{ ranking[1] }}</td>  <!-- Days Worked -->
-                    <td>{{ ranking[2] }}</td>  <!-- Clients Visited -->
-                    <td>{{ ranking[3] }}</td>  <!-- Total Days at Clients -->
-                    <td>{{ ranking[4] }}</td>  <!-- Ranking Score -->
-                </tr>
-                {% endfor %}
-            </tbody>
+            <tr>
+                <th>Team Member</th>
+                <th>Days Worked</th>
+                <th>Clients Visited</th>
+                <th>Total Days at Clients</th>
+            </tr>
+            {% for row in team_rankings %}
+            <tr>
+                <td>{{ row.Team_Member_Name }}</td>
+                <td>{{ row.days_worked }}</td>
+                <td>{{ row.clients_visited }}</td>
+                <td>{{ row.total_days_at_clients }}</td>
+            </tr>
+            {% endfor %}
         </table>
+
+        <h2>Client Visits</h2>
+        <table>
+            <tr>
+                <th>Client</th>
+                <th>Days Visited</th>
+            </tr>
+            {% for row in clients_days_query %}
+            <tr>
+                <td>{{ row.Client_Name }}</td>
+                <td>{{ row.days_visited }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
         {% else %}
         <p>No rankings available for the selected period.</p>
         {% endif %}
