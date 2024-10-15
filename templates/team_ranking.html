@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
-        <a href="{{ url_for('assign_teams') }}" class="back-link">The Renewable Energy Experts</a>
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
         <h1>TEAM RANKING</h1>
         <form method="POST" action="/team_ranking">
             <label for="start_date">Start Date:</label>
@@ -39,20 +39,6 @@
                 <td>{{ row.clients_visited }}</td>
                 <td>{{ row.total_days_at_clients }}</td>
                 <td>{{ row.ranking_score }}</td>  <!-- New data for ranking -->
-            </tr>
-            {% endfor %}
-        </table>
-
-        <h2>Client Visits</h2>
-        <table>
-            <tr>
-                <th>Client</th>
-                <th>Days Visited</th>
-            </tr>
-            {% for row in clients_days_query %}
-            <tr>
-                <td>{{ row.Client_Name }}</td>
-                <td>{{ row.days_visited }}</td>
             </tr>
             {% endfor %}
         </table>
