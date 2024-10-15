@@ -36,7 +36,7 @@ class Team_Members(db.Model):
     Team_Member_ID = db.Column(db.Integer, primary_key=True)
     Team_Member_Name = db.Column(db.String(255), nullable=False)
 
-    # Adjusting backref names to prevent conflicts
+    # Relationships
     job_teams = relationship('job_team_members', backref='team_member', lazy=True)
     assigned_jobs = relationship('Team_Members_Assigned', backref='assigned_member', lazy=True)
 
@@ -53,7 +53,7 @@ class Job_Tracking(db.Model):
     Any_Issues = db.Column(db.Text, nullable=True)
     Percentage_Completion = db.Column(db.Float, nullable=True)
 
-    # Adjusting backrefs
+    # Relationships
     team_members = relationship('job_team_members', backref='job_tracking', lazy=True)
     pictures = relationship('Job_Pictures', backref='job_tracking', lazy=True)
 
