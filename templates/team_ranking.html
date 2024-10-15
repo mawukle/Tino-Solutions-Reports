@@ -30,6 +30,7 @@
                 <th>Days Worked</th>
                 <th>Clients Visited</th>
                 <th>Total Days at Clients</th>
+                <th>Ranking Score</th>  <!-- New column for ranking -->
             </tr>
             {% for row in team_rankings %}
             <tr>
@@ -37,6 +38,7 @@
                 <td>{{ row.days_worked }}</td>
                 <td>{{ row.clients_visited }}</td>
                 <td>{{ row.total_days_at_clients }}</td>
+                <td>{{ row.ranking_score }}</td>  <!-- New data for ranking -->
             </tr>
             {% endfor %}
         </table>

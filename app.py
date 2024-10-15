@@ -220,7 +220,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Final ranking query with the new ranking calculation
+            # Final ranking query with the updated ranking calculation
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
@@ -229,11 +229,11 @@ def team_ranking():
                 (days_worked_query.c.days_worked +
                  func.coalesce(team_member_total_days_query.c.total_days_at_clients, 0) /
                  func.coalesce(clients_visited_query.c.clients_visited, 1)
-                ).label('ranking_score')  # Prevent division by zero
+                ).label('ranking_score')  # Adjusted ranking score calculation
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .order_by(desc('ranking_score'))
+             .order_by(desc('ranking_score'))  # Order by the ranking score
 
             # Fetch the rankings
             team_rankings = ranking_query.all()
