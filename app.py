@@ -227,8 +227,8 @@ def team_ranking():
                 clients_visited_query.c.clients_visited,
                 team_member_total_days_query.c.total_days_at_clients,
                 (days_worked_query.c.days_worked +
-                 func.coalesce(team_member_total_days_query.c.total_days_at_clients, 0) /
-                 func.coalesce(clients_visited_query.c.clients_visited, 1)
+                 func.coalesce(clients_visited_query.c.clients_visited, 0) /
+                 func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)
                 ).label('ranking_score')  # Adjusted ranking score calculation
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
