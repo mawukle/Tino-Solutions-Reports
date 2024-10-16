@@ -11,70 +11,84 @@
 </head>
 <body>
     <div class="container">
-      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
-      <!-- Back to Homepage Link -->
-      <a href="{{ url_for('assign_job') }}" class="back-link">The Renewable Energy Experts</a>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('assign_job') }}" class="back-link">The Renewable Energy Experts</a>
 
-      <h1>DAILY REPORT</h1>
-      <form action="{{ url_for('assign_job') }}" method="post" enctype="multipart/form-data">
-        <!--div id="date_filter"-->
-          <div id="dates_filter">
-            <label for="job_date">Job Date:</label>
-            <input type="date" id="job_date" name="job_date" required><br>
-            <label for="percentage_completion">Percentage Completion:</label>
-            <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
+        <h1>DAILY REPORT</h1>
+        <form action="{{ url_for('assign_job') }}" method="post" enctype="multipart/form-data">
+            <!-- Date and Percentage Completion -->
+            <div id="dates_filter">
+                <label for="job_date">Job Date:</label>
+                <input type="date" id="job_date" name="job_date" required><br>
 
-          </div>
-          <div id="location_filter">
-            <label for="client_name">Client Name:</label>
-            <input type="text" id="client_name" name="client_name" required><br>
-          </div>
-        <!--/div-->
+                <label for="percentage_completion">Percentage Completion:</label>
+                <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
+            </div>
 
-          <label for="tasks_performed">Tasks Performed:</label>
-          <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea>
-          <br>
+            <!-- Client Information -->
+            <div id="location_filter">
+                <label for="client_name">Client Name:</label>
+                <input type="text" id="client_name" name="client_name" required><br>
 
-          <label for="any_issues">Any Issues:</label>
-          <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea>
-          <br>
-          <label for="team_members">Select Team Members:</label>
-          <div id="team_members">
-              {% for member in team_members %}
-                  <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
-                  <label for="{{ member[0] }}">{{ member[1] }}</label>
-                  <!--br-->
-              {% endfor %}
-          </div>
+                <label for="client_location">Location (Town):</label>
+                <input type="text" id="client_location" name="client_location" readonly><br>
+            </div>
 
+            <!-- Tasks Performed and Any Issues -->
+            <label for="tasks_performed">Tasks Performed:</label>
+            <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea><br>
 
-          <!--label for="job_pictures">Upload Pictures:</label-->
-          <!--input type="file" id="job_pictures" name="job_pictures" multiple-->
-          <!--br-->
+            <label for="any_issues">Any Issues:</label>
+            <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea><br>
 
-          <button type="submit">Submit</button>
-      </form>
+            <!-- Select Team Members -->
+            <label for="team_members">Select Team Members:</label>
+            <div id="team_members">
+                {% for member in team_members %}
+                    <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
+                    <label for="{{ member[0] }}">{{ member[1] }}</label><br>
+                {% endfor %}
+            </div>
 
-      <script>
-          $(document).ready(function() {
-              // Enable autocomplete for client names
-              $("#client_name").autocomplete({
-                  source: function(request, response) {
-                      $.ajax({
-                          url: "{{ url_for('autocomplete_client') }}",
-                          type: "GET",
-                          data: {
-                              term: request.term
-                          },
-                          success: function(data) {
-                              response(data);
-                          }
-                      });
-                  },
-                  minLength: 2
-              });
-          });
-      </script>
+            <!-- Submit Button -->
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- jQuery Script for Autocomplete and Fetching Client Details -->
+        <script>
+            $(document).ready(function() {
+                // Enable autocomplete for client names
+                $("#client_name").autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{{ url_for('autocomplete_client') }}",
+                            type: "GET",
+                            data: {
+                                term: request.term
+                            },
+                            success: function(data) {
+                                response(data);
+                            }
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        // Fetch client details when a client is selected
+                        $.ajax({
+                            url: "{{ url_for('get_client_details') }}",
+                            type: "GET",
+                            data: { client_name: ui.item.value },
+                            success: function(data) {
+                                if (data) {
+                                    $("#client_location").val(data.town);  // Set the Location field
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
     </div>
 </body>
 </html>
