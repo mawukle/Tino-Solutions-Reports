@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
 </head>
 <body>
     <div class="container">
@@ -39,17 +40,19 @@
 
             <!-- Tasks Performed and Any Issues -->
             <label for="tasks_performed">Tasks Performed:</label>
-            <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea>
+            <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea><br>
 
             <label for="any_issues">Any Issues:</label>
-            <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea>
+            <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea><br>
 
             <!-- Select Team Members -->
             <label for="team_members">Select Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
-                    <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
-                    <label for="{{ member[0] }}">{{ member[1] }}</label><br>
+                    <span class="checkbox-label">
+                        <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
+                        <label for="{{ member[0] }}">{{ member[1] }}</label>
+                    </span><br>
                 {% endfor %}
             </div>
 

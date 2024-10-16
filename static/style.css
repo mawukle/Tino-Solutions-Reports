@@ -469,3 +469,15 @@ nav a:hover {
     /*border-radius: 50%; /* Optional: if you want the logo to have rounded edges */
     text-align: center;
 }
+
+/* Ensure checkbox and label stay on the same line without any gaps */
+.checkbox-label {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Prevent line breaks between checkbox and label */
+.checkbox-label input {
+    margin-right: 0;
+    vertical-align: middle;
+}
