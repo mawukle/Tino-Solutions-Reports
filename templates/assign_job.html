@@ -8,6 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
     <div class="container">
@@ -29,7 +30,7 @@
             <!-- Client Information -->
             <div id="location_filter">
                 <label for="client_name">Client Name:</label>
-                <input type="text" id="client_name" name="client_name" required><br>
+                <input type="text" id="client_name" name="client_name" required class="client-select"><br>
             </div>
             <div id="location_filter">
                 <label for="client_location">Location:</label>
