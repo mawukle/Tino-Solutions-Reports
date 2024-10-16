@@ -485,7 +485,7 @@ nav a:hover {
 /* Styling for selectable team members */
 .team-member {
     display: inline-block;
-    padding: 5px 10px; /* Reduced padding to fit around the text */
+    padding: 1px 1px; /* Reduced padding to fit around the text */
     margin: 5px;
     border: 1px solid #000; /* Black border for rectangle */
     border-radius: 8px; /* Slightly curved edges */
