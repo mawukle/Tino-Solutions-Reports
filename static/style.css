@@ -485,15 +485,18 @@ nav a:hover {
 /* Styling for selectable team members */
 .team-member {
     display: inline-block;
-    padding: 10px 15px;
+    padding: 5px 10px; /* Reduced padding to fit around the text */
     margin: 5px;
     border: 1px solid #000; /* Black border for rectangle */
+    border-radius: 8px; /* Slightly curved edges */
     cursor: pointer;
     user-select: none;
+    background-color: #fff; /* Background white for unselected state */
+    transition: background-color 0.3s ease; /* Smooth transition for background change */
 }
 
 /* Style for selected state (lemon green background) */
 .selected {
     background-color: #adff2f; /* Lemon green color */
-    color: #000; /* Optional: ensure text stays visible on green background */
+    color: #000; /* Text remains visible on green background */
 }
