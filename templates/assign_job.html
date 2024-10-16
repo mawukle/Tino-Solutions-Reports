@@ -9,7 +9,23 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        /* Styling for selectable team members */
+        .team-member {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            border: 1px solid #000; /* Black border for rectangle */
+            cursor: pointer;
+            user-select: none;
+        }
 
+        /* Style for selected state (lemon green background) */
+        .selected {
+            background-color: #adff2f; /* Lemon green color */
+            color: #000; /* Optional: ensure text stays visible on green background */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -45,16 +61,16 @@
             <label for="any_issues">Any Issues:</label>
             <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea><br>
 
-            <!-- Select Team Members -->
+            <!-- Select Team Members (Click to select) -->
             <label for="team_members">Select Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
-                    <span class="checkbox-label">
-                        <input type="checkbox" id="{{ member[0] }}" name="team_members" value="{{ member[0] }}">
-                        <label for="{{ member[0] }}">{{ member[1] }}</label>
-                    </span><br>
+                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
                 {% endfor %}
             </div>
+
+            <!-- Hidden input to store selected team members -->
+            <input type="hidden" id="selected_team_members" name="selected_team_members" value="">
 
             <!-- Submit Button -->
             <button type="submit">Submit</button>
@@ -91,6 +107,20 @@
                             }
                         });
                     }
+                });
+
+                // Handle team member selection
+                $(".team-member").click(function() {
+                    $(this).toggleClass("selected");  // Toggle the selected class
+
+                    // Collect selected team members' IDs
+                    let selectedMembers = [];
+                    $(".team-member.selected").each(function() {
+                        selectedMembers.push($(this).data("member-id"));
+                    });
+
+                    // Update the hidden input with the selected members
+                    $("#selected_team_members").val(selectedMembers.join(","));
                 });
             });
         </script>
