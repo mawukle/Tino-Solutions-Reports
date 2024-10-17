@@ -1545,6 +1545,7 @@ def summary():
                 start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
                 ninety_days_ago = start_date_obj - timedelta(days=90)
 
+                # Corrected incomplete job query (removed erroneous HAVING condition)
                 incomplete_query = db.session.query(
                     Client_List.Client_Name,
                     func.max(Job_Tracking.Date).label('Last_Job_Date'),
@@ -1553,8 +1554,7 @@ def summary():
                 ).filter(
                     Job_Tracking.Date.between(ninety_days_ago, end_date),
                     Job_Tracking.Percentage_Completion < 100
-                ).group_by(Client_List.Client_Name
-                ).having(func.max(Job_Tracking.Date) == Job_Tracking.Date)
+                ).group_by(Client_List.Client_Name)
 
                 clients_with_incomplete_jobs = incomplete_query.all()
 
