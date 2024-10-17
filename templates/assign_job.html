@@ -49,12 +49,13 @@
             <label for="team_members">Select Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
-                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
+                    <!-- Hidden checkbox that will hold the team member's value when selected -->
+                    <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
+
+                    <!-- Clickable team member -->
+                    <span class="team-member" data-member-id="{{ member[0] }}" onclick="toggleTeamMember('{{ member[0] }}')">{{ member[1] }}</span>
                 {% endfor %}
             </div>
-
-            <!-- Hidden input to store selected team members -->
-            <input type="hidden" id="selected_team_members" name="selected_team_members" value="">
 
             <!-- Submit Button -->
             <button type="submit">Submit</button>
@@ -111,18 +112,20 @@
                         });
                     }
                 });
-
-                // Handle team member selection
-                $(".team-member").click(function() {
-                    $(this).toggleClass("selected");
-
-                    let selectedMembers = [];
-                    $(".team-member.selected").each(function() {
-                        selectedMembers.push($(this).data("member-id"));
-                    });
-                    $("#selected_team_members").val(selectedMembers.join(","));
-                });
             });
+
+            // Function to toggle team member selection
+            function toggleTeamMember(memberId) {
+                var checkbox = document.getElementById('team_member_' + memberId);
+                checkbox.checked = !checkbox.checked;
+
+                var memberElement = document.querySelector('[data-member-id="' + memberId + '"]');
+                if (checkbox.checked) {
+                    memberElement.classList.add('selected');
+                } else {
+                    memberElement.classList.remove('selected');
+                }
+            }
         </script>
     </div>
 </body>
