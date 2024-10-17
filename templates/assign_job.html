@@ -21,10 +21,12 @@
             <!-- Date and Percentage Completion -->
             <div id="dates_filter">
                 <label for="job_date">Job Date:</label>
-                <input type="text" id="job_date_display" name="job_date_display" placeholder="Select a date" required readonly value="{{ selected_date }}"><br><br>
-                <input type="hidden" id="job_date" name="job_date" value="{{ selected_date }}">
+                <!-- Use input type="date" for date inputs to ensure correct formatting and behavior -->
+                <input type="date" id="job_date" name="job_date" required value="{{ selected_date }}">
+                <br><br>
 
                 <label for="percentage_completion">Percentage Completion:</label>
+                <!-- Ensure this input will use the number type, and it will adjust based on the input -->
                 <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
             </div>
 
