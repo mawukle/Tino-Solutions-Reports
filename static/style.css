@@ -396,7 +396,7 @@ nav a:hover {
 #dates_filter {
   display: flex;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 5px;
   flex-wrap: nowrap; /* Ensure Start and End Date stay on the same line */
   width: 100%; /* Ensure it takes up the full width */
 
@@ -405,7 +405,7 @@ nav a:hover {
 /* For job date input, adjust the width based on the character length of the displayed date */
 #job_date_display {
     width: auto; /* Width adjusts automatically */
-    min-width: 30ch; /* Minimum width based on estimated date length */
+    min-width: 25ch; /* Minimum width based on estimated date length */
     max-width: 40ch; /* Maximum width for long date formats */
     padding: 5px;
     font-size: 12px;
