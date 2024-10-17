@@ -417,7 +417,7 @@ nav a:hover {
 /* For percentage completion input, adjust the width based on its numeric value */
 #percentage_completion {
     width: auto; /* Width adjusts automatically */
-    min-width: 2ch; /* Minimum width (e.g., 3-digit percentage) */
+    min-width: 4ch; /* Minimum width (e.g., 3-digit percentage) */
     max-width: 4ch; /* Maximum width to handle larger values */
     padding: 5px;
     font-size: 12px;
