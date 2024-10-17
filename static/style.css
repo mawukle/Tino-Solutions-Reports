@@ -405,7 +405,7 @@ nav a:hover {
 /* For job date input, adjust the width based on the character length of the displayed date */
 #job_date_display {
     width: auto; /* Width adjusts automatically */
-    min-width: 25ch; /* Minimum width based on estimated date length */
+    min-width: 30ch; /* Minimum width based on estimated date length */
     max-width: 40ch; /* Maximum width for long date formats */
     padding: 5px;
     font-size: 12px;
@@ -417,9 +417,9 @@ nav a:hover {
 /* For percentage completion input, adjust the width based on its numeric value */
 #percentage_completion {
     width: auto; /* Width adjusts automatically */
-    min-width: 4ch; /* Minimum width (e.g., 3-digit percentage) */
-    max-width: 4ch; /* Maximum width to handle larger values */
-    padding: 5px;
+    min-width: 8ch; /* Minimum width (e.g., 3-digit percentage) */
+    max-width: 8ch; /* Maximum width to handle larger values */
+    padding: 2px;
     font-size: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
