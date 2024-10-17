@@ -1506,10 +1506,7 @@ def summary():
             }
 
             # Ensure group_column is a valid column or wrap it in text() for string literals
-            if group_by in group_column_map:
-                group_column = group_column_map[group_by]
-            else:
-                group_column = text(group_by)
+            group_column = group_column_map.get(group_by, text(group_by))
 
             # Query to get the job details with filters
             jobs_query = db.session.query(
@@ -1558,14 +1555,15 @@ def summary():
 
                 clients_with_incomplete_jobs = incomplete_query.all()
 
-            # Format dates for display
+            # Format jobs for display
             formatted_jobs = []
-            for job in grouped_jobs.values():
-                for j in job:
+            for job_list in grouped_jobs.values():
+                for j in job_list:
                     formatted_job = list(j)
                     formatted_job[4] = format_date(j[4])  # Format job date
                     formatted_jobs.append(formatted_job)
 
+            # Format clients for display
             formatted_clients = []
             for client in clients_with_incomplete_jobs:
                 formatted_client = list(client)
@@ -1620,7 +1618,6 @@ def format_date(date_obj):
         suffix = 'rd'
 
     return date_str.replace(str(day), str(day) + suffix)
-
 
 """
 @app.route('/summary', methods=['GET', 'POST'])
