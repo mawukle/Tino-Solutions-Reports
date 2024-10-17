@@ -1539,7 +1539,7 @@ def summary():
                     grouped_jobs[group_key] = []
                 grouped_jobs[group_key].append(job)
 
-            # Part 1: Add logic for finding clients with Percentage_Completion < 100% in the last 90 days
+            # Part 1: Add logic for finding clients with Percentage_Completion < 100% in the last 90 days from end_date
             clients_with_incomplete_jobs = []
             if end_date:
                 end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
@@ -1551,9 +1551,10 @@ def summary():
                     func.max(Job_Tracking.Percentage_Completion).label('Percentage_Completion')
                 ).join(Job_Tracking, Client_List.Client_Unique_ID == Job_Tracking.Client_Unique_ID
                 ).filter(
-                    Job_Tracking.Date.between(ninety_days_ago, end_date),
-                    Job_Tracking.Percentage_Completion < 100
-                ).group_by(Client_List.Client_Name)
+                    Job_Tracking.Date.between(ninety_days_ago, end_date)  # Only look in the last 90 days up to end_date
+                ).group_by(Client_List.Client_Name).having(
+                    func.max(Job_Tracking.Percentage_Completion) < 100  # Ensure the last job is incomplete
+                )
 
                 clients_with_incomplete_jobs = incomplete_query.all()
 
@@ -1587,6 +1588,7 @@ def summary():
 
     finally:
         db.session.close()
+
 
 """
 @app.route('/summary', methods=['GET', 'POST'])
