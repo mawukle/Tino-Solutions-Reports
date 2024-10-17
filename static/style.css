@@ -45,6 +45,21 @@ h1 {
     font-style: normal;
 }
 
+/* Ensure the width of Job Date and Percentage Completion adjust based on input */
+input[type="date"],
+input[name="percentage_completion"] {
+    padding: 5px;
+    font-size: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: auto; /* Auto adjusts to fit the content */
+    min-width: 80px; /* Ensures a minimum size */
+    max-width: 150px; /* Prevents it from getting too wide */
+}
+
+
+
 form {
     display: flex;
     flex-direction: column;
