@@ -1541,11 +1541,10 @@ def summary():
 
             # Part 1: Add logic for finding clients with Percentage_Completion < 100% in the last 90 days
             clients_with_incomplete_jobs = []
-            if start_date:
-                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-                ninety_days_ago = start_date_obj - timedelta(days=90)
+            if end_date:
+                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+                ninety_days_ago = end_date_obj - timedelta(days=90)  # Calculate 90 days from the end_date
 
-                # Corrected incomplete job query (removed erroneous HAVING condition)
                 incomplete_query = db.session.query(
                     Client_List.Client_Name,
                     func.max(Job_Tracking.Date).label('Last_Job_Date'),
