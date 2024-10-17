@@ -87,7 +87,7 @@
                         <td>{{ job[1] }}</td>
                         <td>{{ job[2] }}</td>
                         <td>{{ job[3] }}</td>
-                        <td>{{ format_date(job[4]) }}</td> <!-- Use the format_date function here -->
+                        <td>{{ job[4] }}</td>
                         <td>{{ job[5] }}</td>
                         <td>{{ job[6] }}</td>
                         <td>{{ job[7] }}%</td>
@@ -105,26 +105,11 @@
         <!-- Display clients with incomplete jobs in the last 90 days -->
         {% if clients_with_incomplete_jobs %}
         <h2>Clients with Incomplete Jobs (Less than 100% Completion in Last 90 Days)</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Last Job Date</th>
-                        <th>Percentage Completion</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for client in clients_with_incomplete_jobs %}
-                    <tr>
-                        <td>{{ client.Client_Name }}</td>
-                        <td>{{ format_date(client.Last_Job_Date) }}</td> <!-- Format date here -->
-                        <td>{{ client.Percentage_Completion }}%</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <ul>
+            {% for client in clients_with_incomplete_jobs %}
+            <li>{{ client.Client_Name }} - Last Job Date: {{ client.Last_Job_Date }} - Completion: {{ client.Percentage_Completion }}%</li>
+            {% endfor %}
+        </ul>
         {% else %}
         <p>No incomplete jobs in the last 90 days.</p>
         {% endif %}

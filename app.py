@@ -1447,8 +1447,6 @@ def get_client_details():
             mydb.close()
 """
 
-
-
 @app.route('/summary', methods=['GET', 'POST'])
 def summary():
     try:
@@ -1506,7 +1504,10 @@ def summary():
             }
 
             # Ensure group_column is a valid column or wrap it in text() for string literals
-            group_column = group_column_map.get(group_by, text(group_by))
+            if group_by in group_column_map:
+                group_column = group_column_map[group_by]
+            else:
+                group_column = text(group_by)
 
             # Query to get the job details with filters
             jobs_query = db.session.query(
@@ -1555,25 +1556,10 @@ def summary():
 
                 clients_with_incomplete_jobs = incomplete_query.all()
 
-            # Format jobs for display
-            formatted_jobs = []
-            for job_list in grouped_jobs.values():
-                for j in job_list:
-                    formatted_job = list(j)
-                    formatted_job[4] = format_date(j[4])  # Format job date
-                    formatted_jobs.append(formatted_job)
-
-            # Format clients for display
-            formatted_clients = []
-            for client in clients_with_incomplete_jobs:
-                formatted_client = list(client)
-                formatted_client[1] = format_date(client.Last_Job_Date)  # Format last job date
-                formatted_clients.append(formatted_client)
-
             return render_template(
                 'summary.html',
-                grouped_jobs=formatted_jobs,
-                clients_with_incomplete_jobs=formatted_clients,  # Add to the context
+                grouped_jobs=grouped_jobs,
+                clients_with_incomplete_jobs=clients_with_incomplete_jobs,  # Add to the context
                 team_members=team_members,
                 filter_type=filter_type,
                 team_member_name=team_member_name,
@@ -1601,23 +1587,6 @@ def summary():
     finally:
         db.session.close()
 
-def format_date(date_obj):
-    """Formats a date object to 'Thursday, 17th October, 2024'."""
-    if not date_obj:
-        return ''
-
-    date_str = date_obj.strftime('%A, %d %B, %Y')  # e.g. "Thursday, 17 October, 2024"
-    day = date_obj.day
-    suffix = 'th'  # Default suffix
-
-    if day in (1, 21, 31):
-        suffix = 'st'
-    elif day in (2, 22):
-        suffix = 'nd'
-    elif day in (3, 23):
-        suffix = 'rd'
-
-    return date_str.replace(str(day), str(day) + suffix)
 
 """
 @app.route('/summary', methods=['GET', 'POST'])
