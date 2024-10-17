@@ -11,6 +11,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
+from sqlalchemy import text
+from datetime import datetime, timedelta
 
 pymysql.install_as_MySQLdb()
 
@@ -1445,7 +1447,7 @@ def get_client_details():
             mydb.close()
 """
 
-from sqlalchemy import text
+
 
 @app.route('/summary', methods=['GET', 'POST'])
 def summary():
@@ -1537,9 +1539,29 @@ def summary():
                     grouped_jobs[group_key] = []
                 grouped_jobs[group_key].append(job)
 
+            # Part 1: Add logic for finding clients with Percentage_Completion < 100% in the last 90 days
+            clients_with_incomplete_jobs = []
+            if start_date:
+                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+                ninety_days_ago = start_date_obj - timedelta(days=90)
+
+                incomplete_query = db.session.query(
+                    Client_List.Client_Name,
+                    func.max(Job_Tracking.Date).label('Last_Job_Date'),
+                    func.max(Job_Tracking.Percentage_Completion).label('Percentage_Completion')
+                ).join(Job_Tracking, Client_List.Client_Unique_ID == Job_Tracking.Client_Unique_ID
+                ).filter(
+                    Job_Tracking.Date.between(ninety_days_ago, end_date),
+                    Job_Tracking.Percentage_Completion < 100
+                ).group_by(Client_List.Client_Name
+                ).having(func.max(Job_Tracking.Date) == Job_Tracking.Date)
+
+                clients_with_incomplete_jobs = incomplete_query.all()
+
             return render_template(
                 'summary.html',
                 grouped_jobs=grouped_jobs,
+                clients_with_incomplete_jobs=clients_with_incomplete_jobs,  # Add to the context
                 team_members=team_members,
                 filter_type=filter_type,
                 team_member_name=team_member_name,

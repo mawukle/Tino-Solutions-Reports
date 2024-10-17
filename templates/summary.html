@@ -74,7 +74,6 @@
                         <th>Any Issues</th>
                         <th>% Completion</th>
                         <th>Engineers</th>
-                        <!--th>Pictures</th-->
                     </tr>
                 </thead>
                 <tbody>
@@ -93,19 +92,6 @@
                         <td>{{ job[6] }}</td>
                         <td>{{ job[7] }}%</td>
                         <td>{{ job[8].replace(',', ', ') if job[8] else '' }}</td>
-
-                        <!--td>
-                            {% if job[9] %}
-                                {% for picture in job[9].split(',') %}
-                                    <a href="{{ url_for('uploaded_file', filename=picture.strip()) }}" target="_blank">
-                                        <img src="{{ url_for('uploaded_file', filename=picture.strip()) }}" alt="Job Picture" class="job-picture">
-                                    </a>
-                                {% endfor %}
-                            {% else %}
-                                No pictures available
-                            {% endif %}
-                        </td-->
-
                     </tr>
                     {% endfor %}
                     {% endfor %}
@@ -114,6 +100,18 @@
         </div>
         {% else %}
         <p>No job details to display.</p>
+        {% endif %}
+
+        <!-- Display clients with incomplete jobs in the last 90 days -->
+        {% if clients_with_incomplete_jobs %}
+        <h2>Clients with Incomplete Jobs (Less than 100% Completion in Last 90 Days)</h2>
+        <ul>
+            {% for client in clients_with_incomplete_jobs %}
+            <li>{{ client.Client_Name }} - Last Job Date: {{ client.Last_Job_Date }} - Completion: {{ client.Percentage_Completion }}%</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No incomplete jobs in the last 90 days.</p>
         {% endif %}
     </div>
 
