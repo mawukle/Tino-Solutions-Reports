@@ -9,7 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-
 </head>
 <body>
     <div class="container">
@@ -22,7 +21,8 @@
             <!-- Date and Percentage Completion -->
             <div id="dates_filter">
                 <label for="job_date">Job Date:</label>
-                <input type="date" id="job_date" name="job_date" required><br>
+                <input type="text" id="job_date_display" name="job_date_display" placeholder="Select a date" required readonly value="{{ selected_date }}"><br><br>
+                <input type="hidden" id="job_date" name="job_date" value="{{ selected_date }}">
 
                 <label for="percentage_completion">Percentage Completion:</label>
                 <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
@@ -60,18 +60,38 @@
             <button type="submit">Submit</button>
         </form>
 
-        <!-- jQuery Script for Autocomplete and Fetching Client Details -->
+        <!-- jQuery Script for Datepicker, Autocomplete, and Fetching Client Details -->
         <script>
             $(document).ready(function() {
-                // Enable autocomplete for client names
+                // Datepicker with custom formatting
+                $('#job_date_display').datepicker({
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(dateText) {
+                        const selectedDate = new Date(dateText);
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
+
+                        // Add day suffix (st, nd, rd, th)
+                        const day = selectedDate.getDate();
+                        const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
+                                    (day == 2 || day == 22) ? 'nd' :
+                                    (day == 3 || day == 23) ? 'rd' : 'th';
+                        const dayWithSuffix = `${day}${suffix}`;
+
+                        // Update display and hidden input
+                        const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
+                        $('#job_date_display').val(formattedDateWithSuffix);
+                        $('#job_date').val(dateText);  // Store the date for submission
+                    }
+                });
+
+                // Autocomplete for client names
                 $("#client_name").autocomplete({
                     source: function(request, response) {
                         $.ajax({
                             url: "{{ url_for('autocomplete_client') }}",
                             type: "GET",
-                            data: {
-                                term: request.term
-                            },
+                            data: { term: request.term },
                             success: function(data) {
                                 response(data);
                             }
@@ -79,7 +99,6 @@
                     },
                     minLength: 2,
                     select: function(event, ui) {
-                        // Fetch client details when a client is selected
                         $.ajax({
                             url: "{{ url_for('get_client_details') }}",
                             type: "GET",
@@ -95,15 +114,12 @@
 
                 // Handle team member selection
                 $(".team-member").click(function() {
-                    $(this).toggleClass("selected");  // Toggle the selected class
+                    $(this).toggleClass("selected");
 
-                    // Collect selected team members' IDs
                     let selectedMembers = [];
                     $(".team-member.selected").each(function() {
                         selectedMembers.push($(this).data("member-id"));
                     });
-
-                    // Update the hidden input with the selected members
                     $("#selected_team_members").val(selectedMembers.join(","));
                 });
             });
