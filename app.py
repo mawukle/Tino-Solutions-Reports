@@ -13,6 +13,7 @@ from sqlalchemy.orm import sessionmaker
 import pandas as pd
 from sqlalchemy import text
 from datetime import datetime, timedelta
+#from datetime import datetime
 
 pymysql.install_as_MySQLdb()
 
@@ -1225,7 +1226,85 @@ def assign_job():
             mydb.close()
 """
 
-from datetime import datetime
+@app.route('/spy', methods=['GET', 'POST'])
+def spy():
+    try:
+        if request.method == 'POST':
+            # Retrieve the submitted date
+            selected_date = request.form['date']
+
+            # Check if no client and team details are provided
+            client_provided = any(key.startswith('client_') for key in request.form)
+            team_provided = any(key.startswith('team_') for key in request.form)
+
+            if not client_provided and not team_provided:
+                # Query the database for records corresponding to the selected date
+                results = Assigned_Teams.query.filter_by(assignment_date=selected_date).all()
+
+                if results:
+                    # Prepare the data to populate the form fields
+                    data_to_display = []
+                    for row in results:
+                        data_to_display.append({
+                            'client_name': row.client_name,
+                            'location': row.location,
+                            'phone_number': row.phone_number,
+                            'assigned_team': row.assigned_team
+                        })
+
+                    return render_template('spy.html',
+                                           selected_date=selected_date,
+                                           data_to_display=data_to_display)
+
+            else:
+                # Client and team details are provided, handle submission
+                client_team_pairs = []
+                for key, value in request.form.items():
+                    if 'client_' in key:
+                        client_index = key.split('_')[1]  # Extract index from the key
+                        client_name = value
+                        team_name = request.form.get(f'team_{client_index}')
+                        location = request.form.get(f'location_{client_index}')  # Get location
+                        phone_number = request.form.get(f'phone_{client_index}')  # Get phone number
+                        client_team_pairs.append((client_name, team_name, location, phone_number))
+
+                # Insert or update the data in the database
+                for client_name, team_name, location, phone_number in client_team_pairs:
+                    existing_assignment = Assigned_Teams.query.filter_by(client_name=client_name, assignment_date=selected_date).first()
+
+                    if existing_assignment:
+                        # Update existing assignment
+                        existing_assignment.assigned_team = team_name
+                        existing_assignment.location = location
+                        existing_assignment.phone_number = phone_number
+                    else:
+                        # Create a new assignment
+                        new_assignment = Assigned_Teams(
+                            client_name=client_name,
+                            assigned_team=team_name,
+                            assignment_date=selected_date,
+                            location=location,
+                            phone_number=phone_number
+                        )
+                        db.session.add(new_assignment)
+
+                db.session.commit()  # Commit the changes
+                return redirect(url_for('spy'))
+
+        # Fetch clients and team members for the form's autocomplete
+        clients = Client_List.query.all()
+        team_members = Team_Members.query.all()
+
+        return render_template('spy.html', clients=clients, team_members=team_members)
+
+    except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy error during team assignment: {e}")
+        db.session.rollback()
+        return str(e)
+
+    finally:
+        db.session.close()
+
 
 @app.route('/assign_teams', methods=['GET', 'POST'])
 def assign_teams():
