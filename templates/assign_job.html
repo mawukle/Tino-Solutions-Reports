@@ -9,17 +9,15 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- Include html2canvas library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <div class="container" id="report-container">
+    <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <!-- Back to Homepage Link -->
         <a href="{{ url_for('assign_job') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>DAILY REPORT</h1>
-        <form action="{{ url_for('assign_job') }}" method="post" enctype="multipart/form-data" id="daily-report-form">
+        <form action="{{ url_for('assign_job') }}" method="post" enctype="multipart/form-data">
             <!-- Date and Percentage Completion -->
             <div id="dates_filter">
                 <label for="job_date">Job Date:</label>
@@ -60,7 +58,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" id="submit-button">Submit</button>
+            <button type="submit">Submit</button>
         </form>
 
         <!-- jQuery Script for Datepicker, Autocomplete, and Fetching Client Details -->
@@ -114,39 +112,20 @@
                         });
                     }
                 });
-
-                // Function to toggle team member selection
-                function toggleTeamMember(memberId) {
-                    var checkbox = document.getElementById('team_member_' + memberId);
-                    checkbox.checked = !checkbox.checked;
-
-                    var memberElement = document.querySelector('[data-member-id="' + memberId + '"]');
-                    if (checkbox.checked) {
-                        memberElement.classList.add('selected');
-                    } else {
-                        memberElement.classList.remove('selected');
-                    }
-                }
-
-                // Capture the form and download as an image on submit
-                $('#submit-button').click(function(event) {
-                    event.preventDefault(); // Prevent form submission
-
-                    // Capture the form content as an image
-                    html2canvas(document.querySelector("#report-container")).then(function(canvas) {
-                        // Create a link element and set the captured image as download
-                        var link = document.createElement('a');
-                        link.href = canvas.toDataURL();
-                        link.download = 'daily_report.png';
-                        link.click();
-                    });
-
-                    // Submit the form after capturing the image
-                    setTimeout(function() {
-                        $('#daily-report-form').submit();
-                    }, 1000);  // Slight delay to ensure image capture happens first
-                });
             });
+
+            // Function to toggle team member selection
+            function toggleTeamMember(memberId) {
+                var checkbox = document.getElementById('team_member_' + memberId);
+                checkbox.checked = !checkbox.checked;
+
+                var memberElement = document.querySelector('[data-member-id="' + memberId + '"]');
+                if (checkbox.checked) {
+                    memberElement.classList.add('selected');
+                } else {
+                    memberElement.classList.remove('selected');
+                }
+            }
         </script>
     </div>
 </body>
