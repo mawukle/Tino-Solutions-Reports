@@ -9,8 +9,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- Include html2canvas library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <!-- Upgrade to the latest version of html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container" id="report-container">
@@ -55,7 +55,7 @@
                     <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
 
                     <!-- Clickable team member -->
-                    <span class="team-member" data-member-id="{{ member[0] }}" onclick="toggleTeamMember('{{ member[0] }}')">{{ member[1] }}</span>
+                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
                 {% endfor %}
             </div>
 
@@ -115,18 +115,15 @@
                     }
                 });
 
-                // Function to toggle team member selection
-                function toggleTeamMember(memberId) {
-                    var checkbox = document.getElementById('team_member_' + memberId);
-                    checkbox.checked = !checkbox.checked;
+                // Event delegation for team member toggle
+                $('#team_members').on('click', '.team-member', function() {
+                    var memberId = $(this).data('member-id');
+                    var checkbox = $('#team_member_' + memberId);
 
-                    var memberElement = document.querySelector('[data-member-id="' + memberId + '"]');
-                    if (checkbox.checked) {
-                        memberElement.classList.add('selected');
-                    } else {
-                        memberElement.classList.remove('selected');
-                    }
-                }
+                    checkbox.prop('checked', !checkbox.prop('checked')); // Toggle checkbox state
+
+                    $(this).toggleClass('selected'); // Toggle the 'selected' class
+                });
 
                 // Capture the form and download as an image on submit
                 $('#submit-button').click(function(event) {
@@ -136,7 +133,7 @@
                     html2canvas(document.querySelector("#report-container")).then(function(canvas) {
                         // Create a link element and set the captured image as download
                         var link = document.createElement('a');
-                        link.href = canvas.toDataURL();
+                        link.href = canvas.toDataURL('image/png'); // Change format if needed
                         link.download = 'daily_report.png';
                         link.click();
                     });
