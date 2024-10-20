@@ -9,13 +9,12 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- Upgrade to the latest version of html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
 <div class="container" id="report-container">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
-    <!-- Back to Homepage Link -->
     <a href="{{ url_for('checklist') }}" class="back-link">The Renewable Energy Experts</a>
     <h1>Project Checklist</h1>
 
@@ -24,32 +23,28 @@
         <h3>Select Sections:</h3>
         <button class="section-button" data-section="A">A. System Designs</button>
         <button class="section-button" data-section="B">B. PV Modules</button>
-        <!-- Add more buttons for other sections here -->
     </div>
 
     <!-- Checklist Section A -->
     <div id="section-A" class="section-checklist">
         <h2>A. System Designs</h2>
         <div class="checkbox-item">
-            <input type="checkbox" id="A1" name="A1">
+            <input type="checkbox" id="A1" class="dual-checkbox">
             <label for="A1">1 - As-built system documents e.g. Installation Layouts and Single Line drawings</label>
         </div>
         <div class="checkbox-item">
-            <input type="checkbox" id="A2" name="A2">
+            <input type="checkbox" id="A2" class="dual-checkbox">
             <label for="A2">2 - As-built system documents are available at the site</label>
         </div>
-        <!-- Team Member Dropdown -->
         <div id="team-member-wrapper">
             <label for="team-member-A">Installer:</label>
             <select id="team-member-A" name="team-member-A">
                 <option value="">-- Installation Engineer --</option>
-                <!-- Loop through the team members passed from Flask -->
                 {% for member in team_members %}
                 <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <!-- Crosschecked by Dropdown -->
         <div id="crosschecked-by-wrapper">
             <label for="crosschecked-by-A">Cross-checked by:</label>
             <select id="crosschecked-by-A" name="crosschecked-by-A">
@@ -65,14 +60,13 @@
     <div id="section-B" class="section-checklist">
         <h2>B. PV Modules</h2>
         <div class="checkbox-item">
-            <input type="checkbox" id="B1" name="B1">
+            <input type="checkbox" id="B1" class="dual-checkbox">
             <label for="B1">1 - All arrays are square, consistent, and neat to the eye</label>
         </div>
         <div class="checkbox-item">
-            <input type="checkbox" id="B2" name="B2">
+            <input type="checkbox" id="B2" class="dual-checkbox">
             <label for="B2">2 - Modules are securely and neatly installed</label>
         </div>
-        <!-- Team Member Dropdown -->
         <div id="team-member-wrapper">
             <label for="team-member-B">Installer:</label>
             <select id="team-member-B" name="team-member-B">
@@ -82,7 +76,6 @@
                 {% endfor %}
             </select>
         </div>
-        <!-- Crosschecked by Dropdown -->
         <div id="crosschecked-by-wrapper">
             <label for="crosschecked-by-B">Cross-checked by:</label>
             <select id="crosschecked-by-B" name="crosschecked-by-B">
@@ -93,28 +86,36 @@
             </select>
         </div>
     </div>
-
-    <!-- Add more sections (C, D, etc.) as needed -->
-
 </div>
 
-<!-- JavaScript to toggle sections -->
+<!-- JavaScript for Dual Checkbox functionality -->
 <script>
-    const buttons = document.querySelectorAll('.section-button');
+    document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('click', function () {
+            if (this.classList.contains('checked')) {
+                this.classList.remove('checked');
+                this.classList.add('crossed');
+                this.innerHTML = '✗';  // Set cross mark for negative attribute
+            } else if (this.classList.contains('crossed')) {
+                this.classList.remove('crossed');
+                this.innerHTML = ''; // Reset to no state
+            } else {
+                this.classList.add('checked');
+                this.innerHTML = '✓';  // Set checkmark for positive attribute
+            }
+        });
+    });
 
+    // Toggle checklist sections
+    const buttons = document.querySelectorAll('.section-button');
     buttons.forEach(button => {
         button.addEventListener('click', function() {
             const section = this.getAttribute('data-section');
             const sectionElement = document.getElementById('section-' + section);
-
-            // Toggle 'selected' class on button
             this.classList.toggle('selected');
-
-            // Toggle the visibility of the section
             sectionElement.classList.toggle('active');
         });
     });
 </script>
-
 </body>
 </html>

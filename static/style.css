@@ -596,3 +596,28 @@ nav a:hover {
 #crosschecked-by-wrapper select {
     flex-grow: 1; /* Allow the select to take up the remaining space */
 }
+
+.dual-checkbox {
+    width: 16px;
+    height: 16px;
+    appearance: none; /* Remove default checkbox styling */
+    border: 2px solid black;
+    cursor: pointer;
+    position: relative;
+    margin-right: 5px;
+    background-color: white;
+}
+
+.dual-checkbox.checked {
+    background-color: green;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+}
+
+.dual-checkbox.crossed {
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+}
