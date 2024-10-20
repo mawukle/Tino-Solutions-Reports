@@ -528,12 +528,12 @@ nav a:hover {
 
 
 .section-select {
-    margin-bottom: 20px;
+    margin-bottom: 2px;
 }
 .section-button {
     display: inline-block;
-    padding: 10px 20px;
-    margin: 5px;
+    padding: 2px 2px;
+    margin: 2px;
     background-color: #007BFF;
     color: white;
     border: none;
@@ -545,8 +545,8 @@ nav a:hover {
 }
 .section-checklist {
     display: none;
-    margin-bottom: 20px;
-    padding: 10px;
+    margin-bottom: 2px;
+    padding: 2px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
@@ -554,5 +554,5 @@ nav a:hover {
     display: block;
 }
 .checkbox-item {
-    margin: 10px 0;
+    margin: 2px 0;
 }
