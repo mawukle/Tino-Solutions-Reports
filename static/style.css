@@ -532,14 +532,21 @@ nav a:hover {
 }
 .section-button {
     display: inline-block;
-    padding: 2px 2px;
+    padding: 8px 16px; /* Adjust padding for a more clickable button */
     margin: 2px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
+    background-color: transparent; /* Plain background */
+    color: black; /* Default black text color */
+    border: 1px solid black; /* Add border for a defined look */
+    border-radius: 5px; /* Rounded corners */
     cursor: pointer;
+    transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
 }
+
+.section-button:hover {
+    background-color: black; /* Background on hover */
+    color: white; /* Text turns white on hover */
+}
+
 .section-button.selected {
     background-color: #28A745; /* Green for selected sections */
 }
