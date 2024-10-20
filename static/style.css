@@ -577,3 +577,21 @@ nav a:hover {
 .checkbox-item input[type="checkbox"] {
     margin-right: 2px; /* Space between checkbox and label */
 }
+
+#team-member-wrapper,
+#crosschecked-by-wrapper {
+    display: flex;
+    justify-content: flex-start; /* Ensure content stays aligned to the left */
+    align-items: center; /* Vertically center the label and select */
+    margin-bottom: 8px; /* Add space between elements */
+}
+
+#team-member-wrapper label,
+#crosschecked-by-wrapper label {
+    min-width: 110px; /* Optional: Set a width to keep labels aligned */
+}
+
+#team-member-wrapper select,
+#crosschecked-by-wrapper select {
+    flex-grow: 1; /* Allow the select to take up the remaining space */
+}
