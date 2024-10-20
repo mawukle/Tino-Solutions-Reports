@@ -529,18 +529,22 @@ nav a:hover {
 
 .section-select {
     margin-bottom: 2px; /* Keep this for spacing between section selects */
+    display: flex; /* Enable flexbox layout */
+    flex-wrap: wrap; /* Allow items to wrap to the next line */
+    gap: 2px; /* Optional: Add some space between buttons */
 }
 
 .section-button {
-    display: inline-block;
     padding: 2px 4px; /* Adjusted padding for a more clickable button */
-    margin: 0 2px; /* Reduced margins for tighter spacing */
     background-color: transparent; /* Plain background */
     color: black; /* Default black text color */
     border: 1px solid black; /* Add border for a defined look */
     border-radius: 3px; /* Slightly smaller border-radius for a tighter look */
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+    flex: 1 1 auto; /* Allow buttons to grow and shrink */
+    min-width: 40px; /* Set a minimum width for each button */
+    max-width: 100px; /* Optional: limit maximum width for buttons */
 }
 
 /*.section-button:hover {
