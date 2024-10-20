@@ -1101,12 +1101,28 @@ def assign_job():
 
             db.session.commit()
             logging.info("Job assignment committed to the database.")
+
+            # Clear session data after submission
+            session.clear()
             return redirect(url_for('assign_job'))
 
         # Fetch team members for GET request
         team_members = db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name).all()
 
-        return render_template('assign_job.html', team_members=team_members)
+        # Pre-fill form fields if session data exists
+        job_date = session.get('job_date', '')
+        percentage_completion = session.get('percentage_completion', '')
+        client_name = session.get('client_name', '')
+        tasks_performed = session.get('tasks_performed', '')
+        any_issues = session.get('any_issues', '')
+
+        return render_template('assign_job.html',
+                               team_members=team_members,
+                               job_date=job_date,
+                               percentage_completion=percentage_completion,
+                               client_name=client_name,
+                               tasks_performed=tasks_performed,
+                               any_issues=any_issues)
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
@@ -1252,27 +1268,6 @@ def checklist():
         return "An error occurred", 500
 
 
-@app.route('/daily_report', methods=['GET', 'POST'])
-def daily_report():
-    if request.method == 'POST':
-        # Handle form submission if needed
-        # You can save any submitted data to the database or session
-        pass
-
-    # Retrieve data from session or request args to pre-fill the form
-    job_date = session.get('job_date', '')
-    percentage_completion = session.get('percentage_completion', '')
-    client_name = session.get('client_name', '')
-    tasks_performed = session.get('tasks_performed', '')
-    any_issues = session.get('any_issues', '')
-
-    return render_template('daily_report.html',
-                           job_date=job_date,
-                           percentage_completion=percentage_completion,
-                           client_name=client_name,
-                           tasks_performed=tasks_performed,
-                           any_issues=any_issues)
-
 @app.route('/project_checklist_complete', methods=['POST'])
 def project_checklist_complete():
     # You can collect any necessary data from the form if required
@@ -1286,7 +1281,7 @@ def project_checklist_complete():
     session['any_issues'] = request.form.get('any_issues')
 
     # Redirect to the daily report
-    return redirect(url_for('daily_report'))
+    return redirect(url_for('assign_job'))
 
 
 @app.route('/spy', methods=['GET', 'POST'])
