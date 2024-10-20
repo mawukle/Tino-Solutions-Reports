@@ -40,9 +40,9 @@
         </div>
         <!-- Team Member Dropdown -->
         <div id="team-member-wrapper">
-            <label for="team-member-A">Team Member:</label>
+            <label for="team-member-A">Installer:</label>
             <select id="team-member-A" name="team-member-A">
-                <option value="">-- Select Team Member --</option>
+                <option value="">-- Installation Engineer --</option>
                 <!-- Loop through the team members passed from Flask -->
                 {% for member in team_members %}
                 <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
@@ -51,9 +51,9 @@
         </div>
         <!-- Crosschecked by Dropdown -->
         <div id="crosschecked-by-wrapper">
-            <label for="crosschecked-by-A">Crosschecked by:</label>
+            <label for="crosschecked-by-A">Cross-checked by:</label>
             <select id="crosschecked-by-A" name="crosschecked-by-A">
-                <option value="">-- Select Team Member --</option>
+                <option value="">-- Quality Control Engineer --</option>
                 {% for member in team_members %}
                 <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
                 {% endfor %}
@@ -74,9 +74,9 @@
         </div>
         <!-- Team Member Dropdown -->
         <div id="team-member-wrapper">
-            <label for="team-member-B">Team Member:</label>
+            <label for="team-member-B">Installer:</label>
             <select id="team-member-B" name="team-member-B">
-                <option value="">-- Select Team Member --</option>
+                <option value="">-- Installation Engineer --</option>
                 {% for member in team_members %}
                 <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
                 {% endfor %}
@@ -84,9 +84,9 @@
         </div>
         <!-- Crosschecked by Dropdown -->
         <div id="crosschecked-by-wrapper">
-            <label for="crosschecked-by-B">Crosschecked by:</label>
+            <label for="crosschecked-by-B">Cross-checked by:</label>
             <select id="crosschecked-by-B" name="crosschecked-by-B">
-                <option value="">-- Select Team Member --</option>
+                <option value="">-- Quality Control Engineer --</option>
                 {% for member in team_members %}
                 <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
                 {% endfor %}
