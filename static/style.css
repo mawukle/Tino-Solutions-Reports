@@ -535,7 +535,7 @@ nav a:hover {
 }
 
 .section-button {
-    padding: 2px 4px; /* Adjusted padding for a more clickable button */
+    padding: 2px 2px; /* Adjusted padding for a more clickable button */
     background-color: transparent; /* Plain background */
     color: black; /* Default black text color */
     border: 1px solid black; /* Add border for a defined look */
@@ -543,7 +543,7 @@ nav a:hover {
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
     flex: 1 1 auto; /* Allow buttons to grow and shrink */
-    min-width: 40px; /* Set a minimum width for each button */
+    min-width: 20px; /* Set a minimum width for each button */
     max-width: 100px; /* Optional: limit maximum width for buttons */
 }
 
