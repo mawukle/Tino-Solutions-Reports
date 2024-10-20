@@ -133,7 +133,7 @@
                     event.preventDefault(); // Prevent form submission
 
                     // Step 1: Fetch the Project Checklist content via AJAX
-                    $.get('{{ url_for("checklist_content") }}', function(checklistData) {
+                    $.get('{{ url_for("checklist") }}', function(checklistData) {
 
                         // Step 2: Append the checklist content to the report-container
                         $('#report-container').append(checklistData);
