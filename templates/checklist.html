@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin: 20px;
+        }
+        .section-select {
+            margin-bottom: 20px;
+        }
+        .section-checklist {
+            display: none;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .section-checklist.active {
+            display: block;
+        }
+        .checkbox-item {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Project Checklist</h1>
+
+    <!-- Section Selection -->
+    <div class="section-select">
+        <label for="section">Select a Section:</label>
+        <select id="section" name="section">
+            <option value="">-- Select a Section --</option>
+            <option value="A">A. System Designs</option>
+            <option value="B">B. PV Modules</option>
+            <option value="C">C. Mounting Structures</option>
+            <option value="D">D. Clamps</option>
+            <option value="E">E. DC Trunking</option>
+            <option value="F">F. DC Cabling</option>
+            <option value="G">G. Protection Device</option>
+            <option value="H">H. Weather Station</option>
+            <option value="I">I. AC Cables</option>
+            <option value="J">J. DC Combiner Box</option>
+            <option value="K">K. Inverters</option>
+            <option value="L">L. AC Cabinet</option>
+            <option value="M">M. AC Integration into Main DB</option>
+            <option value="N">N. Monitoring</option>
+            <option value="P">P. Labelling</option>
+            <option value="Q">Q. Waste & Housekeeping</option>
+        </select>
+    </div>
+
+    <!-- Checklist Sections -->
+    <div id="section-A" class="section-checklist">
+        <h2>A. System Designs</h2>
+        <div class="checkbox-item">
+            <input type="checkbox" id="A1" name="A1">
+            <label for="A1">1 - As-built system documents e.g. Installation Layouts and Single Line drawings</label>
+        </div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="A2" name="A2">
+            <label for="A2">2 - As-built system documents are available at the site</label>
+        </div>
+        <!-- Team Members and Crosschecked by -->
+        <div>
+            <label for="team-member-A">Team Member:</label>
+            <select id="team-member-A" name="team-member-A">
+                <option value="">-- Select Team Member --</option>
+                <!-- Add dynamic options from the database -->
+            </select>
+        </div>
+        <div>
+            <label for="crosschecked-by-A">Crosschecked by:</label>
+            <select id="crosschecked-by-A" name="crosschecked-by-A">
+                <option value="">-- Select Team Member --</option>
+                <!-- Add dynamic options from the database -->
+            </select>
+        </div>
+    </div>
+
+    <div id="section-B" class="section-checklist">
+        <h2>B. PV Modules</h2>
+        <div class="checkbox-item">
+            <input type="checkbox" id="B1" name="B1">
+            <label for="B1">1 - All arrays are square, consistent, and neat to the eye</label>
+        </div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="B2" name="B2">
+            <label for="B2">2 - Modules are securely and neatly installed</label>
+        </div>
+        <!-- Team Members and Crosschecked by -->
+        <div>
+            <label for="team-member-B">Team Member:</label>
+            <select id="team-member-B" name="team-member-B">
+                <option value="">-- Select Team Member --</option>
+                <!-- Add dynamic options from the database -->
+            </select>
+        </div>
+        <div>
+            <label for="crosschecked-by-B">Crosschecked by:</label>
+            <select id="crosschecked-by-B" name="crosschecked-by-B">
+                <option value="">-- Select Team Member --</option>
+                <!-- Add dynamic options from the database -->
+            </select>
+        </div>
+    </div>
+
+    <!-- More sections (C, D, E, etc.) would follow a similar structure -->
+
+</div>
+
+<!-- Script to toggle sections based on selection -->
+<script>
+    document.getElementById('section').addEventListener('change', function() {
+        // Hide all sections first
+        document.querySelectorAll('.section-checklist').forEach(function(section) {
+            section.classList.remove('active');
+        });
+
+        // Get the selected value
+        const selectedValue = this.value;
+
+        // Show the relevant section
+        if (selectedValue) {
+            document.getElementById('section-' + selectedValue).classList.add('active');
+        }
+    });
+</script>
+
+</body>
+</html>

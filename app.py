@@ -1226,6 +1226,15 @@ def assign_job():
             mydb.close()
 """
 
+@app.route('/checklist')
+def checklist():
+    # Query to fetch team members from the database
+    team_members = session.query(Team_Members).all()
+
+    # Render the checklist.html template, passing the team members to it
+    return render_template('checklist.html', team_members=team_members)
+
+
 @app.route('/spy', methods=['GET', 'POST'])
 def spy():
     try:
