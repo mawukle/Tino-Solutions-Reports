@@ -525,3 +525,34 @@ nav a:hover {
     background-color: #adff2f; /* Lemon green color */
     color: #000; /* Ensure text stays visible on green background */
 }
+
+
+.section-select {
+    margin-bottom: 20px;
+}
+.section-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.section-button.selected {
+    background-color: #28A745; /* Green for selected sections */
+}
+.section-checklist {
+    display: none;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.section-checklist.active {
+    display: block;
+}
+.checkbox-item {
+    margin: 10px 0;
+}

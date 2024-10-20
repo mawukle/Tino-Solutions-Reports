@@ -3,44 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            margin: 20px;
-        }
-        .section-select {
-            margin-bottom: 2px;
-        }
-        .section-button {
-            display: inline-block;
-            padding: 2px 2px;
-            margin: 2px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .section-button.selected {
-            background-color: #28A745; /* Green for selected sections */
-        }
-        .section-checklist {
-            display: none;
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .section-checklist.active {
-            display: block;
-        }
-        .checkbox-item {
-            margin: 10px 0;
-        }
-    </style>
+    <title>INSTALLATION COMMISSIONING CHECKLIST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- Upgrade to the latest version of html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -52,23 +22,10 @@
         <h3>Select Sections:</h3>
         <button class="section-button" data-section="A">A. System Designs</button>
         <button class="section-button" data-section="B">B. PV Modules</button>
-        <button class="section-button" data-section="C">C. Mounting Structures</button>
-        <button class="section-button" data-section="D">D. Clamps</button>
-        <button class="section-button" data-section="E">E. DC Trunking</button>
-        <button class="section-button" data-section="F">F. DC Cabling</button>
-        <button class="section-button" data-section="G">G. Protection Device</button>
-        <button class="section-button" data-section="H">H. Weather Station</button>
-        <button class="section-button" data-section="I">I. AC Cables</button>
-        <button class="section-button" data-section="J">J. DC Combiner Box</button>
-        <button class="section-button" data-section="K">K. Inverters</button>
-        <button class="section-button" data-section="L">L. AC Cabinet</button>
-        <button class="section-button" data-section="M">M. AC Integration into Main DB</button>
-        <button class="section-button" data-section="N">N. Monitoring</button>
-        <button class="section-button" data-section="P">P. Labelling</button>
-        <button class="section-button" data-section="Q">Q. Waste & Housekeeping</button>
+        <!-- Add more buttons for other sections here -->
     </div>
 
-    <!-- Checklist Sections -->
+    <!-- Checklist Section A -->
     <div id="section-A" class="section-checklist">
         <h2>A. System Designs</h2>
         <div class="checkbox-item">
@@ -79,22 +36,30 @@
             <input type="checkbox" id="A2" name="A2">
             <label for="A2">2 - As-built system documents are available at the site</label>
         </div>
+        <!-- Team Member Dropdown -->
         <div>
             <label for="team-member-A">Team Member:</label>
             <select id="team-member-A" name="team-member-A">
                 <option value="">-- Select Team Member --</option>
-                <!-- Dynamic team members will be inserted here -->
+                <!-- Loop through the team members passed from Flask -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
+        <!-- Crosschecked by Dropdown -->
         <div>
             <label for="crosschecked-by-A">Crosschecked by:</label>
             <select id="crosschecked-by-A" name="crosschecked-by-A">
                 <option value="">-- Select Team Member --</option>
-                <!-- Dynamic team members will be inserted here -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
 
+    <!-- Checklist Section B -->
     <div id="section-B" class="section-checklist">
         <h2>B. PV Modules</h2>
         <div class="checkbox-item">
@@ -105,29 +70,34 @@
             <input type="checkbox" id="B2" name="B2">
             <label for="B2">2 - Modules are securely and neatly installed</label>
         </div>
+        <!-- Team Member Dropdown -->
         <div>
             <label for="team-member-B">Team Member:</label>
             <select id="team-member-B" name="team-member-B">
                 <option value="">-- Select Team Member --</option>
-                <!-- Dynamic team members will be inserted here -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
+        <!-- Crosschecked by Dropdown -->
         <div>
             <label for="crosschecked-by-B">Crosschecked by:</label>
             <select id="crosschecked-by-B" name="crosschecked-by-B">
                 <option value="">-- Select Team Member --</option>
-                <!-- Dynamic team members will be inserted here -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
 
-    <!-- More sections (C, D, E, etc.) would follow a similar structure -->
+    <!-- Add more sections (C, D, etc.) as needed -->
 
 </div>
 
-<!-- Script to toggle sections based on button clicks -->
+<!-- JavaScript to toggle sections -->
 <script>
-    // Get all buttons
     const buttons = document.querySelectorAll('.section-button');
 
     buttons.forEach(button => {
