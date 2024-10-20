@@ -34,11 +34,10 @@
 <div class="container">
     <h1>Project Checklist</h1>
 
-    <!-- Section Selection -->
+    <!-- Section Selection with Multiple Select -->
     <div class="section-select">
-        <label for="section">Select a Section:</label>
-        <select id="section" name="section">
-            <option value="">-- Select a Section --</option>
+        <label for="section">Select Sections:</label>
+        <select id="section" name="section" multiple>
             <option value="A">A. System Designs</option>
             <option value="B">B. PV Modules</option>
             <option value="C">C. Mounting Structures</option>
@@ -125,7 +124,7 @@
 
 </div>
 
-<!-- Script to toggle sections based on selection -->
+<!-- Script to handle multiple section selections and show contents -->
 <script>
     document.getElementById('section').addEventListener('change', function() {
         // Hide all sections first
@@ -133,13 +132,13 @@
             section.classList.remove('active');
         });
 
-        // Get the selected value
-        const selectedValue = this.value;
+        // Get all selected values (multiple)
+        const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
 
-        // Show the relevant section
-        if (selectedValue) {
-            document.getElementById('section-' + selectedValue).classList.add('active');
-        }
+        // Show the relevant sections
+        selectedValues.forEach(function(value) {
+            document.getElementById('section-' + value).classList.add('active');
+        });
     });
 </script>
 
