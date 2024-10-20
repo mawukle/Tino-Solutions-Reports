@@ -1228,11 +1228,13 @@ def assign_job():
 
 @app.route('/checklist')
 def checklist():
-    # Query to fetch team members from the database
-    team_members = session.query(Team_Members).all()
-
-    # Render the checklist.html template, passing the team members to it
-    return render_template('checklist.html', team_members=team_members)
+    try:
+        team_members = db.session.query(Team_Members).all()
+        # Additional logic for rendering the checklist template
+        return render_template('checklist.html', team_members=team_members)
+    except Exception as e:
+        app.logger.error(f"Exception on /checklist: {e}")
+        return "An error occurred", 500
 
 
 @app.route('/spy', methods=['GET', 'POST'])
