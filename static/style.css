@@ -532,7 +532,7 @@ nav a:hover {
 }
 .section-button {
     display: inline-block;
-    padding: 8px 16px; /* Adjust padding for a more clickable button */
+    padding: 2px 2px; /* Adjust padding for a more clickable button */
     margin: 2px;
     background-color: transparent; /* Plain background */
     color: black; /* Default black text color */
@@ -543,7 +543,7 @@ nav a:hover {
 }
 
 .section-button:hover {
-    background-color: black; /* Background on hover */
+    background-color: #28A745; /* Background on hover */
     color: white; /* Text turns white on hover */
 }
 
