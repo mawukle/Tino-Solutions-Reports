@@ -29,11 +29,11 @@
     <div id="section-A" class="section-checklist">
         <h2>A. System Designs</h2>
         <div class="checkbox-item">
-            <input type="checkbox" id="A1" class="dual-checkbox">
+            <div class="dual-checkbox" id="A1"></div>
             <label for="A1">1 - As-built system documents e.g. Installation Layouts and Single Line drawings</label>
         </div>
         <div class="checkbox-item">
-            <input type="checkbox" id="A2" class="dual-checkbox">
+            <div class="dual-checkbox" id="A2"></div>
             <label for="A2">2 - As-built system documents are available at the site</label>
         </div>
         <div id="team-member-wrapper">
@@ -60,11 +60,11 @@
     <div id="section-B" class="section-checklist">
         <h2>B. PV Modules</h2>
         <div class="checkbox-item">
-            <input type="checkbox" id="B1" class="dual-checkbox">
+            <div class="dual-checkbox" id="B1"></div>
             <label for="B1">1 - All arrays are square, consistent, and neat to the eye</label>
         </div>
         <div class="checkbox-item">
-            <input type="checkbox" id="B2" class="dual-checkbox">
+            <div class="dual-checkbox" id="B2"></div>
             <label for="B2">2 - Modules are securely and neatly installed</label>
         </div>
         <div id="team-member-wrapper">
@@ -95,13 +95,10 @@
             if (this.classList.contains('checked')) {
                 this.classList.remove('checked');
                 this.classList.add('crossed');
-                this.innerHTML = '✗';  // Set cross mark for negative attribute
             } else if (this.classList.contains('crossed')) {
                 this.classList.remove('crossed');
-                this.innerHTML = ''; // Reset to no state
             } else {
                 this.classList.add('checked');
-                this.innerHTML = '✓';  // Set checkmark for positive attribute
             }
         });
     });

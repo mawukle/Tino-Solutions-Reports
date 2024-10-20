@@ -598,26 +598,30 @@ nav a:hover {
 }
 
 .dual-checkbox {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     appearance: none; /* Remove default checkbox styling */
     border: 2px solid black;
     cursor: pointer;
-    position: relative;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 18px; /* Adjust font size for checkmark/cross */
+    line-height: 1.1;
     margin-right: 5px;
-    background-color: white;
 }
 
-.dual-checkbox.checked {
-    background-color: green;
-    color: white;
-    font-size: 12px;
-    text-align: center;
+.dual-checkbox.checked::before {
+    content: "✓"; /* Positive checkmark */
+    color: green;
 }
 
-.dual-checkbox.crossed {
-    background-color: red;
-    color: white;
-    font-size: 12px;
-    text-align: center;
+.dual-checkbox.crossed::before {
+    content: "✗"; /* Negative cross */
+    color: red;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
 }
