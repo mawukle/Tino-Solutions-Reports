@@ -543,10 +543,10 @@ nav a:hover {
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
 }
 
-.section-button:hover {
+/*.section-button:hover {
     background-color: #28A745; /* Background on hover */
-    color: white; /* Text turns white on hover */
-}
+/*    color: white; /* Text turns white on hover */
+/*}*/
 
 .section-button.selected {
     background-color: #28A745; /* Green for selected sections */
