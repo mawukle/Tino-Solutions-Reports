@@ -528,16 +528,17 @@ nav a:hover {
 
 
 .section-select {
-    margin-bottom: 2px;
+    margin-bottom: 2px; /* Keep this for spacing between section selects */
 }
+
 .section-button {
     display: inline-block;
-    padding: 2px 2px; /* Adjust padding for a more clickable button */
-    margin: 2px;
+    padding: 2px 4px; /* Adjusted padding for a more clickable button */
+    margin: 0 2px; /* Reduced margins for tighter spacing */
     background-color: transparent; /* Plain background */
     color: black; /* Default black text color */
     border: 1px solid black; /* Add border for a defined look */
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 3px; /* Slightly smaller border-radius for a tighter look */
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
 }
@@ -550,16 +551,19 @@ nav a:hover {
 .section-button.selected {
     background-color: #28A745; /* Green for selected sections */
 }
+
 .section-checklist {
     display: none;
-    margin-bottom: 2px;
-    padding: 2px;
+    margin-bottom: 2px; /* Maintain spacing at the bottom */
+    padding: 2px; /* Keep this for some internal spacing */
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 5px; /* Rounded corners */
 }
+
 .section-checklist.active {
     display: block;
 }
+
 .checkbox-item {
-    margin: 2px 0;
+    margin: 2px 0; /* Reduced margins for tighter checkbox items */
 }
