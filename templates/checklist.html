@@ -86,9 +86,14 @@
             </select>
         </div>
     </div>
+
+    <!-- Button to return to Daily Report -->
+    <div class="button-container">
+        <button id="complete-checklist-button" class="redirect-button">Complete Checklist and Return to Daily Report</button>
+    </div>
 </div>
 
-<!-- JavaScript for Dual Checkbox functionality -->
+<!-- JavaScript for Dual Checkbox functionality and Redirect -->
 <script>
     document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
         checkbox.addEventListener('click', function () {
@@ -112,6 +117,11 @@
             this.classList.toggle('selected');
             sectionElement.classList.toggle('active');
         });
+    });
+
+    // Redirect to Daily Report on button click
+    document.getElementById('complete-checklist-button').addEventListener('click', function() {
+        window.location.href = "{{ url_for('assign_job') }}";
     });
 </script>
 </body>

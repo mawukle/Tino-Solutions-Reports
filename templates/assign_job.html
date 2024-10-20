@@ -9,7 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- Upgrade to the latest version of html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -63,7 +62,7 @@
             <button type="submit" id="submit-button">Submit</button>
         </form>
 
-        <!-- jQuery Script for Datepicker, Autocomplete, and Fetching Client Details -->
+        <!-- jQuery Script for Datepicker, Autocomplete, Fetching Client Details, and Capturing Combined Pages -->
         <script>
             $(document).ready(function() {
                 // Datepicker with custom formatting
@@ -102,6 +101,7 @@
                     },
                     minLength: 2,
                     select: function(event, ui) {
+                        // Get client details and update location
                         $.ajax({
                             url: "{{ url_for('get_client_details') }}",
                             type: "GET",
@@ -110,6 +110,9 @@
                                 if (data) {
                                     $("#client_location").val(data.town);  // Set the Location field
                                 }
+
+                                // Automatically redirect to Project Checklist page
+                                window.location.href = "{{ url_for('project_checklist') }}?client_name=" + encodeURIComponent(ui.item.value);
                             }
                         });
                     }
@@ -125,23 +128,30 @@
                     $(this).toggleClass('selected'); // Toggle the 'selected' class
                 });
 
-                // Capture the form and download as an image on submit
+                // Capture the Daily Report form and Project Checklist as an image on submit
                 $('#submit-button').click(function(event) {
                     event.preventDefault(); // Prevent form submission
 
-                    // Capture the form content as an image
-                    html2canvas(document.querySelector("#report-container")).then(function(canvas) {
-                        // Create a link element and set the captured image as download
-                        var link = document.createElement('a');
-                        link.href = canvas.toDataURL('image/png'); // Change format if needed
-                        link.download = 'daily_report.png';
-                        link.click();
-                    });
+                    // Step 1: Fetch the Project Checklist content via AJAX
+                    $.get('{{ url_for("checklist_content") }}', function(checklistData) {
 
-                    // Submit the form after capturing the image
-                    setTimeout(function() {
-                        $('#daily-report-form').submit();
-                    }, 1000);  // Slight delay to ensure image capture happens first
+                        // Step 2: Append the checklist content to the report-container
+                        $('#report-container').append(checklistData);
+
+                        // Step 3: Capture the combined content (Daily Report + Project Checklist)
+                        html2canvas(document.querySelector("#report-container")).then(function(canvas) {
+                            // Create a link element and set the captured image as download
+                            var link = document.createElement('a');
+                            link.href = canvas.toDataURL('image/png'); // Change format if needed
+                            link.download = 'daily_report_combined.png';
+                            link.click();
+                        });
+
+                        // Step 4: Submit the form after capturing the image
+                        setTimeout(function() {
+                            $('#daily-report-form').submit();
+                        }, 1000);  // Slight delay to ensure image capture happens first
+                    });
                 });
             });
         </script>
