@@ -112,7 +112,7 @@
                                 }
 
                                 // Automatically redirect to Project Checklist page
-                                window.location.href = "{{ url_for('project_checklist') }}?client_name=" + encodeURIComponent(ui.item.value);
+                                window.location.href = "{{ url_for('checklist') }}?client_name=" + encodeURIComponent(ui.item.value);
                             }
                         });
                     }
