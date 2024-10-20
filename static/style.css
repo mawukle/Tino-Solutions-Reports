@@ -583,7 +583,7 @@ nav a:hover {
     display: flex;
     justify-content: flex-start; /* Ensure content stays aligned to the left */
     align-items: center; /* Vertically center the label and select */
-    margin-bottom: 8px; /* Add space between elements */
+    margin-bottom: 2px; /* Add space between elements */
 }
 
 #team-member-wrapper label,
