@@ -569,5 +569,11 @@ nav a:hover {
 }
 
 .checkbox-item {
-    margin: 2px 0; /* Reduced margins for tighter checkbox items */
+    display: flex; /* Enable flexbox layout */
+    align-items: center; /* Vertically center items */
+    margin-bottom: 2px; /* Space between items */
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 2px; /* Space between checkbox and label */
 }
