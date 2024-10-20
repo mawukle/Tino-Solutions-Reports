@@ -526,16 +526,20 @@ nav a:hover {
     color: #000; /* Ensure text stays visible on green background */
 }
 
-
 .section-select {
     margin-bottom: 2px; /* Keep this for spacing between section selects */
     display: flex; /* Enable flexbox layout */
     flex-wrap: wrap; /* Allow items to wrap to the next line */
     gap: 2px; /* Optional: Add some space between buttons */
+    padding: 0; /* Remove any padding to reduce height */
+}
+
+.section-select h3 {
+    margin: 2px 0; /* Reduce the margin to bring the heading closer to the buttons */
 }
 
 .section-button {
-    padding: 2px 2px; /* Adjusted padding for a more clickable button */
+    padding: 1px 2px; /* Reduce the padding for smaller button size */
     background-color: transparent; /* Plain background */
     color: black; /* Default black text color */
     border: 1px solid black; /* Add border for a defined look */
@@ -543,18 +547,15 @@ nav a:hover {
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
     flex: 1 1 auto; /* Allow buttons to grow and shrink */
-    min-width: 20px; /* Set a minimum width for each button */
+    min-width: 10px; /* Set a minimum width for each button */
     max-width: 100px; /* Optional: limit maximum width for buttons */
 }
 
-/*.section-button:hover {
-    background-color: #28A745; /* Background on hover */
-/*    color: white; /* Text turns white on hover */
-/*}*/
-
+/* Keep the selected state */
 .section-button.selected {
     background-color: #28A745; /* Green for selected sections */
 }
+
 
 .section-checklist {
     display: none;
