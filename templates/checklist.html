@@ -74,14 +74,18 @@
             <label for="team-member-A">Team Member:</label>
             <select id="team-member-A" name="team-member-A">
                 <option value="">-- Select Team Member --</option>
-                <!-- Add dynamic options from the database -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
         <div>
             <label for="crosschecked-by-A">Crosschecked by:</label>
             <select id="crosschecked-by-A" name="crosschecked-by-A">
                 <option value="">-- Select Team Member --</option>
-                <!-- Add dynamic options from the database -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
@@ -101,14 +105,18 @@
             <label for="team-member-B">Team Member:</label>
             <select id="team-member-B" name="team-member-B">
                 <option value="">-- Select Team Member --</option>
-                <!-- Add dynamic options from the database -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
         <div>
             <label for="crosschecked-by-B">Crosschecked by:</label>
             <select id="crosschecked-by-B" name="crosschecked-by-B">
                 <option value="">-- Select Team Member --</option>
-                <!-- Add dynamic options from the database -->
+                {% for member in team_members %}
+                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>

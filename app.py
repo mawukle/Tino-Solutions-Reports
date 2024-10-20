@@ -1226,13 +1226,28 @@ def assign_job():
             mydb.close()
 """
 
-@app.route('/checklist')
+@app.route('/checklist', methods=['GET', 'POST'])
 def checklist():
     try:
+        # Fetch all team members from the database
         team_members = db.session.query(Team_Members).all()
-        # Additional logic for rendering the checklist template
+
+        if request.method == 'POST':
+            # Handle form submission
+            team_member_id = request.form['team_member']
+            crosschecker_id = request.form['crosschecker']
+
+            # Process the selected team members (e.g., save to the database, etc.)
+            # You can add your own logic for handling this part
+
+            # Redirect or return a success response after processing
+            return redirect('/checklist')  # Redirect back to the checklist page or any other page
+
+        # Render the checklist template, passing the team_members to the template
         return render_template('checklist.html', team_members=team_members)
+
     except Exception as e:
+        # Log the error and return a 500 response
         app.logger.error(f"Exception on /checklist: {e}")
         return "An error occurred", 500
 
