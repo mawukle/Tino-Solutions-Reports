@@ -14,6 +14,19 @@
         .section-select {
             margin-bottom: 20px;
         }
+        .section-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .section-button.selected {
+            background-color: #28A745; /* Green for selected sections */
+        }
         .section-checklist {
             display: none;
             margin-bottom: 20px;
@@ -34,27 +47,25 @@
 <div class="container">
     <h1>Project Checklist</h1>
 
-    <!-- Section Selection with Multiple Select -->
+    <!-- Section Selection with Buttons -->
     <div class="section-select">
-        <label for="section">Select Sections:</label>
-        <select id="section" name="section" multiple>
-            <option value="A">A. System Designs</option>
-            <option value="B">B. PV Modules</option>
-            <option value="C">C. Mounting Structures</option>
-            <option value="D">D. Clamps</option>
-            <option value="E">E. DC Trunking</option>
-            <option value="F">F. DC Cabling</option>
-            <option value="G">G. Protection Device</option>
-            <option value="H">H. Weather Station</option>
-            <option value="I">I. AC Cables</option>
-            <option value="J">J. DC Combiner Box</option>
-            <option value="K">K. Inverters</option>
-            <option value="L">L. AC Cabinet</option>
-            <option value="M">M. AC Integration into Main DB</option>
-            <option value="N">N. Monitoring</option>
-            <option value="P">P. Labelling</option>
-            <option value="Q">Q. Waste & Housekeeping</option>
-        </select>
+        <h3>Select Sections:</h3>
+        <button class="section-button" data-section="A">A. System Designs</button>
+        <button class="section-button" data-section="B">B. PV Modules</button>
+        <button class="section-button" data-section="C">C. Mounting Structures</button>
+        <button class="section-button" data-section="D">D. Clamps</button>
+        <button class="section-button" data-section="E">E. DC Trunking</button>
+        <button class="section-button" data-section="F">F. DC Cabling</button>
+        <button class="section-button" data-section="G">G. Protection Device</button>
+        <button class="section-button" data-section="H">H. Weather Station</button>
+        <button class="section-button" data-section="I">I. AC Cables</button>
+        <button class="section-button" data-section="J">J. DC Combiner Box</button>
+        <button class="section-button" data-section="K">K. Inverters</button>
+        <button class="section-button" data-section="L">L. AC Cabinet</button>
+        <button class="section-button" data-section="M">M. AC Integration into Main DB</button>
+        <button class="section-button" data-section="N">N. Monitoring</button>
+        <button class="section-button" data-section="P">P. Labelling</button>
+        <button class="section-button" data-section="Q">Q. Waste & Housekeeping</button>
     </div>
 
     <!-- Checklist Sections -->
@@ -68,23 +79,18 @@
             <input type="checkbox" id="A2" name="A2">
             <label for="A2">2 - As-built system documents are available at the site</label>
         </div>
-        <!-- Team Members and Crosschecked by -->
         <div>
             <label for="team-member-A">Team Member:</label>
             <select id="team-member-A" name="team-member-A">
                 <option value="">-- Select Team Member --</option>
-                {% for member in team_members %}
-                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
-                {% endfor %}
+                <!-- Dynamic team members will be inserted here -->
             </select>
         </div>
         <div>
             <label for="crosschecked-by-A">Crosschecked by:</label>
             <select id="crosschecked-by-A" name="crosschecked-by-A">
                 <option value="">-- Select Team Member --</option>
-                {% for member in team_members %}
-                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
-                {% endfor %}
+                <!-- Dynamic team members will be inserted here -->
             </select>
         </div>
     </div>
@@ -99,23 +105,18 @@
             <input type="checkbox" id="B2" name="B2">
             <label for="B2">2 - Modules are securely and neatly installed</label>
         </div>
-        <!-- Team Members and Crosschecked by -->
         <div>
             <label for="team-member-B">Team Member:</label>
             <select id="team-member-B" name="team-member-B">
                 <option value="">-- Select Team Member --</option>
-                {% for member in team_members %}
-                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
-                {% endfor %}
+                <!-- Dynamic team members will be inserted here -->
             </select>
         </div>
         <div>
             <label for="crosschecked-by-B">Crosschecked by:</label>
             <select id="crosschecked-by-B" name="crosschecked-by-B">
                 <option value="">-- Select Team Member --</option>
-                {% for member in team_members %}
-                <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
-                {% endfor %}
+                <!-- Dynamic team members will be inserted here -->
             </select>
         </div>
     </div>
@@ -124,20 +125,21 @@
 
 </div>
 
-<!-- Script to handle multiple section selections and show contents -->
+<!-- Script to toggle sections based on button clicks -->
 <script>
-    document.getElementById('section').addEventListener('change', function() {
-        // Hide all sections first
-        document.querySelectorAll('.section-checklist').forEach(function(section) {
-            section.classList.remove('active');
-        });
+    // Get all buttons
+    const buttons = document.querySelectorAll('.section-button');
 
-        // Get all selected values (multiple)
-        const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const section = this.getAttribute('data-section');
+            const sectionElement = document.getElementById('section-' + section);
 
-        // Show the relevant sections
-        selectedValues.forEach(function(value) {
-            document.getElementById('section-' + value).classList.add('active');
+            // Toggle 'selected' class on button
+            this.classList.toggle('selected');
+
+            // Toggle the visibility of the section
+            sectionElement.classList.toggle('active');
         });
     });
 </script>
