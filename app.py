@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort
 import os
 import logging
 from dotenv import load_dotenv
@@ -1101,34 +1101,17 @@ def assign_job():
 
             db.session.commit()
             logging.info("Job assignment committed to the database.")
-
-            # Optionally clear session data here if you don't need it anymore
-            # session.clear()
             return redirect(url_for('assign_job'))
 
         # Fetch team members for GET request
         team_members = db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name).all()
 
-        # Pre-fill form fields if session data exists
-        job_date = session.get('job_date', '')
-        percentage_completion = session.get('percentage_completion', '')
-        client_name = session.get('client_name', '')
-        tasks_performed = session.get('tasks_performed', '')
-        any_issues = session.get('any_issues', '')
-
-        return render_template('assign_job.html',
-                               team_members=team_members,
-                               job_date=job_date,
-                               percentage_completion=percentage_completion,
-                               client_name=client_name,
-                               tasks_performed=tasks_performed,
-                               any_issues=any_issues)
+        return render_template('assign_job.html', team_members=team_members)
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         db.session.rollback()
         return str(e)
-
 
 
 """
@@ -1268,18 +1251,6 @@ def checklist():
         app.logger.error(f"Exception on /checklist: {e}")
         return "An error occurred", 500
 
-
-@app.route('/project_checklist_complete', methods=['POST'])
-def project_checklist_complete():
-    # Collect necessary data from the form
-    session['job_date'] = request.form.get('job_date')
-    session['percentage_completion'] = request.form.get('percentage_completion')
-    session['client_name'] = request.form.get('client_name')
-    session['tasks_performed'] = request.form.get('tasks_performed')
-    session['any_issues'] = request.form.get('any_issues')
-
-    # Redirect to the daily report
-    return redirect(url_for('assign_job'))
 
 @app.route('/spy', methods=['GET', 'POST'])
 def spy():
