@@ -90,7 +90,7 @@
     <form action="{{ url_for('project_checklist_complete') }}" method="post">
         <!-- Pass the values needed for the daily report -->
         <input type="hidden" name="client_name" value="{{ client_name }}">
-        <input type="hidden" name="client_location" value="{{ client_location }}">
+        <!--input type="hidden" name="client_location" value="{{ client_location }}"-->
         <input type="hidden" name="job_date" value="{{ job_date }}">
         <input type="hidden" name="percentage_completion" value="{{ percentage_completion }}">
         <input type="hidden" name="tasks_performed" value="{{ tasks_performed }}">
