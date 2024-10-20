@@ -13,8 +13,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-
-<div class="container">
+<div class="container" id="report-container">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    <!-- Back to Homepage Link -->
+    <a href="{{ url_for('checklist') }}" class="back-link">The Renewable Energy Experts</a>
     <h1>Project Checklist</h1>
 
     <!-- Section Selection with Buttons -->
