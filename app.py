@@ -1102,8 +1102,8 @@ def assign_job():
             db.session.commit()
             logging.info("Job assignment committed to the database.")
 
-            # Clear session data after submission
-            session.clear()
+            # Optionally clear session data here if you don't need it anymore
+            # session.clear()
             return redirect(url_for('assign_job'))
 
         # Fetch team members for GET request
@@ -1128,6 +1128,7 @@ def assign_job():
         logging.error(f"An error occurred: {e}")
         db.session.rollback()
         return str(e)
+
 
 
 """
@@ -1270,10 +1271,7 @@ def checklist():
 
 @app.route('/project_checklist_complete', methods=['POST'])
 def project_checklist_complete():
-    # You can collect any necessary data from the form if required
-    # For example, you might want to validate or save something before redirecting
-
-    # Assuming you are coming from the checklist and want to save data
+    # Collect necessary data from the form
     session['job_date'] = request.form.get('job_date')
     session['percentage_completion'] = request.form.get('percentage_completion')
     session['client_name'] = request.form.get('client_name')
@@ -1282,7 +1280,6 @@ def project_checklist_complete():
 
     # Redirect to the daily report
     return redirect(url_for('assign_job'))
-
 
 @app.route('/spy', methods=['GET', 'POST'])
 def spy():
