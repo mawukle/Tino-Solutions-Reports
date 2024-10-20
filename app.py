@@ -1252,6 +1252,43 @@ def checklist():
         return "An error occurred", 500
 
 
+@app.route('/daily_report', methods=['GET', 'POST'])
+def daily_report():
+    if request.method == 'POST':
+        # Handle form submission if needed
+        # You can save any submitted data to the database or session
+        pass
+
+    # Retrieve data from session or request args to pre-fill the form
+    job_date = session.get('job_date', '')
+    percentage_completion = session.get('percentage_completion', '')
+    client_name = session.get('client_name', '')
+    tasks_performed = session.get('tasks_performed', '')
+    any_issues = session.get('any_issues', '')
+
+    return render_template('daily_report.html',
+                           job_date=job_date,
+                           percentage_completion=percentage_completion,
+                           client_name=client_name,
+                           tasks_performed=tasks_performed,
+                           any_issues=any_issues)
+
+@app.route('/project_checklist_complete', methods=['POST'])
+def project_checklist_complete():
+    # You can collect any necessary data from the form if required
+    # For example, you might want to validate or save something before redirecting
+
+    # Assuming you are coming from the checklist and want to save data
+    session['job_date'] = request.form.get('job_date')
+    session['percentage_completion'] = request.form.get('percentage_completion')
+    session['client_name'] = request.form.get('client_name')
+    session['tasks_performed'] = request.form.get('tasks_performed')
+    session['any_issues'] = request.form.get('any_issues')
+
+    # Redirect to the daily report
+    return redirect(url_for('daily_report'))
+
+
 @app.route('/spy', methods=['GET', 'POST'])
 def spy():
     try:

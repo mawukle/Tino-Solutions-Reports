@@ -22,39 +22,39 @@
             <!-- Date and Percentage Completion -->
             <div id="dates_filter">
                 <label for="job_date">Job Date:</label>
-                <input type="text" id="job_date_display" name="job_date_display" placeholder="Select a date" required readonly value="{{ selected_date }}"><br>
-                <input type="hidden" id="job_date" name="job_date" value="{{ selected_date }}">
+                <input type="text" id="job_date_display" name="job_date_display" placeholder="Select a date" required readonly value="{{ job_date }}"><br>
+                <input type="hidden" id="job_date" name="job_date" value="{{ job_date }}">
 
                 <label for="percentage_completion">% Completion:</label>
-                <input type="number" id="percentage_completion" name="percentage_completion" min="0" max="100" step="5" required>
+                <input type="number" id="percentage_completion" name="percentage_completion" value="{{ percentage_completion }}" min="0" max="100" step="5" required>
             </div>
 
             <!-- Client Information -->
             <div id="location_filter">
                 <label for="client_name">Client Name:</label>
-                <input type="text" id="client_name" name="client_name" required class="client-select"><br>
+                <input type="text" id="client_name" name="client_name" required class="client-select" value="{{ client_name }}"><br>
             </div>
             <div id="location_filter">
                 <label for="client_location">Location:</label>
-                <input type="text" id="client_location" name="client_location" readonly><br>
+                <input type="text" id="client_location" name="client_location" value="{{ client_location }}" readonly><br>
             </div>
 
             <!-- Tasks Performed and Any Issues -->
             <label for="tasks_performed">Tasks Performed:</label>
-            <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required></textarea>
+            <textarea id="input_entries" name="tasks_performed" rows="4" cols="50" required>{{ tasks_performed }}</textarea>
 
             <label for="any_issues">Any Issues:</label>
-            <textarea id="input_entries" name="any_issues" rows="4" cols="50" required></textarea>
+            <textarea id="input_entries" name="any_issues" rows="4" cols="50" required>{{ any_issues }}</textarea>
 
             <!-- Select Team Members (Click to select) -->
             <label for="team_members">Select Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
                     <!-- Hidden checkbox that will hold the team member's value when selected -->
-                    <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
+                    <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;" {% if member[0] in selected_team_members %}checked{% endif %}>
 
                     <!-- Clickable team member -->
-                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
+                    <span class="team-member {% if member[0] in selected_team_members %}selected{% endif %}" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
                 {% endfor %}
             </div>
 
