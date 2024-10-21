@@ -59,11 +59,82 @@
                 {% endfor %}
             </div>
 
+            <h1>Project Checklist</h1>
+
+            <!-- Section Selection with Buttons -->
+            <div class="section-select">
+                <h3>Select Sections:</h3>
+                <button class="section-button" data-section="A">A. System Designs</button>
+                <button class="section-button" data-section="B">B. PV Modules</button>
+            </div>
+
+            <!-- Checklist Section A -->
+            <div id="section-A" class="section-checklist">
+                <h2>A. System Designs</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="A1"></div>
+                    <label for="A1">1 - As-built system documents e.g. Installation Layouts and Single Line drawings</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="A2"></div>
+                    <label for="A2">2 - As-built system documents are available at the site</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-A">Installer:</label>
+                    <select id="team-member-A" name="team-member-A">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-A">Cross-checked by:</label>
+                    <select id="crosschecked-by-A" name="crosschecked-by-A">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section B -->
+            <div id="section-B" class="section-checklist">
+                <h2>B. PV Modules</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="B1"></div>
+                    <label for="B1">1 - All arrays are square, consistent, and neat to the eye</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="B2"></div>
+                    <label for="B2">2 - Modules are securely and neatly installed</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-B">Installer:</label>
+                    <select id="team-member-B" name="team-member-B">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-B">Cross-checked by:</label>
+                    <select id="crosschecked-by-B" name="crosschecked-by-B">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+
             <!-- Submit Button -->
             <button type="submit" id="submit-button">Submit</button>
         </form>
 
-        <!-- jQuery Script for Datepicker, Autocomplete, and Fetching Client Details -->
         <script>
             $(document).ready(function() {
                 // Datepicker with custom formatting
@@ -143,8 +214,34 @@
                         $('#daily-report-form').submit();
                     }, 1000);  // Slight delay to ensure image capture happens first
                 });
+
+                // Dual Checkbox functionality
+                document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('click', function () {
+                        if (this.classList.contains('checked')) {
+                            this.classList.remove('checked');
+                            this.classList.add('crossed');
+                        } else if (this.classList.contains('crossed')) {
+                            this.classList.remove('crossed');
+                        } else {
+                            this.classList.add('checked');
+                        }
+                    });
+                });
+
+                // Toggle checklist sections
+                const buttons = document.querySelectorAll('.section-button');
+                buttons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const section = this.getAttribute('data-section');
+                        const sectionElement = document.getElementById('section-' + section);
+                        this.classList.toggle('selected');
+                        sectionElement.classList.toggle('active');
+                    });
+                });
             });
         </script>
+
     </div>
 </body>
 </html>
