@@ -553,7 +553,7 @@ nav a:hover {
 
 /* Keep the selected state */
 .section-button.selected {
-    background-color: #28A745; /* Green for selected sections */
+    background-color: #adff2f; /* Lemon green for selected sections */
 }
 
 
@@ -613,7 +613,7 @@ nav a:hover {
 
 .dual-checkbox.checked::before {
     content: "✓"; /* Positive checkmark */
-    color: green;
+    color: #adff2f;
 }
 
 .dual-checkbox.crossed::before {
