@@ -72,7 +72,7 @@
                 <button class="section-button" data-section="F">F. Earthing</button>
                 <button class="section-button" data-section="G">G. Protection Devices</button>
                 <button class="section-button" data-section="H">H. Connection to Main DB</button>
-                <button class="section-button" data-section="I">I. Remote Monitoring</button>
+                <button class="section-button" data-section="I">I. Communication and Remote Monitoring</button>
                 <button class="section-button" data-section="J">J. Housekeeping</button>
 
             </div>
@@ -256,6 +256,161 @@
                 <div id="crosschecked-by-wrapper">
                     <label for="crosschecked-by-E">Cross-checked by:</label>
                     <select id="crosschecked-by-E" name="crosschecked-by-E">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section F -->
+            <div id="section-F" class="section-checklist">
+                <h2>F. Earthing</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="F1"></div>
+                    <label for="F1">1 - Both DC and AC systems are properly earthed</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="F2"></div>
+                    <label for="F2">2 - All metallic cable trays are correctly earthed</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-F">Installer:</label>
+                    <select id="team-member-F" name="team-member-F">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-F">Cross-checked by:</label>
+                    <select id="crosschecked-by-F" name="crosschecked-by-F">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section G -->
+            <div id="section-G" class="section-checklist">
+                <h2>G. Protection Devices</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="G1"></div>
+                    <label for="G1">1 - Circuit breakers are used to protect the PV cables, Inverter AC input and AC output cables</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="G2"></div>
+                    <label for="G2">2 - Surge Protection Devices are installed on both the DC and AC systems</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-G">Installer:</label>
+                    <select id="team-member-G" name="team-member-G">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-G">Cross-checked by:</label>
+                    <select id="crosschecked-by-G" name="crosschecked-by-G">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section H -->
+            <div id="section-H" class="section-checklist">
+                <h2>H. Connection to Main DB</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="H1"></div>
+                    <label for="H1">1 - All screws and cable lug bolts are tightened properly</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="H2"></div>
+                    <label for="H2">2 - Arrangement of solar AC cables in the DB is neatly done</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-H">Installer:</label>
+                    <select id="team-member-H" name="team-member-H">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-H">Cross-checked by:</label>
+                    <select id="crosschecked-by-H" name="crosschecked-by-H">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section I -->
+            <div id="section-I" class="section-checklist">
+                <h2>I. Communication and Remote Monitoring</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="I1"></div>
+                    <label for="I1">1 - All data cables have been properly crimped and terminated</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="I2"></div>
+                    <label for="I2">2 - System has been correctly setup for remote monitoring</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-I">Installer:</label>
+                    <select id="team-member-I" name="team-member-I">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-I">Cross-checked by:</label>
+                    <select id="crosschecked-by-I" name="crosschecked-by-I">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section J -->
+            <div id="section-J" class="section-checklist">
+                <h2>J. Housekeeping</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="J1"></div>
+                    <label for="J1">1 - All waste is correctly disposed-off </label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="J2"></div>
+                    <label for="J2">2 - No dirt marks, scratches, stains, or markings on the roof or walls due to the installation</label>
+                </div>
+                <div id="team-member-wrapper">
+                    <label for="team-member-J">Installer:</label>
+                    <select id="team-member-J" name="team-member-J">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-J">Cross-checked by:</label>
+                    <select id="crosschecked-by-J" name="crosschecked-by-J">
                         <option value="">-- Quality Control Engineer --</option>
                         {% for member in team_members %}
                         <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
