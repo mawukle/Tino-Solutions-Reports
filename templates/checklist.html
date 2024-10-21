@@ -87,21 +87,11 @@
         </div>
     </div>
 
-    <!-- Form to pass values to the server -->
-    <form action="{{ url_for('project_checklist_complete') }}" method="post">
-        <!-- Add hidden fields to capture necessary data -->
-        <input type="hidden" name="client_name" value="{{ client_name }}">
-        <input type="hidden" name="client_location" value="{{ client_location }}">
-        <input type="hidden" name="job_date" value="{{ job_date }}">
-        <input type="hidden" name="percentage_completion" value="{{ percentage_completion }}">
-        <input type="hidden" name="tasks_performed" value="{{ tasks_performed }}">
-        <input type="hidden" name="any_issues" value="{{ any_issues }}">
+    <!-- Submit Button to complete the checklist -->
+    <div class="button-container">
+        <button type="submit" class="submit-button">Submit Checklist</button>
+    </div>
 
-        <!-- Submit Button to complete the checklist -->
-        <div class="button-container">
-            <button type="submit" class="submit-button">Submit Checklist</button>
-        </div>
-    </form>
 </div>
 
 <!-- JavaScript for Dual Checkbox functionality -->
