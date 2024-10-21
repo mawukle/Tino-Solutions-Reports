@@ -59,26 +59,44 @@
                 {% endfor %}
             </div>
 
-            <h1>Project Checklist</h1>
+            <h1>Installation Checklist</h1>
 
             <!-- Section Selection with Buttons -->
             <div class="section-select">
                 <h3>Select Sections:</h3>
-                <button class="section-button" data-section="A">A. System Designs</button>
-                <button class="section-button" data-section="B">B. PV Modules</button>
+                <button class="section-button" data-section="A">A. Inverters</button>
+                <button class="section-button" data-section="B">B. Batteries</button>
+                <button class="section-button" data-section="C">C. Solar Panels</button>
+                <button class="section-button" data-section="D">D. DC Cables</button>
+                <button class="section-button" data-section="E">E. AC Cables</button>
+                <button class="section-button" data-section="F">F. Earthing</button>
+                <button class="section-button" data-section="G">G. Protection Devices</button>
+                <button class="section-button" data-section="H">H. Connection to Main DB</button>
+                <button class="section-button" data-section="I">I. Remote Monitoring</button>
+                <button class="section-button" data-section="J">J. Housekeeping</button>
+
             </div>
 
             <!-- Checklist Section A -->
             <div id="section-A" class="section-checklist">
-                <h2>A. System Designs</h2>
+                <h2>A. Inverters</h2>
                 <div class="checkbox-item">
                     <div class="dual-checkbox" id="A1"></div>
-                    <label for="A1">1 - As-built system documents e.g. Installation Layouts and Single Line drawings</label>
+                    <label for="A1">1 - All inverters securely and neatly mounted</label>
                 </div>
                 <div class="checkbox-item">
                     <div class="dual-checkbox" id="A2"></div>
-                    <label for="A2">2 - As-built system documents are available at the site</label>
+                    <label for="A2">2 - Inverter room sufficiently ventilated</label>
                 </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="A3"></div>
+                    <label for="A3">3 - No obstruction to inverter fans/cooling airflow, sufficient gaps between inverters & adjacent trunking for cooling</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="A4"></div>
+                    <label for="A4">4 - Covers are correctly installed, all electrical areas are inaccessible</label>
+                </div>
+
                 <div id="team-member-wrapper">
                     <label for="team-member-A">Installer:</label>
                     <select id="team-member-A" name="team-member-A">
@@ -101,14 +119,14 @@
 
             <!-- Checklist Section B -->
             <div id="section-B" class="section-checklist">
-                <h2>B. PV Modules</h2>
+                <h2>B. Batteries</h2>
                 <div class="checkbox-item">
                     <div class="dual-checkbox" id="B1"></div>
-                    <label for="B1">1 - All arrays are square, consistent, and neat to the eye</label>
+                    <label for="B1">1 - Battery room is sufficienty ventilated</label>
                 </div>
                 <div class="checkbox-item">
                     <div class="dual-checkbox" id="B2"></div>
-                    <label for="B2">2 - Modules are securely and neatly installed</label>
+                    <label for="B2">2 - Correct Cable lugs have been used and no lose contacts are present on battery</label>
                 </div>
                 <div id="team-member-wrapper">
                     <label for="team-member-B">Installer:</label>
@@ -122,6 +140,46 @@
                 <div id="crosschecked-by-wrapper">
                     <label for="crosschecked-by-B">Cross-checked by:</label>
                     <select id="crosschecked-by-B" name="crosschecked-by-B">
+                        <option value="">-- Quality Control Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Checklist Section C -->
+            <div id="section-C" class="section-checklist">
+                <h2>C. Solar Panels</h2>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="C1"></div>
+                    <label for="C1">1 - Structure securely fastened, without damage to surroundings (roof/substructure) or potential corrosion/water leakage issues</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="C2"></div>
+                    <label for="C2">2 - All solar panels are square, consistent, and neat to the eye</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="C3"></div>
+                    <label for="C3">3 - No cracked or damaged modules, either glass or frame</label>
+                </div>
+                <div class="checkbox-item">
+                    <div class="dual-checkbox" id="C4"></div>
+                    <label for="C4">4 - All modules are accessible for O&M work</label>
+                </div>
+
+                <div id="team-member-wrapper">
+                    <label for="team-member-C">Installer:</label>
+                    <select id="team-member-C" name="team-member-C">
+                        <option value="">-- Installation Engineer --</option>
+                        {% for member in team_members %}
+                        <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="crosschecked-by-wrapper">
+                    <label for="crosschecked-by-C">Cross-checked by:</label>
+                    <select id="crosschecked-by-C" name="crosschecked-by-C">
                         <option value="">-- Quality Control Engineer --</option>
                         {% for member in team_members %}
                         <option value="{{ member.Team_Member_ID }}">{{ member.Team_Member_Name }}</option>
