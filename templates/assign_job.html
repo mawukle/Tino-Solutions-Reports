@@ -233,6 +233,7 @@
                 const buttons = document.querySelectorAll('.section-button');
                 buttons.forEach(button => {
                     button.addEventListener('click', function() {
+                        event.preventDefault(); // Prevent form submission
                         const section = this.getAttribute('data-section');
                         const sectionElement = document.getElementById('section-' + section);
                         this.classList.toggle('selected');
