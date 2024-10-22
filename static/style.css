@@ -625,3 +625,7 @@ nav a:hover {
     display: flex;
     align-items: center;
 }
+textarea {
+    font-family: inherit;  /* Ensures textareas inherit the default font */
+    font-size: inherit;    /* Inherits the font size from the page */
+}
