@@ -424,7 +424,7 @@
             <div id="section-K" class="section-checklist">
                 <h2>K. Site Survey</h2>
                 <div class="checkbox-item">
-                    <input type="text" id="K1" name="K1" placeholder="Available area for solar panels (l x b)">
+                    <input type="text" id="K1" name="K1" placeholder="Available area for solar panels (l x b) in meters">
                     <label for="K1">1 - Available area for solar panels (l x b)</label>
                 </div>
                 <div class="checkbox-item">
@@ -500,9 +500,14 @@
                     </select>
                 </div>
                 <div class="checkbox-item">
-                    <textarea id="K13" name="K13" rows="4" placeholder="General comments" style="overflow:hidden; width: 150%;"></textarea>
-                    <label for="K13">13 - General comments</label>
+                    <textarea id="K13" name="K13" rows="2" placeholder="Gadgets to be powered by solar system" style="overflow:hidden; width: 150%;"></textarea>
+                    <label for="K13">13 - Gadgets to be powered by solar system</label>
                 </div>
+                <div class="checkbox-item">
+                    <textarea id="K14" name="K14" rows="2" placeholder="General comments" style="overflow:hidden; width: 150%;"></textarea>
+                    <label for="K14">14 - General comments</label>
+                </div>
+
             </div>
 
 
@@ -617,7 +622,7 @@
                 });
 
                 // Auto-expand textarea as user types
-                const textarea = document.getElementById('K13');
+                const textarea = [document.getElementById('K13'), document.getElementById('K14')];
 
                 textarea.addEventListener('input', function() {
                     this.style.height = 'auto';  // Reset the height
