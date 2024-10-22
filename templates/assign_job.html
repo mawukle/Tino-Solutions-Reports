@@ -42,10 +42,10 @@
 
             <!-- Tasks Performed and Any Issues -->
             <label for="tasks_performed">Tasks Performed:</label>
-            <textarea id="input_entries" name="tasks_performed" rows="2" cols="50" required></textarea>
+            <textarea id="tasks_performed" name="tasks_performed" rows="2" cols="50" required></textarea>
 
             <label for="any_issues">Any Issues:</label>
-            <textarea id="input_entries" name="any_issues" rows="2" cols="50" required></textarea>
+            <textarea id="any_issues" name="any_issues" rows="2" cols="50" required></textarea>
 
             <!-- Select Team Members (Click to select) -->
             <label for="team_members">Select Team Members:</label>
@@ -625,7 +625,8 @@
                 const textareas = [
                   document.getElementById('K13'),
                   document.getElementById('K14'),
-                  document.getElementById('input_entries')
+                  document.getElementById('tasks_performed'),
+                  document.getElementById('any_issues')
                 ];
 
                 textareas.forEach(textarea => {
