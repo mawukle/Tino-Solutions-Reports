@@ -621,15 +621,15 @@
                     });
                 });
 
-                // Auto-expand textarea as user types
-                const textarea = [document.getElementById('K13'), document.getElementById('K14')];
+                // Auto-expand textareas as user types
+                const textareas = [document.getElementById('K13'), document.getElementById('K14')];
 
-                textarea.addEventListener('input', function() {
-                    this.style.height = 'auto';  // Reset the height
-                    this.style.height = (this.scrollHeight) + 'px';  // Set new height based on content
+                textareas.forEach(textarea => {
+                    textarea.addEventListener('input', function() {
+                        this.style.height = 'auto';  // Reset the height
+                        this.style.height = (this.scrollHeight) + 'px';  // Set new height based on content
+                    });
                 });
-
-            });
         </script>
 
     </div>
