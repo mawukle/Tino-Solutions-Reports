@@ -581,18 +581,28 @@
                     event.preventDefault(); // Prevent form submission
 
                     // Capture the form content as an image
-                    html2canvas(document.querySelector("#report-container")).then(function(canvas) {
-                        // Create a link element and set the captured image as download
-                        var link = document.createElement('a');
-                        link.href = canvas.toDataURL('image/png'); // Change format if needed
-                        link.download = 'daily_report.png';
-                        link.click();
-                    });
+                    html2canvas(document.querySelector("#report-container"))
+                        .then(function(canvas) {
+                            // Create a link element and set the captured image as download
+                            var link = document.createElement('a');
+                            link.href = canvas.toDataURL('image/png'); // Change format if needed
+                            link.download = 'daily_report.png';
+                            link.click();
 
-                    // Submit the form after capturing the image
-                    setTimeout(function() {
-                        $('#daily-report-form').submit();
-                    }, 1000);  // Slight delay to ensure image capture happens first
+                            // Wait for the image to be captured before submitting the form
+                            return new Promise(function(resolve) {
+                                resolve();
+                            });
+                        })
+                        .then(function() {
+                            // Submit the form after image capture is complete
+                            $('#daily-report-form').submit();
+                        })
+                        .catch(function(error) {
+                            console.error('Error capturing the image: ', error);
+                            // Submit the form even if image capture fails
+                            $('#daily-report-form').submit();
+                        });
                 });
 
                 // Dual Checkbox functionality
