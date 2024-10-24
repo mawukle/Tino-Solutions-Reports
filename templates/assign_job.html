@@ -592,7 +592,7 @@
                         .then(function(canvas) {
                             const canvasHeight = canvas.height;
                             const canvasWidth = canvas.width;
-                            const sectionHeight = 1000; // Set the height of each section
+                            const sectionHeight = 1000; // Set the height of each section (adjust if needed)
                             let numberOfSections = Math.ceil(canvasHeight / sectionHeight);
 
                             // Loop through each section
@@ -600,16 +600,23 @@
                                 // Create a new canvas for each section
                                 const sectionCanvas = document.createElement('canvas');
                                 sectionCanvas.width = canvasWidth;
-                                sectionCanvas.height = Math.min(sectionHeight, canvasHeight - (i * sectionHeight)); // Handle the last section
+
+                                // Determine the correct height for the last section
+                                const currentSectionHeight = (i === numberOfSections - 1)
+                                    ? canvasHeight - (i * sectionHeight)  // Height for the last section
+                                    : sectionHeight;
+
+                                sectionCanvas.height = currentSectionHeight;
 
                                 const ctx = sectionCanvas.getContext('2d');
+
                                 // Draw the part of the original canvas onto the new section canvas
                                 ctx.drawImage(
                                     canvas,
                                     0, i * sectionHeight,
-                                    canvasWidth, sectionHeight,
+                                    canvasWidth, currentSectionHeight,
                                     0, 0,
-                                    canvasWidth, sectionHeight
+                                    canvasWidth, currentSectionHeight
                                 );
 
                                 // Convert the section canvas to an image and download it
