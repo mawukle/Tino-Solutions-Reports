@@ -591,30 +591,53 @@
                 });
 
                 $(document).ready(function() {
-                    // Capture the form and save as PDF on submit
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission
 
                         // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"))
                             .then(function(canvas) {
-                                const imgData = canvas.toDataURL('image/png');
-                                const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance in portrait mode
+                                const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance (A4 size)
 
-                                const canvasWidth = canvas.width;
-                                const canvasHeight = canvas.height;
+                                const imgData = canvas.toDataURL('image/png');
                                 const pageWidth = pdf.internal.pageSize.getWidth();
                                 const pageHeight = pdf.internal.pageSize.getHeight();
 
-                                // Calculate scale ratio to fit content on one page (or fewer pages)
-                                const scaleRatio = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                                const canvasWidth = canvas.width;
+                                const canvasHeight = canvas.height;
 
-                                // New scaled canvas dimensions
-                                const scaledWidth = canvasWidth * scaleRatio;
-                                const scaledHeight = canvasHeight * scaleRatio;
+                                // Calculate the scaling factor to fit the content on fewer pages
+                                const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
 
-                                // Add the scaled image to the PDF
-                                pdf.addImage(imgData, 'PNG', 0, 0, scaledWidth, scaledHeight);
+                                const scaledCanvasWidth = canvasWidth * scaleFactor;
+                                const scaledCanvasHeight = canvasHeight * scaleFactor;
+
+                                // Calculate the xOffset to center the content horizontally
+                                const xOffset = (pageWidth - scaledCanvasWidth) / 2;
+
+                                // Check if content can fit on a single page
+                                if (scaledCanvasHeight <= pageHeight) {
+                                    // Single-page PDF
+                                    pdf.addImage(imgData, 'PNG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
+                                } else {
+                                    // Multi-page PDF but with fewer pages
+                                    let yOffset = 0;
+
+                                    while (yOffset < canvasHeight) {
+                                        const remainingHeight = canvasHeight - yOffset;
+                                        const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
+
+                                        const visibleCanvas = canvas.getContext('2d').getImageData(0, yOffset, canvasWidth, visibleHeight);
+                                        const visibleImgData = canvas.toDataURL('image/png', 0, yOffset, canvasWidth, visibleHeight);
+
+                                        pdf.addImage(visibleImgData, 'PNG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
+                                        yOffset += visibleHeight;
+
+                                        if (yOffset < canvasHeight) {
+                                            pdf.addPage();
+                                        }
+                                    }
+                                }
 
                                 // Save the PDF with the desired name
                                 pdf.save('daily_report.pdf');
@@ -635,6 +658,7 @@
                             });
                     });
                 });
+
 
                 // Dual Checkbox functionality
                 document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
