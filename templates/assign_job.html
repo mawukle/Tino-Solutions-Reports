@@ -591,10 +591,10 @@
                     // Capture the form content as an image
                     html2canvas(document.querySelector("#report-container"))
                         .then(function(canvas) {
-                            // Create a link element and set the captured image as download
+                            // Create a link element and set the captured image as a JPEG download
                             var link = document.createElement('a');
-                            link.href = canvas.toDataURL('image/png'); // Change format if needed
-                            link.download = 'daily_report.png';
+                            link.href = canvas.toDataURL('image/jpeg', 0.9); // Change to JPEG and set quality to 90%
+                            link.download = 'daily_report.jpg'; // Save the image as a .jpg file
                             link.click();
 
                             // Wait for the image to be captured before submitting the form
