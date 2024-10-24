@@ -584,20 +584,43 @@
                     $(this).toggleClass('selected'); // Toggle the 'selected' class
                 });
 
-                // Capture the form and download as an image on submit
                 $('#submit-button').click(function(event) {
                     event.preventDefault(); // Prevent form submission
 
                     // Capture the form content as an image
                     html2canvas(document.querySelector("#report-container"))
                         .then(function(canvas) {
-                            // Create a link element and set the captured image as download
-                            var link = document.createElement('a');
-                            link.href = canvas.toDataURL('image/png'); // Change format if needed
-                            link.download = 'daily_report.png';
-                            link.click();
+                            const canvasHeight = canvas.height;
+                            const canvasWidth = canvas.width;
+                            const sectionHeight = 1000; // Set the height of each section
+                            let numberOfSections = Math.ceil(canvasHeight / sectionHeight);
 
-                            // Wait for the image to be captured before submitting the form
+                            // Loop through each section
+                            for (let i = 0; i < numberOfSections; i++) {
+                                // Create a new canvas for each section
+                                const sectionCanvas = document.createElement('canvas');
+                                sectionCanvas.width = canvasWidth;
+                                sectionCanvas.height = Math.min(sectionHeight, canvasHeight - (i * sectionHeight)); // Handle the last section
+
+                                const ctx = sectionCanvas.getContext('2d');
+                                // Draw the part of the original canvas onto the new section canvas
+                                ctx.drawImage(
+                                    canvas,
+                                    0, i * sectionHeight,
+                                    canvasWidth, sectionHeight,
+                                    0, 0,
+                                    canvasWidth, sectionHeight
+                                );
+
+                                // Convert the section canvas to an image and download it
+                                let sectionImage = sectionCanvas.toDataURL('image/png');
+                                let link = document.createElement('a');
+                                link.href = sectionImage;
+                                link.download = `daily_report_section_${i + 1}.png`; // Naming sections
+                                link.click();
+                            }
+
+                            // After splitting and downloading all sections, submit the form
                             return new Promise(function(resolve) {
                                 resolve();
                             });
