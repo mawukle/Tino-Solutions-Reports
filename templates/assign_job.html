@@ -583,26 +583,11 @@
                     // Capture the form content as an image
                     html2canvas(document.querySelector("#report-container"))
                         .then(function(canvas) {
-                            // Check if the user is on an iPhone/iOS device
-                            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-                            if (isIOS) {
-                                // For iPhone/iOS users, open a new window with the image
-                                var imageURL = canvas.toDataURL('image/png');
-                                var newWindow = window.open();
-
-                                // Add HTML to display the image in the new window
-                                newWindow.document.write('<html><head><title>Download Image</title></head><body>');
-                                newWindow.document.write('<h3>Tap and hold the image to save it to your device</h3>');
-                                newWindow.document.write('<img src="' + imageURL + '" alt="Report Image" style="max-width:100%;"/>');
-                                newWindow.document.write('</body></html>');
-                            } else {
-                                // For non-iOS users, automatically trigger the download
-                                var link = document.createElement('a');
-                                link.href = canvas.toDataURL('image/png'); // Change format if needed
-                                link.download = 'daily_report.png';
-                                link.click();
-                            }
+                            // Create a link element and set the captured image as download
+                            var link = document.createElement('a');
+                            link.href = canvas.toDataURL('image/png'); // Change format if needed
+                            link.download = 'daily_report.png';
+                            link.click();
 
                             // Wait for the image to be captured before submitting the form
                             return new Promise(function(resolve) {
@@ -619,7 +604,6 @@
                             $('#daily-report-form').submit();
                         });
                 });
-
 
                 // Dual Checkbox functionality
                 document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
