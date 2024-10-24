@@ -977,13 +977,13 @@ def autocomplete_client():
     term = request.args.get('term', '')
 
     try:
-        # Ensure term is safe and properly escaped
-        term = literal_column(f"'%{term}%'")  # Explicitly declare as a literal column
+        # Properly format the term for SQL LIKE
+        search_term = f"%{term}%"
 
         # Use SQLAlchemy to query the database
         client_names = (
             db.session.query(Client_List.Client_Name)
-            .filter(Client_List.Client_Name.like(term))
+            .filter(Client_List.Client_Name.like(search_term))
             .limit(10)
             .all()
         )
