@@ -4,14 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TINO SOLUTIONS DAILY REPORT</title>
+
+    <!-- Link to custom stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- jQuery and jQuery UI (UI styles below) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- Upgrade to the latest version of html2canvas -->
+
+    <!-- Include jsPDF and the latest version of html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
+
 <body>
     <div class="container" id="report-container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
@@ -583,54 +590,56 @@
                     $(this).toggleClass('selected'); // Toggle the 'selected' class
                 });
 
-                // Capture the form and save as PDF on submit
-                $('#submit-button').click(function(event) {
-                    event.preventDefault(); // Prevent form submission
+                $(document).ready(function() {
+                    // Capture the form and save as PDF on submit
+                    $('#submit-button').click(function(event) {
+                        event.preventDefault(); // Prevent form submission
 
-                    // Capture the form content as an image
-                    html2canvas(document.querySelector("#report-container"))
-                        .then(function(canvas) {
-                            const imgData = canvas.toDataURL('image/png');
-                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance in portrait mode
-                            const canvasWidth = canvas.width;
-                            const canvasHeight = canvas.height;
+                        // Capture the form content as an image
+                        html2canvas(document.querySelector("#report-container"))
+                            .then(function(canvas) {
+                                const imgData = canvas.toDataURL('image/png');
+                                const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance in portrait mode
+                                const canvasWidth = canvas.width;
+                                const canvasHeight = canvas.height;
 
-                            const pageHeight = pdf.internal.pageSize.getHeight();
-                            const pageWidth = pdf.internal.pageSize.getWidth();
+                                const pageHeight = pdf.internal.pageSize.getHeight();
+                                const pageWidth = pdf.internal.pageSize.getWidth();
 
-                            // Calculate the number of pages needed for the height of the canvas
-                            const totalPages = Math.ceil(canvasHeight / pageHeight);
+                                // Calculate the number of pages needed for the height of the canvas
+                                const totalPages = Math.ceil(canvasHeight / pageHeight);
 
-                            // Loop through and add each page of the canvas to the PDF
-                            for (let pageNumber = 0; pageNumber < totalPages; pageNumber++) {
-                                const yOffset = -(pageNumber * pageHeight); // Calculate the y offset for each page
+                                // Loop through and add each page of the canvas to the PDF
+                                for (let pageNumber = 0; pageNumber < totalPages; pageNumber++) {
+                                    const yOffset = -(pageNumber * pageHeight); // Calculate the y offset for each page
 
-                                // Add the canvas content to the PDF, clipping the right section for each page
-                                pdf.addImage(imgData, 'PNG', 0, yOffset, pageWidth, canvasHeight);
+                                    // Add the canvas content to the PDF, clipping the right section for each page
+                                    pdf.addImage(imgData, 'PNG', 0, yOffset, pageWidth, canvasHeight);
 
-                                // Add a new page if necessary
-                                if (pageNumber < totalPages - 1) {
-                                    pdf.addPage();
+                                    // Add a new page if necessary
+                                    if (pageNumber < totalPages - 1) {
+                                        pdf.addPage();
+                                    }
                                 }
-                            }
 
-                            // Save the PDF with the desired name
-                            pdf.save('daily_report.pdf');
+                                // Save the PDF with the desired name
+                                pdf.save('daily_report.pdf');
 
-                            // Wait for the PDF to be saved before submitting the form
-                            return new Promise(function(resolve) {
-                                resolve();
+                                // Wait for the PDF to be saved before submitting the form
+                                return new Promise(function(resolve) {
+                                    resolve();
+                                });
+                            })
+                            .then(function() {
+                                // Submit the form after PDF generation is complete
+                                $('#daily-report-form').submit();
+                            })
+                            .catch(function(error) {
+                                console.error('Error capturing the image or generating PDF: ', error);
+                                // Submit the form even if PDF generation fails
+                                $('#daily-report-form').submit();
                             });
-                        })
-                        .then(function() {
-                            // Submit the form after PDF generation is complete
-                            $('#daily-report-form').submit();
-                        })
-                        .catch(function(error) {
-                            console.error('Error capturing the image or generating PDF: ', error);
-                            // Submit the form even if PDF generation fails
-                            $('#daily-report-form').submit();
-                        });
+                    });
                 });
 
                 // Dual Checkbox functionality
