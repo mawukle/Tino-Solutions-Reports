@@ -583,11 +583,37 @@
                     // Capture the form content as an image
                     html2canvas(document.querySelector("#report-container"))
                         .then(function(canvas) {
-                            // Create a link element and set the captured image as download
-                            var link = document.createElement('a');
-                            link.href = canvas.toDataURL('image/png'); // Change format if needed
-                            link.download = 'daily_report.png';
-                            link.click();
+                            // Check if the user is on an iPhone/iOS device
+                            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                            if (isIOS) {
+                                // For iPhone/iOS users, display the image and let them download it manually
+                                var imageURL = canvas.toDataURL('image/png');
+                                var newWindow = window.open();
+
+                                // Display the image in the new window
+                                newWindow.document.write('<img src="' + imageURL + '" alt="Report Image"/>');
+
+                                // Provide a download button
+                                newWindow.document.write('<br/><button onclick="downloadImage()">Download Image</button>');
+
+                                // Add the downloadImage function to the new window
+                                newWindow.document.write('<script>' +
+                                    'function downloadImage() {' +
+                                        'var link = document.createElement("a");' +
+                                        'link.href = "' + imageURL + '";' +
+                                        'link.download = "daily_report.png";' +
+                                        'link.click();' +
+                                    '}' +
+                                    '<\/script>'
+                                );
+                            } else {
+                                // For non-iOS users, automatically trigger the download
+                                var link = document.createElement('a');
+                                link.href = canvas.toDataURL('image/png'); // Change format if needed
+                                link.download = 'daily_report.png';
+                                link.click();
+                            }
 
                             // Wait for the image to be captured before submitting the form
                             return new Promise(function(resolve) {
