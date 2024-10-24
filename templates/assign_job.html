@@ -536,8 +536,8 @@
                         // Add day suffix (st, nd, rd, th)
                         const day = selectedDate.getDate();
                         const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
-                                    (day == 2 || day == 22) ? 'nd' :
-                                    (day == 3 || day == 23) ? 'rd' : 'th';
+                                      (day == 2 || day == 22) ? 'nd' :
+                                      (day == 3 || day == 23) ? 'rd' : 'th';
                         const dayWithSuffix = `${day}${suffix}`;
 
                         // Update display and hidden input
@@ -580,35 +580,55 @@
                     var checkbox = $('#team_member_' + memberId);
 
                     checkbox.prop('checked', !checkbox.prop('checked')); // Toggle checkbox state
-
                     $(this).toggleClass('selected'); // Toggle the 'selected' class
                 });
 
-                // Capture the form and download as an image on submit
+                // Capture the form and save as PDF on submit
                 $('#submit-button').click(function(event) {
                     event.preventDefault(); // Prevent form submission
 
                     // Capture the form content as an image
                     html2canvas(document.querySelector("#report-container"))
                         .then(function(canvas) {
-                            // Create a link element and set the captured image as download
-                            var link = document.createElement('a');
-                            link.href = canvas.toDataURL('image/png'); // Change format if needed
-                            link.download = 'daily_report.png';
-                            link.click();
+                            const imgData = canvas.toDataURL('image/png');
+                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance in portrait mode
+                            const canvasWidth = canvas.width;
+                            const canvasHeight = canvas.height;
 
-                            // Wait for the image to be captured before submitting the form
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+
+                            // Calculate the number of pages needed for the height of the canvas
+                            const totalPages = Math.ceil(canvasHeight / pageHeight);
+
+                            // Loop through and add each page of the canvas to the PDF
+                            for (let pageNumber = 0; pageNumber < totalPages; pageNumber++) {
+                                const yOffset = -(pageNumber * pageHeight); // Calculate the y offset for each page
+
+                                // Add the canvas content to the PDF, clipping the right section for each page
+                                pdf.addImage(imgData, 'PNG', 0, yOffset, pageWidth, canvasHeight);
+
+                                // Add a new page if necessary
+                                if (pageNumber < totalPages - 1) {
+                                    pdf.addPage();
+                                }
+                            }
+
+                            // Save the PDF with the desired name
+                            pdf.save('daily_report.pdf');
+
+                            // Wait for the PDF to be saved before submitting the form
                             return new Promise(function(resolve) {
                                 resolve();
                             });
                         })
                         .then(function() {
-                            // Submit the form after image capture is complete
+                            // Submit the form after PDF generation is complete
                             $('#daily-report-form').submit();
                         })
                         .catch(function(error) {
-                            console.error('Error capturing the image: ', error);
-                            // Submit the form even if image capture fails
+                            console.error('Error capturing the image or generating PDF: ', error);
+                            // Submit the form even if PDF generation fails
                             $('#daily-report-form').submit();
                         });
                 });
@@ -641,10 +661,10 @@
 
                 // Auto-expand textareas as user types
                 const textareas = [
-                  document.getElementById('K13'),
-                  document.getElementById('K14'),
-                  document.getElementById('tasks_performed'),
-                  document.getElementById('any_issues')
+                    document.getElementById('K13'),
+                    document.getElementById('K14'),
+                    document.getElementById('tasks_performed'),
+                    document.getElementById('any_issues')
                 ];
 
                 textareas.forEach(textarea => {
@@ -653,7 +673,6 @@
                         this.style.height = (this.scrollHeight) + 'px';  // Set new height based on content
                     });
                 });
-
             });
         </script>
 
