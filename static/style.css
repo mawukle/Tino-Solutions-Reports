@@ -476,6 +476,22 @@ nav a:hover {
     font-size: 11px;
 }
 
+#tasks_performed {
+    font-family: Georgia, Arial, sans-serif;
+    margin: 0;
+    padding: 2px;
+    background-color: fff;
+    font-size: 11px;
+}
+
+#any_issues {
+    font-family: Georgia, Arial, sans-serif;
+    margin: 0;
+    padding: 2px;
+    background-color: fff;
+    font-size: 11px;
+}
+
 /* Logo style */
 .logo {
     position: absolute;
