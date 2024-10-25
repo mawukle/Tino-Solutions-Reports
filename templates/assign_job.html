@@ -594,31 +594,55 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Initialize jsPDF instance
-                        const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
+                        // Capture the form content as an image
+                        html2canvas(document.querySelector("#report-container"), {
+                            scale: 2,
+                            allowTaint: true,
+                            useCORS: true
+                        }).then(function(canvas) {
+                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
 
-                        // Capture values from the textareas
-                        const tasksPerformed = $('#tasks_performed').val();
-                        const anyIssues = $('#any_issues').val();
+                            const imgData = canvas.toDataURL('image/jpeg', 0.7);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            const canvasWidth = canvas.width;
+                            const canvasHeight = canvas.height;
 
-                        // Define page and text area margins
-                        const pageWidth = pdf.internal.pageSize.getWidth();
-                        const textAreaWidth = pageWidth - 40; // 20pt margin on each side
+                            // Calculate scaling factor and center alignment
+                            const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                            const scaledCanvasWidth = canvasWidth * scaleFactor;
+                            const scaledCanvasHeight = canvasHeight * scaleFactor;
+                            const xOffset = (pageWidth - scaledCanvasWidth) / 2;
 
-                        // Add 'Tasks Performed' content with line breaks
-                        pdf.setFontSize(11);
-                        pdf.text("Tasks Performed:", 20, 50);
-                        pdf.text(tasksPerformed.split('\n'), 20, 70, { maxWidth: textAreaWidth });
+                            if (scaledCanvasHeight <= pageHeight) {
+                                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
+                            } else {
+                                let yOffset = 0;
+                                while (yOffset < canvasHeight) {
+                                    const remainingHeight = canvasHeight - yOffset;
+                                    const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
 
-                        // Add 'Any Issues' content with line breaks
-                        pdf.text("Any Issues:", 20, 130);
-                        pdf.text(anyIssues.split('\n'), 20, 150, { maxWidth: textAreaWidth });
+                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
+                                    pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
+                                    yOffset += visibleHeight;
 
-                        // Save the PDF
-                        pdf.save('daily_report.pdf');
+                                    if (yOffset < canvasHeight) pdf.addPage();
+                                }
+                            }
 
-                        // Submit the form after PDF generation
-                        setTimeout(() => { $('#daily-report-form').submit(); }, 1500);
+                            pdf.save('daily_report.pdf');
+
+                            return new Promise(function(resolve) {
+                                setTimeout(resolve, 1500); // Brief delay to allow download to initiate
+                            });
+                        })
+                        .then(function() {
+                            $('#daily-report-form').submit(); // Submit the form after PDF generation
+                        })
+                        .catch(function(error) {
+                            console.error('Error generating or downloading PDF:', error);
+                            $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
+                        });
                     });
                 });
 
