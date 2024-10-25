@@ -594,44 +594,62 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Capture the form content as an image
+                        // Initialize PDF
+                        const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        let yPosition = 40; // Start position for content on PDF
+
+                        // Capture the content of #report-container (excluding textareas)
                         html2canvas(document.querySelector("#report-container"), {
                             scale: 2,
+                            ignoreElements: function(element) {
+                                return element.tagName === "TEXTAREA";  // Skip textareas during capture
+                            },
                             allowTaint: true,
                             useCORS: true
                         }).then(function(canvas) {
-                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
-
                             const imgData = canvas.toDataURL('image/jpeg', 0.7);
-                            const pageWidth = pdf.internal.pageSize.getWidth();
-                            const pageHeight = pdf.internal.pageSize.getHeight();
                             const canvasWidth = canvas.width;
                             const canvasHeight = canvas.height;
-
-                            // Calculate scaling factor and center alignment
-                            const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                            const scaleFactor = Math.min(pageWidth / canvasWidth, pdf.internal.pageSize.getHeight() / canvasHeight);
                             const scaledCanvasWidth = canvasWidth * scaleFactor;
                             const scaledCanvasHeight = canvasHeight * scaleFactor;
                             const xOffset = (pageWidth - scaledCanvasWidth) / 2;
 
-                            if (scaledCanvasHeight <= pageHeight) {
-                                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
-                            } else {
-                                let yOffset = 0;
-                                while (yOffset < canvasHeight) {
-                                    const remainingHeight = canvasHeight - yOffset;
-                                    const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
+                            // Add canvas content to PDF
+                            pdf.addImage(imgData, 'JPEG', xOffset, yPosition, scaledCanvasWidth, scaledCanvasHeight);
 
-                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
-                                    pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
-                                    yOffset += visibleHeight;
+                            // Move yPosition below the canvas content
+                            yPosition += scaledCanvasHeight + 20;
 
-                                    if (yOffset < canvasHeight) pdf.addPage();
-                                }
-                            }
+                            // Manually add textarea content
+                            const tasksPerformed = $('#tasks_performed').val().split('\n');
+                            const anyIssues = $('#any_issues').val().split('\n');
 
+                            pdf.setFont("helvetica", "normal");
+                            pdf.setFontSize(12);
+
+                            // Tasks Performed - add each line separately
+                            pdf.text("Tasks Performed:", 40, yPosition);
+                            yPosition += 16;
+                            tasksPerformed.forEach(line => {
+                                pdf.text(line, 60, yPosition);
+                                yPosition += 14;
+                            });
+
+                            // Any Issues - add each line separately
+                            yPosition += 16;
+                            pdf.text("Any Issues:", 40, yPosition);
+                            yPosition += 16;
+                            anyIssues.forEach(line => {
+                                pdf.text(line, 60, yPosition);
+                                yPosition += 14;
+                            });
+
+                            // Save the PDF
                             pdf.save('daily_report.pdf');
 
+                            // Wait and then submit the form after PDF generation
                             return new Promise(function(resolve) {
                                 setTimeout(resolve, 1500); // Brief delay to allow download to initiate
                             });
