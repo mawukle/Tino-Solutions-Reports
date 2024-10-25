@@ -594,52 +594,57 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Copy content from textareas to temporary divs
-                        const tasksPerformedDiv = $('<div>').css({
-                            'white-space': 'pre-wrap',
-                            'font-family': 'Georgia, Arial, sans-serif',
-                            'font-size': '11px',
-                            'width': '348.578px',
-                            'height': 'auto'
-                        }).text($('#tasks_performed').val());
-
-                        const anyIssuesDiv = $('<div>').css({
-                            'white-space': 'pre-wrap',
-                            'font-family': 'Georgia, Arial, sans-serif',
-                            'font-size': '11px',
-                            'width': '348.578px',
-                            'height': 'auto'
-                        }).text($('#any_issues').val());
-
-                        $('#tasks_performed').replaceWith(tasksPerformedDiv);
-                        $('#any_issues').replaceWith(anyIssuesDiv);
-
-                        // Generate PDF with divs instead of textareas
+                        // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"), {
                             scale: 2,
                             allowTaint: true,
                             useCORS: true
                         }).then(function(canvas) {
                             const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
-                            const imgData = canvas.toDataURL('image/jpeg', 0.7);
 
-                            pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+                            const imgData = canvas.toDataURL('image/jpeg', 0.7);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            const canvasWidth = canvas.width;
+                            const canvasHeight = canvas.height;
+
+                            // Calculate scaling factor and center alignment
+                            const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                            const scaledCanvasWidth = canvasWidth * scaleFactor;
+                            const scaledCanvasHeight = canvasHeight * scaleFactor;
+                            const xOffset = (pageWidth - scaledCanvasWidth) / 2;
+
+                            if (scaledCanvasHeight <= pageHeight) {
+                                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
+                            } else {
+                                let yOffset = 0;
+                                while (yOffset < canvasHeight) {
+                                    const remainingHeight = canvasHeight - yOffset;
+                                    const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
+
+                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
+                                    pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
+                                    yOffset += visibleHeight;
+
+                                    if (yOffset < canvasHeight) pdf.addPage();
+                                }
+                            }
+
                             pdf.save('daily_report.pdf');
 
-                            // Restore the original textareas for further editing if needed
-                            tasksPerformedDiv.replaceWith($('#tasks_performed'));
-                            anyIssuesDiv.replaceWith($('#any_issues'));
-
-                            return new Promise(resolve => setTimeout(resolve, 1500));
-                        }).then(function() {
+                            return new Promise(function(resolve) {
+                                setTimeout(resolve, 1500); // Brief delay to allow download to initiate
+                            });
+                        })
+                        .then(function() {
                             $('#daily-report-form').submit(); // Submit the form after PDF generation
-                        }).catch(function(error) {
+                        })
+                        .catch(function(error) {
                             console.error('Error generating or downloading PDF:', error);
                             $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
                         });
                     });
                 });
-
 
 
 
