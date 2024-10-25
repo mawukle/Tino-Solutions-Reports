@@ -592,73 +592,56 @@
 
                 $(document).ready(function() {
                     $('#submit-button').click(function(event) {
-                        event.preventDefault(); // Prevent form submission
+                        event.preventDefault(); // Prevent form submission until PDF generation is done
 
                         // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"), {
-                            scale: 2, // Set a lower scale for reduced image resolution
+                            scale: 2,
                             allowTaint: true,
                             useCORS: true
                         }).then(function(canvas) {
-                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); // Create a new jsPDF instance (A4 size)
+                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
 
-                            const imgData = canvas.toDataURL('image/jpeg', 0.7); // Set image format to JPEG and reduce quality
-
+                            const imgData = canvas.toDataURL('image/jpeg', 0.7);
                             const pageWidth = pdf.internal.pageSize.getWidth();
                             const pageHeight = pdf.internal.pageSize.getHeight();
-
                             const canvasWidth = canvas.width;
                             const canvasHeight = canvas.height;
 
-                            // Calculate the scaling factor to fit content on fewer pages
+                            // Calculate scaling factor and center alignment
                             const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
-
                             const scaledCanvasWidth = canvasWidth * scaleFactor;
                             const scaledCanvasHeight = canvasHeight * scaleFactor;
-
-                            // Calculate the xOffset to center the content horizontally
                             const xOffset = (pageWidth - scaledCanvasWidth) / 2;
 
-                            // Check if content can fit on a single page
                             if (scaledCanvasHeight <= pageHeight) {
-                                // Single-page PDF
                                 pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
                             } else {
-                                // Multi-page PDF but with fewer pages
                                 let yOffset = 0;
-
                                 while (yOffset < canvasHeight) {
                                     const remainingHeight = canvasHeight - yOffset;
                                     const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
 
-                                    const visibleCanvas = canvas.getContext('2d').getImageData(0, yOffset, canvasWidth, visibleHeight);
                                     const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
-
                                     pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
                                     yOffset += visibleHeight;
 
-                                    if (yOffset < canvasHeight) {
-                                        pdf.addPage();
-                                    }
+                                    if (yOffset < canvasHeight) pdf.addPage();
                                 }
                             }
 
-                            // Save the PDF with the desired name
                             pdf.save('daily_report.pdf');
 
-                            // Wait for the PDF to be saved before submitting the form
                             return new Promise(function(resolve) {
-                                resolve();
+                                setTimeout(resolve, 1500); // Brief delay to allow download to initiate
                             });
                         })
                         .then(function() {
-                            // Submit the form after PDF generation is complete
-                            $('#daily-report-form').submit();
+                            $('#daily-report-form').submit(); // Submit the form after PDF generation
                         })
                         .catch(function(error) {
-                            console.error('Error capturing the image or generating PDF: ', error);
-                            // Submit the form even if PDF generation fails
-                            $('#daily-report-form').submit();
+                            console.error('Error generating or downloading PDF:', error);
+                            $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
                         });
                     });
                 });
