@@ -594,19 +594,6 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Convert textareas to divs with line breaks
-                        $('textarea').each(function() {
-                            const value = $(this).val().replace(/\n/g, '<br>'); // Preserve line breaks
-                            const div = $('<div>').html(value).css({
-                                'white-space': 'pre-wrap',
-                                'font-family': $(this).css('font-family'),
-                                'font-size': $(this).css('font-size'),
-                                'width': $(this).width(),
-                                'height': $(this).height()
-                            });
-                            $(this).replaceWith(div);
-                        });
-
                         // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"), {
                             scale: 2,
@@ -614,32 +601,47 @@
                             useCORS: true
                         }).then(function(canvas) {
                             const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
+
                             const imgData = canvas.toDataURL('image/jpeg', 0.7);
                             const pageWidth = pdf.internal.pageSize.getWidth();
                             const pageHeight = pdf.internal.pageSize.getHeight();
-                            const scaleFactor = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-                            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width * scaleFactor, canvas.height * scaleFactor);
+                            const canvasWidth = canvas.width;
+                            const canvasHeight = canvas.height;
+
+                            // Calculate scaling factor and center alignment
+                            const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                            const scaledCanvasWidth = canvasWidth * scaleFactor;
+                            const scaledCanvasHeight = canvasHeight * scaleFactor;
+                            const xOffset = (pageWidth - scaledCanvasWidth) / 2;
+
+                            if (scaledCanvasHeight <= pageHeight) {
+                                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
+                            } else {
+                                let yOffset = 0;
+                                while (yOffset < canvasHeight) {
+                                    const remainingHeight = canvasHeight - yOffset;
+                                    const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
+
+                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
+                                    pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
+                                    yOffset += visibleHeight;
+
+                                    if (yOffset < canvasHeight) pdf.addPage();
+                                }
+                            }
 
                             pdf.save('daily_report.pdf');
 
                             return new Promise(function(resolve) {
                                 setTimeout(resolve, 1500); // Brief delay to allow download to initiate
                             });
-                        }).then(function() {
+                        })
+                        .then(function() {
                             $('#daily-report-form').submit(); // Submit the form after PDF generation
-                        }).catch(function(error) {
+                        })
+                        .catch(function(error) {
                             console.error('Error generating or downloading PDF:', error);
                             $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
-                        });
-
-                        // Revert divs back to textareas
-                        $('div').each(function() {
-                            const value = $(this).html().replace(/<br>/g, '\n'); // Restore line breaks
-                            const textarea = $('<textarea>').val(value).attr({
-                                'rows': 2,
-                                'cols': 50
-                            });
-                            $(this).replaceWith(textarea);
                         });
                     });
                 });
