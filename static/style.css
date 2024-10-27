@@ -2,7 +2,7 @@ body {
     font-family: Georgia, Arial, sans-serif;
     margin: 0;
     padding: 10px;
-    background-color: pink;
+    background-color: #85BB65;
     font-size: 11px;
 }
 
@@ -199,7 +199,7 @@ nav a:hover {
     text-decoration: none;
     font-size: 8px;
     font-weight: bold;
-    background-color: pink;
+    background-color: #85BB65;
     padding: 8px 16px;
     border-radius: 5px;
 }
@@ -231,7 +231,7 @@ nav a:hover {
 }
 
 .navigation-menu a:hover {
-    background-color: pink;
+    background-color: #85BB65;
     color: white;
 }
 
