@@ -77,7 +77,7 @@ button {
     padding: 5px 10px;
     font-size: 100%;
     color: #fff;
-    background-color: #007bff;
+    background-color: #85BB65;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -86,7 +86,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #4C9A2A;
 }
 
 .table-container {
@@ -116,7 +116,7 @@ th, td {
 }
 
 th {
-    background-color: #007bff;
+    background-color: #85BB65;
     color: white;
     position: sticky;
     top: 0;
@@ -136,12 +136,12 @@ tr:nth-child(even) {
 }
 
 .update-button {
-    background-color: #007bff;
+    background-color: #85BB65;
     color: white;
 }
 
 .update-button:hover {
-    background-color: #0056b3;
+    background-color: #4C9A2A;
 }
 
 .delete-button {
@@ -169,7 +169,7 @@ nav {
 nav a {
     margin: 0 15px;
     text-decoration: none;
-    color: #007bff;
+    color: #85BB65;
     font-weight: bold;
 }
 
@@ -206,7 +206,7 @@ nav a:hover {
 
 .back-link:hover {
     text-decoration: underline;
-    background-color: #fff;
+    background-color: #f9f9f9;
     color: #85BB65;
 }
 
@@ -221,7 +221,7 @@ nav a:hover {
 
 .navigation-menu a {
     text-decoration: none;
-    color: #007BFF;
+    color: #85BB65;
     font-size: 18px;
     font-weight: normal;
     padding: 6px 4px;
@@ -442,7 +442,7 @@ nav a:hover {
     width: 150px;
     margin-top: 8px;
     padding: 4px 8px;
-    background-color: #28a745;
+    background-color: #85BB65;
     color: white;
     border: none;
     border-radius: 5px;
@@ -614,7 +614,7 @@ nav a:hover {
 
 .dual-checkbox.checked::before {
     content: "✓"; /* Positive checkmark */
-    color: #adff2f;
+    color: #85BB65;
 }
 
 .dual-checkbox.crossed::before {
