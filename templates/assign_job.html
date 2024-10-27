@@ -602,7 +602,19 @@
                                 div.style.whiteSpace = "pre-wrap"; // Keeps the line breaks
                                 div.style.overflowWrap = "break-word"; // Ensures word breaks within bounds
                                 div.innerText = textarea.value; // Copies text content with line breaks
+                                div.setAttribute("data-replaced", "textarea");
+                                div.setAttribute("name", textarea.name); // Preserve the textarea name for form submission
                                 textarea.parentNode.replaceChild(div, textarea);
+                            });
+                        };
+
+                        // Revert each div back to textarea after capturing for PDF
+                        const revertDivsToTextareas = () => {
+                            document.querySelectorAll("div[data-replaced='textarea']").forEach(div => {
+                                const textarea = document.createElement("textarea");
+                                textarea.name = div.getAttribute("name");
+                                textarea.value = div.innerText;
+                                div.parentNode.replaceChild(textarea, div);
                             });
                         };
 
@@ -652,10 +664,12 @@
                             });
                         })
                         .then(function() {
+                            revertDivsToTextareas(); // Revert divs back to textareas before form submission
                             $('#daily-report-form').submit(); // Submit the form after PDF generation
                         })
                         .catch(function(error) {
                             console.error('Error generating or downloading PDF:', error);
+                            revertDivsToTextareas(); // Revert divs even if PDF generation fails
                             $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
                         });
                     });
