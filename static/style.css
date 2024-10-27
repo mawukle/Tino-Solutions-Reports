@@ -523,7 +523,7 @@ nav a:hover {
 
 /* Style for selected state (Dollar Bill green background) */
 .selected {
-    background-color: #85BB65; /* Lemon green color */
+    background-color: #85BB65; /* Dollar Bill green color */
     color: #000; /* Ensure text stays visible on green background */
 }
 
