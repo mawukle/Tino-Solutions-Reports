@@ -594,13 +594,15 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Replace each textarea with a div that preserves line breaks
+                        // Replace each textarea with a div that preserves line breaks and adds a border
                         const replaceTextareas = () => {
                             document.querySelectorAll("textarea").forEach(textarea => {
                                 const div = document.createElement("div");
                                 div.style.cssText = window.getComputedStyle(textarea).cssText;
                                 div.style.whiteSpace = "pre-wrap"; // Keeps the line breaks
                                 div.style.overflowWrap = "break-word"; // Ensures word breaks within bounds
+                                div.style.border = "1px solid #000"; // Add a visible border
+                                div.style.padding = "5px"; // Padding for similar appearance to textarea
                                 div.innerText = textarea.value; // Copies text content with line breaks
                                 div.setAttribute("data-replaced", "textarea");
                                 div.setAttribute("name", textarea.name); // Preserve the textarea name for form submission
