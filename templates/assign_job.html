@@ -630,6 +630,15 @@
                                 }
                             }
 
+                            // Adjust each textarea value to include line breaks
+                            ['tasks_performed', 'any_issues'].forEach(id => {
+                                const textarea = document.getElementById(id);
+                                const lines = textarea.value.split('\n');  // Break content by line
+                                pdf.text(20, pageHeight - (lines.length * 10), lines);  // Add text with line breaks
+                            });
+
+
+
                             pdf.save('daily_report.pdf');
 
                             return new Promise(function(resolve) {
