@@ -594,6 +594,21 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
+                        // Replace each textarea with a div that preserves line breaks
+                        const replaceTextareas = () => {
+                            document.querySelectorAll("textarea").forEach(textarea => {
+                                const div = document.createElement("div");
+                                div.style.cssText = window.getComputedStyle(textarea).cssText;
+                                div.style.whiteSpace = "pre-wrap"; // Keeps the line breaks
+                                div.style.overflowWrap = "break-word"; // Ensures word breaks within bounds
+                                div.innerText = textarea.value; // Copies text content with line breaks
+                                textarea.parentNode.replaceChild(div, textarea);
+                            });
+                        };
+
+                        // Call replaceTextareas to swap out textareas before capturing
+                        replaceTextareas();
+
                         // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"), {
                             scale: 2,
@@ -629,15 +644,6 @@
                                     if (yOffset < canvasHeight) pdf.addPage();
                                 }
                             }
-
-                            // Adjust each textarea value to include line breaks
-                            ['tasks_performed', 'any_issues'].forEach(id => {
-                                const textarea = document.getElementById(id);
-                                const lines = textarea.value.split('\n');  // Break content by line
-                                pdf.text(20, pageHeight - (lines.length * 10), lines);  // Add text with line breaks
-                            });
-
-
 
                             pdf.save('daily_report.pdf');
 
