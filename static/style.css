@@ -195,7 +195,7 @@ nav a:hover {
 .back-link {
     display: inline-block;
     margin-bottom: 5px;
-    color: #4CAF50;
+    color: #fff;
     text-decoration: none;
     font-size: 8px;
     font-weight: bold;
@@ -206,8 +206,8 @@ nav a:hover {
 
 .back-link:hover {
     text-decoration: underline;
-    background-color: #0056b3;
-    color: #fff;
+    background-color: #fff;
+    color: #85BB65;
 }
 
 .navigation-menu ul {
@@ -521,9 +521,9 @@ nav a:hover {
     user-select: none;
 }
 
-/* Style for selected state (lemon green background) */
+/* Style for selected state (Dollar Bill green background) */
 .selected {
-    background-color: #adff2f; /* Lemon green color */
+    background-color: #85BB65; /* Lemon green color */
     color: #000; /* Ensure text stays visible on green background */
 }
 
@@ -554,7 +554,7 @@ nav a:hover {
 
 /* Keep the selected state */
 .section-button.selected {
-    background-color: #adff2f; /* Lemon green for selected sections */
+    background-color: #85BB65; /* Dollar Bill green for selected sections */
 }
 
 
