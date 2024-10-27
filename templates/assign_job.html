@@ -601,7 +601,8 @@
                                 div.style.cssText = window.getComputedStyle(textarea).cssText;
                                 div.style.whiteSpace = "pre-wrap"; // Keeps the line breaks
                                 div.style.overflowWrap = "break-word"; // Ensures word breaks within bounds
-                                div.style.border = "1px solid #000"; // Add a visible border
+                                div.style.border = "1px solid rgba(0, 0, 0, 0.1)"; // Faint border color
+                                div.style.borderRadius = "4px"; // Rounded corners
                                 div.style.padding = "5px"; // Padding for similar appearance to textarea
                                 div.innerText = textarea.value; // Copies text content with line breaks
                                 div.setAttribute("data-replaced", "textarea");
