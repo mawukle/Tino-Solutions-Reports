@@ -226,16 +226,16 @@ def team_ranking():
             # Final ranking query with the ranking score included
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                days_worked_query.c.days_worked,
-                clients_visited_query.c.clients_visited,
-                team_member_total_days_query.c.total_days_at_clients,
-                (days_worked_query.c.days_worked +
-                 func.coalesce(clients_visited_query.c.clients_visited, 0) /
-                 func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)
+                days_worked_query.columns.days_worked,
+                clients_visited_query.columns.clients_visited,
+                team_member_total_days_query.columns.total_days_at_clients,
+                (days_worked_query.columns.days_worked +
+                 func.coalesce(clients_visited_query.columns.clients_visited, 0) /
+                 func.coalesce(team_member_total_days_query.columns.total_days_at_clients, 1)
                 ).label('ranking_score')
-            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+            ).join(days_worked_query, days_worked_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .join(clients_visited_query, clients_visited_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .outerjoin(team_member_total_days_query, team_member_total_days_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
              .order_by(desc('ranking_score'))
 
             # Fetch the rankings
