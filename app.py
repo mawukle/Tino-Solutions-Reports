@@ -180,6 +180,7 @@ def invoice_sheet():
     # Render the invoice_sheet.html with the selected items
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
+
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
     try:
@@ -188,14 +189,14 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Subquery to get unique days each client was visited within the date range
+            # Query to get unique days each client was visited within the date range
             total_days_clients_visited_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('total_days_visited')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Main query to calculate unique days at clients for each team member
+            # Query to get total days each team member spent at clients, counting unique days for each client
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.sum(total_days_clients_visited_query.c.total_days_visited).label('total_days_at_clients')
@@ -203,7 +204,7 @@ def team_ranking():
              .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .join(total_days_clients_visited_query, total_days_clients_visited_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).distinct()
+             .group_by(Team_Members.Team_Member_Name).subquery()
 
             # Subquery to calculate days worked for each team member
             days_worked_query = db.session.query(
@@ -223,19 +224,16 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Final ranking query with the ranking score included
+            # Final ranking query using the total unique days calculation
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                days_worked_query.columns.days_worked,
-                clients_visited_query.columns.clients_visited,
-                team_member_total_days_query.columns.total_days_at_clients,
-                (days_worked_query.columns.days_worked +
-                 func.coalesce(clients_visited_query.columns.clients_visited, 0) /
-                 func.coalesce(team_member_total_days_query.columns.total_days_at_clients, 1)
-                ).label('ranking_score')
-            ).join(days_worked_query, days_worked_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .join(clients_visited_query, clients_visited_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .outerjoin(team_member_total_days_query, team_member_total_days_query.columns.Team_Member_Name == Team_Members.Team_Member_Name) \
+                days_worked_query.c.days_worked,
+                clients_visited_query.c.clients_visited,
+                team_member_total_days_query.c.total_days_at_clients,
+                (days_worked_query.c.days_worked + func.coalesce(clients_visited_query.c.clients_visited, 0) / func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)).label('ranking_score')
+            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+             .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .order_by(desc('ranking_score'))
 
             # Fetch the rankings
@@ -252,7 +250,6 @@ def team_ranking():
 
     finally:
         db.session.close()
-
 
 
 '''
