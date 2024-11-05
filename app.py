@@ -189,18 +189,17 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Subquery to calculate unique days each client was visited in the date range
+            # Query to calculate unique days each client was visited within the date range
             total_days_clients_visited_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
-                func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
+                func.count(func.distinct(Job_Tracking.Date)).label('client_total_days')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Query to get total days each team member spent at clients,
-            # summing unique visit days across all clients within the date range.
+            # Query to calculate total days each team member spent at clients, applying multiplication once per client
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.sum(total_days_clients_visited_query.c.unique_days_at_client).label('total_days_at_clients')
+                func.sum(total_days_clients_visited_query.c.client_total_days).label('total_days_at_clients')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
              .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .join(total_days_clients_visited_query, total_days_clients_visited_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
@@ -225,7 +224,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Final ranking query with the updated calculation
+            # Final ranking query with the ranking score calculation
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
