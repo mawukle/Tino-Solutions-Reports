@@ -207,15 +207,15 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
-            # Subquery to calculate unique days each client was visited
+            # Subquery to calculate total unique days each client was visited
             total_days_clients_visited_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('total_days_visited')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Subquery to calculate total days for clients visited by each team member,
-            # counting only unique visit days for each client without overcounting.
+            # Subquery to calculate total days for each team member by client,
+            # counting only unique visit days for each client
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.sum(func.distinct(Job_Tracking.Date)).label('total_days_at_clients')
@@ -224,7 +224,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name, Job_Tracking.Client_Unique_ID).subquery()
 
-            # Final ranking query with corrected unique client day count calculation
+            # Final ranking query using the corrected unique client day count calculation
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
