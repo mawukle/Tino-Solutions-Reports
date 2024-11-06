@@ -256,6 +256,8 @@ def team_ranking():
         db.session.close()
 
 
+
+
 '''
 @app.route('/item_list', methods=['GET', 'POST'])
 def item_list():
