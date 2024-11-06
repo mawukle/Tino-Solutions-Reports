@@ -190,21 +190,20 @@ def team_ranking():
             end_date = request.form['end_date']
 
             # Subquery to calculate unique days each client was visited in the date range
-            total_days_clients_visited_query = db.session.query(
+            client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Query to get total days each team member spent at clients,
-            # summing unique visit days across all clients within the date range,
-            # ensuring each unique day is counted only once per client per team member.
+            # Query to calculate total unique days each team member spent at clients,
+            # summing each client’s unique visit days for the team member.
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.sum(func.distinct(total_days_clients_visited_query.c.unique_days_at_client)).label('total_days_at_clients')
+                func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
              .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
-             .join(total_days_clients_visited_query, total_days_clients_visited_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
+             .join(client_unique_days_query, client_unique_days_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
