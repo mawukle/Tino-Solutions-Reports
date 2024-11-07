@@ -204,8 +204,8 @@ def team_ranking():
                 Team_Members
             ).join(
                 job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
-            ).join(
-                Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID
+            #).join(
+        #        Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID
             ).join(
                 client_unique_days_query, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID
             ).filter(
