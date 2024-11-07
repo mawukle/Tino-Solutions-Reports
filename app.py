@@ -199,7 +199,7 @@ def team_ranking():
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Query to calculate total unique days each team member spent at clients,
+            # Subquery to calculate total unique days each team member spent at clients,
             # summing each client’s unique visit days for the team member.
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
@@ -256,6 +256,12 @@ def team_ranking():
 
     finally:
         db.session.close()
+
+
+
+
+
+
 
 
 
