@@ -196,6 +196,16 @@ def team_ranking():
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).cte("client_unique_days")
 
+            # CTE for clients visited by each team member
+            clients_visited_query = db.session.query(
+                Team_Members.Team_Member_Name,
+                func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
+            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
+             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
+             .filter(Job_Tracking.Date.between(start_date, end_date)) \
+             .group_by(Team_Members.Team_Member_Name).cte("clients_visited")
+
+
             # CTE for total unique days each team member spent at clients
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
@@ -223,14 +233,6 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).cte("days_worked")
 
-            # CTE for clients visited by each team member
-            clients_visited_query = db.session.query(
-                Team_Members.Team_Member_Name,
-                func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
-            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
-             .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).cte("clients_visited")
 
             # Final ranking query with calculation
             ranking_query = db.session.query(
