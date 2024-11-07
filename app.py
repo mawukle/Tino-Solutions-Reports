@@ -202,7 +202,7 @@ def team_ranking():
                 Team_Members.Team_Member_Name,
                 func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
+             #.join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .join(client_unique_days_query, client_unique_days_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .filter(Job_Tracking.Client_Name == Client_List.Client_Name) \
