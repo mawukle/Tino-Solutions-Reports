@@ -180,6 +180,81 @@ def invoice_sheet():
     # Render the invoice_sheet.html with the selected items
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
+# Date range parameters (you can replace these with actual date variables as needed)
+date_start = '2024-10-01'
+date_end = '2024-10-31'
+
+# Subquery for days worked
+days_worked_query = (
+    db.session.query(
+        Team_Members.Team_Member_Name.label('Team_Member_Name'),
+        func.count(distinct(Job_Tracking.Date)).label('days_worked')
+    )
+    .join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
+    .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID)
+    .filter(Job_Tracking.Date.between(date_start, date_end))
+    .group_by(Team_Members.Team_Member_Name)
+).subquery()
+
+# Subquery for clients visited
+clients_visited_query = (
+    db.session.query(
+        Team_Members.Team_Member_Name.label('Team_Member_Name'),
+        func.count(distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
+    )
+    .join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
+    .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID)
+    .filter(Job_Tracking.Date.between(date_start, date_end))
+    .group_by(Team_Members.Team_Member_Name)
+).subquery()
+
+# Subquery for total unique days at clients
+client_unique_days_query = (
+    db.session.query(
+        Job_Tracking.Client_Unique_ID,
+        func.count(distinct(Job_Tracking.Date)).label('unique_days_at_client')
+    )
+    .filter(Job_Tracking.Date.between(date_start, date_end))
+    .group_by(Job_Tracking.Client_Unique_ID)
+).subquery()
+
+team_member_total_days_query = (
+    db.session.query(
+        Team_Members.Team_Member_Name.label('Team_Member_Name'),
+        func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
+    )
+    .join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID)
+    .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID)
+    .join(client_unique_days_query, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID)
+    .filter(Job_Tracking.Date.between(date_start, date_end))
+    .group_by(Team_Members.Team_Member_Name)
+).subquery()
+
+# Final query combining all subqueries
+ranking_query = (
+    db.session.query(
+        Team_Members.Team_Member_Name,
+        days_worked_query.c.days_worked,
+        clients_visited_query.c.clients_visited,
+        team_member_total_days_query.c.total_days_at_clients,
+        (days_worked_query.c.days_worked +
+         case([(team_member_total_days_query.c.total_days_at_clients > 0,
+                clients_visited_query.c.clients_visited / team_member_total_days_query.c.total_days_at_clients)],
+               else_=0)).label('ranking_score')
+    )
+    .outerjoin(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name)
+    .outerjoin(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name)
+    .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name)
+    .order_by(db.desc('ranking_score'))
+)
+
+# Execute query and fetch results
+results = ranking_query.all()
+
+# Process or print results as needed
+for row in results:
+    print(f"Team Member: {row.Team_Member_Name}, Days Worked: {row.days_worked}, Clients Visited: {row.clients_visited}, Total Days at Clients: {row.total_days_at_clients}, Ranking Score: {row.ranking_score}")
+
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
