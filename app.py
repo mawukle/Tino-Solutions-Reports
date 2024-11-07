@@ -181,26 +181,22 @@ def invoice_sheet():
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
 
-
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
-    ranking_query = None  # Initialize ranking_query to prevent 'unbound' error
-
     try:
         if request.method == 'POST':
             # Get the date range from the form
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # Subquery to calculate unique days each client was visited in the date range
+            # CTE for unique days each client was visited
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).cte("client_unique_days")
 
-            # Subquery to calculate total unique days each team member spent at clients,
-            # summing each client’s unique visit days for the team member.
+            # CTE for total unique days each team member spent at clients
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
@@ -209,7 +205,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).cte("team_member_total_days")
 
-            # Subquery to calculate days worked for each team member
+            # CTE for days worked by each team member
             days_worked_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('days_worked')
@@ -218,7 +214,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).cte("days_worked")
 
-            # Subquery to calculate clients visited by each team member
+            # CTE for clients visited by each team member
             clients_visited_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('clients_visited')
@@ -227,7 +223,7 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).cte("clients_visited")
 
-            # Final ranking query with the updated calculation
+            # Final ranking query with calculation
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
@@ -236,11 +232,11 @@ def team_ranking():
                 (days_worked_query.c.days_worked +
                  func.coalesce(clients_visited_query.c.clients_visited, 0) /
                  func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)
-                ).label('ranking_score')  # Adjusted ranking score calculation
+                ).label('ranking_score')
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .order_by(desc('ranking_score'))  # Order by the ranking score
+             .order_by(desc('ranking_score'))
 
             # Fetch the rankings
             team_rankings = ranking_query.all()
