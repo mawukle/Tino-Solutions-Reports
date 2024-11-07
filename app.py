@@ -212,7 +212,7 @@ def team_ranking():
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(
                 Team_Members.Team_Member_Name
-            ).cte("team_member_total_days"))
+            )).cte("team_member_total_days")
 
             # CTE for days worked by each team member
             days_worked_query = db.session.query(
