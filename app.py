@@ -9,7 +9,7 @@ from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy import text
 from datetime import datetime, timedelta
@@ -181,6 +181,7 @@ def invoice_sheet():
     return render_template('invoice_sheet.html', selected_items=selected_items)
 
 
+
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
     try:
@@ -191,18 +192,21 @@ def team_ranking():
 
             # Subquery to calculate unique days each client was visited in the date range
             client_unique_days_query = db.session.query(
-                Job_Tracking.Client_Unique_ID,
+                Job_Tracking.Client_Unique_ID.label('Client_Unique_ID'),
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Job_Tracking.Client_Unique_ID).subquery()
 
-            # Query to calculate total unique days each team member spent at clients,
-            # summing each client’s unique visit days for the team member.
+            # Alias for ease of use in join
+            client_unique_days_alias = aliased(client_unique_days_query)
+
+            # Query to calculate total unique days each team member spent at clients
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
+                func.sum(client_unique_days_alias.c.unique_days_at_client).label('total_days_at_clients')
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID) \
+             .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
+             .join(client_unique_days_alias, client_unique_days_alias.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).subquery()
 
@@ -253,7 +257,6 @@ def team_ranking():
 
     finally:
         db.session.close()
-
 
 
 
