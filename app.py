@@ -197,7 +197,7 @@ def team_ranking():
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Job_Tracking.Client_Unique_ID).subquery()
+             .group_by(Job_Tracking.Client_Unique_ID).cte("client_unique_days")
 
             # Subquery to calculate total unique days each team member spent at clients,
             # summing each client’s unique visit days for the team member.
@@ -207,7 +207,7 @@ def team_ranking():
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
              .join(Job_Tracking, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).subquery()
+             .group_by(Team_Members.Team_Member_Name).cte("team_member_total_days")
 
             # Subquery to calculate days worked for each team member
             days_worked_query = db.session.query(
@@ -216,7 +216,7 @@ def team_ranking():
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
              .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).subquery()
+             .group_by(Team_Members.Team_Member_Name).cte("days_worked")
 
             # Subquery to calculate clients visited by each team member
             clients_visited_query = db.session.query(
@@ -225,7 +225,7 @@ def team_ranking():
             ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
              .join(Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID) \
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).subquery()
+             .group_by(Team_Members.Team_Member_Name).cte("clients_visited")
 
             # Final ranking query with the updated calculation
             ranking_query = db.session.query(
@@ -256,6 +256,7 @@ def team_ranking():
 
     finally:
         db.session.close()
+
 
 
 
