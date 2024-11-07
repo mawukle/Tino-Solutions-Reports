@@ -200,10 +200,19 @@ def team_ranking():
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
-            ).join(job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID) \
-             .join(Job_Tracking, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID) \
-             .filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Team_Members.Team_Member_Name).cte("team_member_total_days")
+            ).select_from(
+                Team_Members
+            ).join(
+                job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
+            ).join(
+                Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID
+            ).join(
+                client_unique_days_query, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(
+                Team_Members.Team_Member_Name
+            ).cte("team_member_total_days")
 
             # CTE for days worked by each team member
             days_worked_query = db.session.query(
