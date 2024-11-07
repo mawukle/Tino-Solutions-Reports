@@ -199,7 +199,7 @@ def team_ranking():
             # CTE for total unique days each team member spent at clients
             team_member_total_days_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.count(func.distinct(Job_Tracking.Client_Unique_ID)).label('total_days_at_clients')
+                func.count(func.distinct(client_unique_days_query.c.unique_days_at_client)).label('total_days_at_clients')
             ).select_from(
                 Team_Members
             ).join(
