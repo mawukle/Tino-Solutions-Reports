@@ -18,11 +18,14 @@
 
         <!-- Form to input start and end dates -->
         <form method="POST" action="/team_ranking">
+
+          <div id="date_filter">
             <label for="start_date">Start Date:</label>
             <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
 
             <label for="end_date">End Date:</label>
             <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+          </div>
 
             <button type="submit">Get Rankings</button>
         </form>
