@@ -15,14 +15,19 @@
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
         <h1>TEAM RANKING</h1>
+
+        <!-- Form to input start and end dates -->
         <form method="POST" action="/team_ranking">
             <label for="start_date">Start Date:</label>
-            <input type="date" id="start_date" name="start_date" required>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+
             <label for="end_date">End Date:</label>
-            <input type="date" id="end_date" name="end_date" required>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+
             <button type="submit">Get Rankings</button>
         </form>
 
+        <!-- Display team rankings if available -->
         {% if team_rankings %}
         <table>
             <tr>
@@ -30,7 +35,7 @@
                 <th>Days Worked</th>
                 <th>Clients Visited</th>
                 <th>Total Days at Clients</th>
-                <th>Ranking Score</th>  <!-- New column for ranking -->
+                <th>Ranking Score</th> <!-- New column for ranking -->
             </tr>
             {% for row in team_rankings %}
             <tr>
@@ -38,11 +43,10 @@
                 <td>{{ row.days_worked }}</td>
                 <td>{{ row.clients_visited }}</td>
                 <td>{{ row.total_days_at_clients }}</td>
-                <td>{{ row.ranking_score }}</td>  <!-- New data for ranking -->
+                <td>{{ row.ranking_score }}</td> <!-- New data for ranking -->
             </tr>
             {% endfor %}
         </table>
-
         {% else %}
         <p>No rankings available for the selected period.</p>
         {% endif %}

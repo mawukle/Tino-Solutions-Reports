@@ -184,6 +184,10 @@ def invoice_sheet():
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
     try:
+        start_date = None
+        end_date = None
+        team_rankings = []
+
         if request.method == 'POST':
             # Get the date range from the form
             start_date = request.form['start_date']
@@ -258,9 +262,9 @@ def team_ranking():
             # Fetch the rankings
             team_rankings = ranking_query.all()
 
-            return render_template('team_ranking.html', team_rankings=team_rankings)
+            return render_template('team_ranking.html', team_rankings=team_rankings, start_date=start_date, end_date=end_date)
 
-        return render_template('team_ranking.html')
+        return render_template('team_ranking.html', start_date=start_date, end_date=end_date)
 
     except Exception as e:
         db.session.rollback()
