@@ -189,19 +189,21 @@ def team_ranking():
             start_date = request.form['start_date']
             end_date = request.form['end_date']
 
-            # CTE for unique days each client was visited
+            # CTE for unique days each client was visited by any team member
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
-            ).filter(Job_Tracking.Date.between(start_date, end_date)) \
-             .group_by(Job_Tracking.Client_Unique_ID).cte("client_unique_days")
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(
+                Job_Tracking.Client_Unique_ID
+            ).cte("client_unique_days")
 
-            # CTE for total unique days each team member spent at clients
-            team_member_total_days_query = db.session.query(
+            # CTE to get the unique clients visited by each team member
+            team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                func.sum(client_unique_days_query.c.unique_days_at_client).label('total_days_at_clients')
-            ).select_from(
-                Team_Members
+                client_unique_days_query.c.Client_Unique_ID,
+                client_unique_days_query.c.unique_days_at_client
             ).join(
                 job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(
@@ -210,8 +212,14 @@ def team_ranking():
                 client_unique_days_query, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
+            ).distinct().cte("team_member_clients")
+
+            # CTE to calculate total unique days at clients per team member
+            team_member_total_days_query = db.session.query(
+                team_member_clients_query.c.Team_Member_Name,
+                func.sum(team_member_clients_query.c.unique_days_at_client).label('total_days_at_clients')
             ).group_by(
-                Team_Members.Team_Member_Name
+                team_member_clients_query.c.Team_Member_Name
             ).cte("team_member_total_days")
 
             # CTE for days worked by each team member
