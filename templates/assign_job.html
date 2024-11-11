@@ -594,16 +594,6 @@
                     $('#submit-button').click(function(event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Capture date and client name for the file name
-                        const jobDate = $('#job_date').val(); // Format: YYYY-MM-DD
-                        const clientName = $('#client_name').val();
-
-                        // Format the job date to DDMMYYYY
-                        const formattedDate = jobDate.split('-').reverse().join(''); // Converts to DDMMYYYY
-
-                        // Combine to create the file name
-                        const pdfFileName = `${formattedDate} - ${clientName}.pdf`;
-
                         // Replace each textarea with a div that preserves line breaks and adds a border
                         const replaceTextareas = () => {
                             document.querySelectorAll("textarea").forEach(textarea => {
@@ -670,7 +660,7 @@
                                 }
                             }
 
-                            pdf.save(pdfFileName); // Save with the formatted file name
+                            pdf.save('daily_report.pdf');
 
                             return new Promise(function(resolve) {
                                 setTimeout(resolve, 1500); // Brief delay to allow download to initiate
