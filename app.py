@@ -1007,10 +1007,10 @@ def autocomplete_client():
         # Properly format the term for SQL LIKE
         search_term = f"%{term}%"
 
-        # Use SQLAlchemy to query the database, wrapping search term in text()
+        # Use SQLAlchemy to query the database
         client_names = (
             db.session.query(Client_List.Client_Name)
-            .filter(Client_List.Client_Name.like(text(search_term)))
+            .filter(Client_List.Client_Name.like(search_term))
             .limit(10)
             .all()
         )
