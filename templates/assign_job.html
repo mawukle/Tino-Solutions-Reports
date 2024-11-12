@@ -54,17 +54,24 @@
             <label for="any_issues">Any Issues:</label>
             <textarea id="any_issues" name="any_issues" rows="2" cols="50" required></textarea>
 
+            <!-- Define the names to exclude -->
+            {% set excluded_names = ["Name1", "Name2"] %}
+
             <!-- Select Team Members (Click to select) -->
             <label for="team_members">Select Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
-                    <!-- Hidden checkbox that will hold the team member's value when selected -->
-                    <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
+                    <!-- Skip if the member's name is in the excluded list -->
+                    {% if member[1] not in excluded_names %}
+                        <!-- Hidden checkbox that will hold the team member's value when selected -->
+                        <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
 
-                    <!-- Clickable team member -->
-                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
+                        <!-- Clickable team member -->
+                        <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
+                    {% endif %}
                 {% endfor %}
             </div>
+
 
             <h1>QUALITY CONTROL CHECKLIST</h1>
 
