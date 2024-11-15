@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort, send_file
 import os
 import logging
 from dotenv import load_dotenv
@@ -13,7 +13,10 @@ from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy import text
 from datetime import datetime, timedelta
-#from datetime import datetime
+import openpyxl
+from openpyxl import load_workbook
+from fpdf import FPDF
+
 
 pymysql.install_as_MySQLdb()
 
