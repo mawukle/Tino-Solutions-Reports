@@ -21,5 +21,4 @@ wheel>=0.40.0
 
 # Additional libraries for Excel and PDF functionality
 openpyxl==3.1.2       # For handling Excel files
-xlsx2pdf==0.1.8       # For converting Excel sheets to PDF
-reportlab==3.6.13     # For alternative PDF generation (optional)
+fpdf2==2.5.6          # For PDF generation
