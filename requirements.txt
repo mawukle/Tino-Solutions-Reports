@@ -14,7 +14,12 @@ python-dotenv==1.0.1
 SQLAlchemy==2.0.35
 typing_extensions==4.12.2
 Werkzeug==3.0.4
-numpy==1.24.4  # Updated numpy to a compatible version
-pandas==1.5.3  # Retaining pandas as is, you can adjust if needed
+numpy==1.24.4
+pandas==1.5.3
 setuptools>=68.0.0
 wheel>=0.40.0
+
+# Additional libraries for Excel and PDF functionality
+openpyxl==3.1.2       # For handling Excel files
+xlsx2pdf==0.1.8       # For converting Excel sheets to PDF
+reportlab==3.6.13     # For alternative PDF generation (optional)
