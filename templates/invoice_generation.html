@@ -12,10 +12,12 @@
 </head>
 <body>
     <h1>Interactive Excel Editor</h1>
+
     <label for="file-select">Select Excel File:</label>
     <select id="file-select">
         <option value="sample.xlsx">Sample.xlsx</option>
     </select>
+
     <label for="sheet-select">Select Sheet:</label>
     <select id="sheet-select"></select>
     <button id="refresh-sheet">Refresh</button>
@@ -35,7 +37,7 @@
                 data.forEach(sheet => {
                     $('#sheet-select').append(new Option(sheet, sheet));
                 });
-                selectedSheet = data[0];
+                selectedSheet = $('#sheet-select').val();  // Set selectedSheet on load
                 loadSheetData();
             }).fail(function () {
                 alert('Error loading sheets');
@@ -94,8 +96,14 @@
             $.post('/download_pdf', JSON.stringify({
                 filename: selectedFile,
                 sheet_name: selectedSheet
-            }), function () {
-                window.location = `/download_pdf?filename=${selectedFile}&sheet_name=${selectedSheet}`;
+            }), function (response) {
+                const pdfBlob = new Blob([response], { type: 'application/pdf' });
+                const url = URL.createObjectURL(pdfBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${selectedSheet}.pdf`;
+                link.click();
+                URL.revokeObjectURL(url);
             }).fail(function () {
                 alert('Error generating PDF');
             });
