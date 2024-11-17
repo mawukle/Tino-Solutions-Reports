@@ -45,31 +45,32 @@
         }
 
         function loadSheetData() {
-            $.ajax({
-                url: '/get_sheet_data',
-                method: 'POST',
-                contentType: 'application/json', // Ensure Content-Type is JSON
-                data: JSON.stringify({
-                    filename: selectedFile,
-                    sheet_name: selectedSheet
-                }),
-                success: function (data) {
-                    const table = $('#sheet-table').empty();
-                    data.forEach((row, rowIndex) => {
-                        const tr = $('<tr></tr>');
-                        row.forEach((cell, colIndex) => {
-                            const td = $('<td contenteditable="true"></td>');
-                            td.text(cell);
-                            td.attr('data-cell', `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`);
-                            tr.append(td);
-                        });
-                        table.append(tr);
-                    });
-                },
-                error: function () {
-                    alert('Error loading sheet data');
-                }
-            });
+          $.ajax({
+              url: '/get_sheet_data',
+              type: 'POST',
+              contentType: 'application/json', // Ensure the correct content type
+              data: JSON.stringify({
+                  filename: selectedFile,
+                  sheet_name: selectedSheet
+              }),
+              success: function (data) {
+                  const table = $('#sheet-table').empty();
+                  data.forEach((row, rowIndex) => {
+                      const tr = $('<tr></tr>');
+                      row.forEach((cell, colIndex) => {
+                          const td = $('<td contenteditable="true"></td>');
+                          td.text(cell);
+                          td.attr('data-cell', `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`);
+                          tr.append(td);
+                      });
+                      table.append(tr);
+                  });
+              },
+              error: function () {
+                  alert('Error loading sheet data');
+              }
+          });
+
         }
 
         $('#file-select').change(function () {

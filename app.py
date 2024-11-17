@@ -214,18 +214,29 @@ def get_sheets(filename):
 
 @app.route('/get_sheet_data', methods=['POST'])
 def get_sheet_data():
-    if request.content_type != 'application/json':
-        return jsonify({"error": "Unsupported Media Type"}), 415
-
-    data = request.json
-    filename = data.get("filename")
-    sheet_name = data.get("sheet_name")
     try:
+        data = request.get_json()  # Parse JSON data
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
+
+        filename = data.get("filename")
+        sheet_name = data.get("sheet_name")
+
+        if not filename or not sheet_name:
+            return jsonify({"error": "Missing filename or sheet name"}), 400
+
         filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+        if not os.path.exists(filepath):
+            return jsonify({"error": "File not found"}), 404
+
         workbook = load_workbook(filepath, data_only=False)
+        if sheet_name not in workbook.sheetnames:
+            return jsonify({"error": "Sheet not found"}), 404
+
         sheet = workbook[sheet_name]
         sheet_data = [[cell.value for cell in row] for row in sheet.iter_rows()]
         return jsonify(sheet_data)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
