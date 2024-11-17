@@ -22,3 +22,4 @@ wheel>=0.40.0
 # Additional libraries for Excel and PDF functionality
 openpyxl==3.1.2       # For handling Excel files
 fpdf2==2.5.6          # For PDF generation
+xhtml2pdf==0.2.10     # For converting HTML to PDF
