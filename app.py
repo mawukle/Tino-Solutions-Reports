@@ -188,6 +188,10 @@ def invoice_sheet():
 
 
 
+EXCEL_FOLDER = os.path.join(os.getcwd(), 'static', 'excel')
+app.config['EXCEL_FOLDER'] = EXCEL_FOLDER
+
+
 # Excel File Interaction Routes
 @app.route('/get_sheets/<filename>', methods=['GET'])
 def get_sheets(filename):
