@@ -197,6 +197,12 @@ app.config['EXCEL_FOLDER'] = EXCEL_FOLDER
 def get_sheets(filename):
     try:
         filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+
+        # Check if the client wants to download the file
+        if request.args.get("download") == "true":
+            return send_file(filepath, as_attachment=True)
+
+        # Otherwise, return sheet names as JSON
         workbook = load_workbook(filepath, data_only=False)
         return jsonify(workbook.sheetnames)
     except Exception as e:
