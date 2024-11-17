@@ -45,23 +45,30 @@
         }
 
         function loadSheetData() {
-            $.post('/get_sheet_data', JSON.stringify({
-                filename: selectedFile,
-                sheet_name: selectedSheet
-            }), function (data) {
-                const table = $('#sheet-table').empty();
-                data.forEach((row, rowIndex) => {
-                    const tr = $('<tr></tr>');
-                    row.forEach((cell, colIndex) => {
-                        const td = $('<td contenteditable="true"></td>');
-                        td.text(cell);
-                        td.attr('data-cell', `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`);
-                        tr.append(td);
+            $.ajax({
+                url: '/get_sheet_data',
+                method: 'POST',
+                contentType: 'application/json', // Ensure Content-Type is JSON
+                data: JSON.stringify({
+                    filename: selectedFile,
+                    sheet_name: selectedSheet
+                }),
+                success: function (data) {
+                    const table = $('#sheet-table').empty();
+                    data.forEach((row, rowIndex) => {
+                        const tr = $('<tr></tr>');
+                        row.forEach((cell, colIndex) => {
+                            const td = $('<td contenteditable="true"></td>');
+                            td.text(cell);
+                            td.attr('data-cell', `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`);
+                            tr.append(td);
+                        });
+                        table.append(tr);
                     });
-                    table.append(tr);
-                });
-            }).fail(function () {
-                alert('Error loading sheet data');
+                },
+                error: function () {
+                    alert('Error loading sheet data');
+                }
             });
         }
 
@@ -80,32 +87,46 @@
         $('#sheet-table').on('blur', 'td', function () {
             const cell = $(this).data('cell');
             const value = $(this).text();
-            $.post('/update_cell', JSON.stringify({
-                filename: selectedFile,
-                sheet_name: selectedSheet,
-                cell: cell,
-                value: value
-            }), function () {
-                alert('Cell updated successfully');
-            }).fail(function () {
-                alert('Error updating cell');
+            $.ajax({
+                url: '/update_cell',
+                method: 'POST',
+                contentType: 'application/json', // Ensure Content-Type is JSON
+                data: JSON.stringify({
+                    filename: selectedFile,
+                    sheet_name: selectedSheet,
+                    cell: cell,
+                    value: value
+                }),
+                success: function () {
+                    alert('Cell updated successfully');
+                },
+                error: function () {
+                    alert('Error updating cell');
+                }
             });
         });
 
         $('#save-pdf').click(function () {
-            $.post('/download_pdf', JSON.stringify({
-                filename: selectedFile,
-                sheet_name: selectedSheet
-            }), function (response) {
-                const pdfBlob = new Blob([response], { type: 'application/pdf' });
-                const url = URL.createObjectURL(pdfBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${selectedSheet}.pdf`;
-                link.click();
-                URL.revokeObjectURL(url);
-            }).fail(function () {
-                alert('Error generating PDF');
+            $.ajax({
+                url: '/download_pdf',
+                method: 'POST',
+                contentType: 'application/json', // Ensure Content-Type is JSON
+                data: JSON.stringify({
+                    filename: selectedFile,
+                    sheet_name: selectedSheet
+                }),
+                success: function (response) {
+                    const pdfBlob = new Blob([response], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(pdfBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${selectedSheet}.pdf`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                },
+                error: function () {
+                    alert('Error generating PDF');
+                }
             });
         });
 
@@ -113,5 +134,6 @@
         selectedFile = $('#file-select').val();
         loadSheets(selectedFile);
     </script>
+
 </body>
 </html>

@@ -214,6 +214,9 @@ def get_sheets(filename):
 
 @app.route('/get_sheet_data', methods=['POST'])
 def get_sheet_data():
+    if request.content_type != 'application/json':
+        return jsonify({"error": "Unsupported Media Type"}), 415
+
     data = request.json
     filename = data.get("filename")
     sheet_name = data.get("sheet_name")
