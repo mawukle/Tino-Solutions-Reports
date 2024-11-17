@@ -189,6 +189,10 @@ def invoice_sheet():
 
 
 
+@app.route('/invoice_generation', methods=['GET', 'POST'])
+def invoice_generation():
+    return render_template('invoice_generation.html')
+
 EXCEL_FOLDER = os.path.join(os.getcwd(), 'static', 'excel')
 app.config['EXCEL_FOLDER'] = EXCEL_FOLDER
 
