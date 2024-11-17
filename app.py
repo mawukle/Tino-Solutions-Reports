@@ -200,13 +200,17 @@ def invoice_generation():
 
 @app.route('/download_excel', methods=['GET'])
 def download_excel():
-    """Provide the sample Excel file for download."""
+    """Provide the sample Excel file for download with a dynamic filename."""
     try:
         filepath = os.path.join(app.config['EXCEL_FOLDER'], 'sample.xlsx')
         if not os.path.exists(filepath):
             return jsonify({"error": "File not found"}), 404
 
-        return send_file(filepath, as_attachment=True, download_name='Sample.xlsx')
+        # Generate the filename with the current date
+        current_date = datetime.now().strftime('%Y%m%d')
+        dynamic_filename = f"{current_date} - Invoice - TSL.xlsx"
+
+        return send_file(filepath, as_attachment=True, download_name=dynamic_filename)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
