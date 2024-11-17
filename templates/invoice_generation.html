@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Excel Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+    <h1>Interactive Excel Editor</h1>
+    <label for="file-select">Select Excel File:</label>
+    <select id="file-select">
+        <option value="sample.xlsx">Sample.xlsx</option>
+    </select>
+    <label for="sheet-select">Select Sheet:</label>
+    <select id="sheet-select"></select>
+    <button id="refresh-sheet">Refresh</button>
+    <button id="save-pdf">Save as PDF</button>
+
+    <div id="sheet-container">
+        <table id="sheet-table"></table>
+    </div>
+
+    <script>
+        let selectedFile = '';
+        let selectedSheet = '';
+
+        function loadSheets(file) {
+            $.get(`/get_sheets/${file}`, function (data) {
+                $('#sheet-select').empty();
+                data.forEach(sheet => {
+                    $('#sheet-select').append(new Option(sheet, sheet));
+                });
+                selectedSheet = data[0];
+                loadSheetData();
+            }).fail(function () {
+                alert('Error loading sheets');
+            });
+        }
+
+        function loadSheetData() {
+            $.post('/get_sheet_data', JSON.stringify({
+                filename: selectedFile,
+                sheet_name: selectedSheet
+            }), function (data) {
+                const table = $('#sheet-table').empty();
+                data.forEach((row, rowIndex) => {
+                    const tr = $('<tr></tr>');
+                    row.forEach((cell, colIndex) => {
+                        const td = $('<td contenteditable="true"></td>');
+                        td.text(cell);
+                        td.attr('data-cell', `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`);
+                        tr.append(td);
+                    });
+                    table.append(tr);
+                });
+            }).fail(function () {
+                alert('Error loading sheet data');
+            });
+        }
+
+        $('#file-select').change(function () {
+            selectedFile = $(this).val();
+            loadSheets(selectedFile);
+        });
+
+        $('#sheet-select').change(function () {
+            selectedSheet = $(this).val();
+            loadSheetData();
+        });
+
+        $('#refresh-sheet').click(loadSheetData);
+
+        $('#sheet-table').on('blur', 'td', function () {
+            const cell = $(this).data('cell');
+            const value = $(this).text();
+            $.post('/update_cell', JSON.stringify({
+                filename: selectedFile,
+                sheet_name: selectedSheet,
+                cell: cell,
+                value: value
+            }), function () {
+                alert('Cell updated successfully');
+            }).fail(function () {
+                alert('Error updating cell');
+            });
+        });
+
+        $('#save-pdf').click(function () {
+            $.post('/download_pdf', JSON.stringify({
+                filename: selectedFile,
+                sheet_name: selectedSheet
+            }), function () {
+                window.location = `/download_pdf?filename=${selectedFile}&sheet_name=${selectedSheet}`;
+            }).fail(function () {
+                alert('Error generating PDF');
+            });
+        });
+
+        // Initialize with the first file
+        selectedFile = $('#file-select').val();
+        loadSheets(selectedFile);
+    </script>
+</body>
+</html>

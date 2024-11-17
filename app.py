@@ -16,6 +16,9 @@ from datetime import datetime, timedelta
 import openpyxl
 from openpyxl import load_workbook
 from fpdf import FPDF
+import tempfile
+from xhtml2pdf import pisa
+import io
 
 
 pymysql.install_as_MySQLdb()
@@ -182,6 +185,85 @@ def invoice_sheet():
 
     # Render the invoice_sheet.html with the selected items
     return render_template('invoice_sheet.html', selected_items=selected_items)
+
+
+
+# Excel File Interaction Routes
+@app.route('/get_sheets/<filename>', methods=['GET'])
+def get_sheets(filename):
+    try:
+        filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+        workbook = load_workbook(filepath, data_only=False)
+        return jsonify(workbook.sheetnames)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_sheet_data', methods=['POST'])
+def get_sheet_data():
+    data = request.json
+    filename = data.get("filename")
+    sheet_name = data.get("sheet_name")
+    try:
+        filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+        workbook = load_workbook(filepath, data_only=False)
+        sheet = workbook[sheet_name]
+        sheet_data = [[cell.value for cell in row] for row in sheet.iter_rows()]
+        return jsonify(sheet_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/update_cell', methods=['POST'])
+def update_cell():
+    data = request.json
+    filename = data.get("filename")
+    sheet_name = data.get("sheet_name")
+    cell = data.get("cell")
+    value = data.get("value")
+    try:
+        filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+        workbook = load_workbook(filepath, data_only=False)
+        sheet = workbook[sheet_name]
+        sheet[cell] = value
+        workbook.save(filepath)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/download_pdf', methods=['POST'])
+def download_pdf():
+    data = request.json
+    filename = data.get("filename")
+    sheet_name = data.get("sheet_name")
+    try:
+        filepath = os.path.join(app.config['EXCEL_FOLDER'], filename)
+        workbook = load_workbook(filepath, data_only=True)
+        sheet = workbook[sheet_name]
+
+        html_content = f"<html><body><h1>{sheet_name}</h1><table>"
+        for row in sheet.iter_rows():
+            html_content += "<tr>"
+            for cell in row:
+                html_content += f"<td>{cell.value if cell.value else ''}</td>"
+            html_content += "</tr>"
+        html_content += "</table></body></html>"
+
+        pdf_stream = io.BytesIO()
+        pisa_status = pisa.CreatePDF(io.StringIO(html_content), dest=pdf_stream)
+        pdf_stream.seek(0)
+        if pisa_status.err:
+            return jsonify({"error": "Failed to generate PDF"}), 500
+        return send_file(
+            pdf_stream,
+            as_attachment=True,
+            download_name=f"{sheet_name}.pdf",
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
 
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
