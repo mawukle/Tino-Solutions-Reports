@@ -2032,6 +2032,68 @@ def uploaded_file(filename):
 
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+
+
+
+
+@app.route('/get_components', methods=['GET'])
+def get_components():
+    try:
+        # Fetch distinct components from Items_List
+        query = "SELECT DISTINCT Component FROM Items_List WHERE Component IS NOT NULL"
+        result = db.engine.execute(query)
+        components = [row['Component'] for row in result]
+        return jsonify(components)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/get_item_descriptions/<component>', methods=['GET'])
+def get_item_descriptions(component):
+    try:
+        # Fetch item descriptions for the selected component
+        query = "SELECT DISTINCT Item_Description FROM Items_List WHERE Component = :component"
+        result = db.engine.execute(query, {"component": component})
+        item_descriptions = [row['Item_Description'] for row in result]
+        return jsonify(item_descriptions)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/submit_component', methods=['POST'])
+def submit_component():
+    try:
+        data = request.json
+        client_name = data.get('client_name')
+        date = data.get('date')
+        component = data.get('component')
+        item_description = data.get('item_description')
+        quantity = data.get('quantity')
+
+        # Validate inputs
+        if not date:
+            return jsonify({"error": "Date is required"}), 400
+
+        # Create a new entry in Client_Items table
+        new_entry = Client_Items(
+            client_name=client_name,
+            date=date,
+            component=component,
+            item_description=item_description,
+            quantity=quantity
+        )
+        db.session.add(new_entry)
+        db.session.commit()
+
+        return jsonify({"message": "Component added successfully!"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Disbursement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Stock Disbursement</h1>
+
+    <form id="add-component-form">
+        <label for="client-name">Enter Client Name:</label>
+        <input type="text" id="client-name" name="client_name" required>
+        <br><br>
+
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" name="date" required>
+        <br><br>
+
+        <button type="button" id="add-component">Add Component</button>
+        <br><br>
+
+        <label for="component-dropdown">Select Component:</label>
+        <select id="component-dropdown" required>
+            <option value="">--Select Component--</option>
+        </select>
+        <br><br>
+
+        <label for="item-description-dropdown">Select Item Description:</label>
+        <select id="item-description-dropdown" required>
+            <option value="">--Select Item Description--</option>
+        </select>
+        <br><br>
+
+        <label for="quantity">Enter Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" required>
+        <br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            $('#add-component').click(function () {
+                $.get('/get_components', function (data) {
+                    const componentDropdown = $('#component-dropdown');
+                    componentDropdown.empty().append('<option value="">--Select Component--</option>');
+                    data.forEach(function (component) {
+                        componentDropdown.append(`<option value="${component}">${component}</option>`);
+                    });
+                }).fail(function () {
+                    alert('Error loading components.');
+                });
+            });
+
+            $('#component-dropdown').change(function () {
+                const selectedComponent = $(this).val();
+                if (selectedComponent) {
+                    $.get(`/get_item_descriptions/${selectedComponent}`, function (data) {
+                        const itemDescriptionDropdown = $('#item-description-dropdown');
+                        itemDescriptionDropdown.empty().append('<option value="">--Select Item Description--</option>');
+                        data.forEach(function (item) {
+                            itemDescriptionDropdown.append(`<option value="${item}">${item}</option>`);
+                        });
+                    }).fail(function () {
+                        alert('Error loading item descriptions.');
+                    });
+                }
+            });
+
+            $('#add-component-form').submit(function (e) {
+                e.preventDefault();
+                const formData = {
+                    client_name: $('#client-name').val(),
+                    date: $('#date').val(),
+                    component: $('#component-dropdown').val(),
+                    item_description: $('#item-description-dropdown').val(),
+                    quantity: $('#quantity').val()
+                };
+                $.post('/submit_component', formData, function (response) {
+                    alert(response.message);
+                }).fail(function () {
+                    alert('Error submitting component.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

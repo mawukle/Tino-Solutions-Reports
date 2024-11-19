@@ -18,17 +18,19 @@ class Client_List(db.Model):
 
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
-# Define the Items model to map to the Items_List table
+# Define the updated Items model to map to the Items_List table
 class Item(db.Model):
     __tablename__ = 'Items_List'
     Item_ID = db.Column(db.Integer, primary_key=True)
+    Quantity = db.Column(db.Integer, nullable=True)  # Newly added column
     Item_Description = db.Column(db.String(255), nullable=False)
-    Retail_Price_With_Tax = db.Column(db.Float, nullable=True)
-    Super_Dealer_Price_With_Tax = db.Column(db.Float, nullable=True)
-    End_User_USD = db.Column(db.Float, nullable=True)
-    End_User_GHC = db.Column(db.Float, nullable=True)
-    Super_Dealer_USD = db.Column(db.Float, nullable=True)
-    Super_Dealer_GHC = db.Column(db.Float, nullable=True)
+    kVA_kW = db.Column(db.String(50), nullable=True)  # Newly added column
+    Voltage = db.Column(db.String(50), nullable=True)  # Newly added column
+    Brand = db.Column(db.String(50), nullable=True)  # Newly added column
+    Phase = db.Column(db.String(50), nullable=True)  # Newly added column
+    kWh = db.Column(db.Float, nullable=True)  # Newly added column
+    Ah = db.Column(db.Float, nullable=True)  # Newly added column
+    Component = db.Column(db.String(255), nullable=True)  # Newly added column
 
 # Define the Team Members model
 class Team_Members(db.Model):
