@@ -2090,6 +2090,10 @@ def submit_component():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/stock_disbursement', methods=['GET'])
+def stock_disbursement():
+    """Render the stock disbursement page."""
+    return render_template('stock_disbursement.html')
 
 
 
