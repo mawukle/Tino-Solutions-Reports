@@ -2039,14 +2039,12 @@ def uploaded_file(filename):
 @app.route('/get_components', methods=['GET'])
 def get_components():
     try:
-        # Fetch distinct components from Items_List
-        query = "SELECT DISTINCT Component FROM Items_List WHERE Component IS NOT NULL"
-        result = db.engine.execute(query)
-        components = [row['Component'] for row in result]
-        return jsonify(components)
+        components = db.session.query(Item.Component).distinct().filter(Item.Component.isnot(None)).all()
+        components_list = [component[0] for component in components]
+        return jsonify(components_list)
     except Exception as e:
+        print("Error in /get_components:", str(e))  # Log the error
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/get_item_descriptions/<component>', methods=['GET'])
 def get_item_descriptions(component):
