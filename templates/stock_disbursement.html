@@ -19,9 +19,6 @@
         <input type="date" id="date" name="date" required>
         <br><br>
 
-        <button type="button" id="add-component">Add Component</button>
-        <br><br>
-
         <label for="component-dropdown">Select Component:</label>
         <select id="component-dropdown" required>
             <option value="">--Select Component--</option>
@@ -38,12 +35,30 @@
         <input type="number" id="quantity" name="quantity" min="1" required>
         <br><br>
 
-        <button type="submit">Submit</button>
+        <button type="button" id="add-to-table">Add to Table</button>
     </form>
+
+    <h2>Items Issued</h2>
+    <table id="issued-items-table" border="1">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Item Description</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+    <br>
+
+    <button id="submit-all" type="button">Submit All</button>
 
     <script>
         $(document).ready(function () {
-            $('#add-component').click(function () {
+            // Load components when 'Add Component' is clicked
+            $('#add-component-form').on('click', '#add-component', function () {
                 $.get('/get_components', function (data) {
                     const componentDropdown = $('#component-dropdown');
                     componentDropdown.empty().append('<option value="">--Select Component--</option>');
@@ -55,6 +70,7 @@
                 });
             });
 
+            // Load item descriptions when a component is selected
             $('#component-dropdown').change(function () {
                 const selectedComponent = $(this).val();
                 if (selectedComponent) {
@@ -70,19 +86,73 @@
                 }
             });
 
-            $('#add-component-form').submit(function (e) {
-                e.preventDefault();
-                const formData = {
-                    client_name: $('#client-name').val(),
-                    date: $('#date').val(),
-                    component: $('#component-dropdown').val(),
-                    item_description: $('#item-description-dropdown').val(),
-                    quantity: $('#quantity').val()
-                };
-                $.post('/submit_component', formData, function (response) {
-                    alert(response.message);
-                }).fail(function () {
-                    alert('Error submitting component.');
+            // Add a row to the table
+            $('#add-to-table').click(function () {
+                const component = $('#component-dropdown').val();
+                const itemDescription = $('#item-description-dropdown').val();
+                const quantity = $('#quantity').val();
+
+                if (!component || !itemDescription || !quantity) {
+                    alert('Please fill all fields.');
+                    return;
+                }
+
+                const tableRow = `
+                    <tr>
+                        <td>${component}</td>
+                        <td>${itemDescription}</td>
+                        <td>${quantity}</td>
+                    </tr>
+                `;
+                $('#issued-items-table tbody').append(tableRow);
+
+                // Clear fields after adding
+                $('#component-dropdown').val('');
+                $('#item-description-dropdown').val('');
+                $('#quantity').val('');
+            });
+
+            // Submit all items in the table
+            $('#submit-all').click(function () {
+                const clientName = $('#client-name').val();
+                const date = $('#date').val();
+
+                if (!clientName || !date) {
+                    alert('Please enter the client name and date.');
+                    return;
+                }
+
+                const items = [];
+                $('#issued-items-table tbody tr').each(function () {
+                    const row = $(this).find('td');
+                    items.push({
+                        component: row.eq(0).text(),
+                        item_description: row.eq(1).text(),
+                        quantity: row.eq(2).text()
+                    });
+                });
+
+                if (items.length === 0) {
+                    alert('No items to submit.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/submit_component',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        client_name: clientName,
+                        date: date,
+                        items: items
+                    }),
+                    success: function (response) {
+                        alert(response.message);
+                        $('#issued-items-table tbody').empty(); // Clear table after submission
+                    },
+                    error: function () {
+                        alert('Error submitting items.');
+                    }
                 });
             });
         });
