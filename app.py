@@ -2049,14 +2049,19 @@ def get_components():
 @app.route('/get_item_descriptions/<component>', methods=['GET'])
 def get_item_descriptions(component):
     try:
-        # Fetch item descriptions for the selected component
-        query = "SELECT DISTINCT Item_Description FROM Items_List WHERE Component = :component"
-        result = db.engine.execute(query, {"component": component})
-        item_descriptions = [row['Item_Description'] for row in result]
-        return jsonify(item_descriptions)
+        # Use SQLAlchemy ORM to query the database
+        item_descriptions = (
+            db.session.query(Item.Item_Description)
+            .filter(Item.Component == component)
+            .distinct()
+            .all()
+        )
+        # Extract the descriptions from the query result
+        descriptions_list = [desc[0] for desc in item_descriptions]
+        return jsonify(descriptions_list)
     except Exception as e:
+        print("Error in /get_item_descriptions:", str(e))  # Log the error for debugging
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/submit_component', methods=['POST'])
 def submit_component():
