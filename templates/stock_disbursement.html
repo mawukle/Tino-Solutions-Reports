@@ -19,6 +19,10 @@
         <input type="date" id="date" name="date" required>
         <br><br>
 
+        <!-- Add Component Button -->
+        <button type="button" id="add-component">Add Component</button>
+        <br><br>
+
         <label for="component-dropdown">Select Component:</label>
         <select id="component-dropdown" required>
             <option value="">--Select Component--</option>
@@ -58,7 +62,7 @@
     <script>
         $(document).ready(function () {
             // Load components when 'Add Component' is clicked
-            $('#add-component-form').on('click', '#add-component', function () {
+            $('#add-component').click(function () {
                 $.get('/get_components', function (data) {
                     const componentDropdown = $('#component-dropdown');
                     componentDropdown.empty().append('<option value="">--Select Component--</option>');
