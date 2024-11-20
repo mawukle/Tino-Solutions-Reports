@@ -89,3 +89,25 @@ class Assigned_Teams(db.Model):
     assignment_date = db.Column(db.Date, nullable=False)
     location = db.Column(db.String(255), nullable=False)
     phone_number = db.Column(db.String(20), nullable=False)
+"""
+class Client_Items(db.Model):
+    __tablename__ = 'client_items'
+    id = db.Column(db.Integer, primary_key=True)
+    client_name = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    component = db.Column(db.String(255), nullable=False)
+    item_description = db.Column(db.String(255), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+"""
+class ClientItems(db.Model):
+    __tablename__ = 'client_items'
+
+    client_item_id = db.Column(db.Integer, primary_key=True)  # Rename the primary key column to 'client_item_id'
+    client_name = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    component = db.Column(db.String(255), nullable=False)
+    item_description = db.Column(db.String(255), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<ClientItem {self.client_item_id}, {self.client_name}, {self.date}>"

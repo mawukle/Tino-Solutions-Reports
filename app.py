@@ -2066,31 +2066,34 @@ def get_item_descriptions(component):
 @app.route('/submit_component', methods=['POST'])
 def submit_component():
     try:
-        data = request.json
+        # Get the data sent from the frontend
+        data = request.get_json()
         client_name = data.get('client_name')
         date = data.get('date')
-        items = data.get('items')  # List of components and quantities
+        items = data.get('items')  # List of items with details
 
-        if not date or not client_name or not items:
-            return jsonify({"error": "Missing required fields"}), 400
+        if not client_name or not date or not items:
+            return jsonify({"error": "Client name, date, and items are required."}), 400
 
-        # Add each item to the Client_Items table
+        # Loop through the items and add them to the database
         for item in items:
             new_entry = Client_Items(
                 client_name=client_name,
                 date=date,
-                component=item.get('component'),
-                item_description=item.get('item_description'),
-                quantity=item.get('quantity')
+                component=item['component'],
+                item_description=item['item_description'],
+                quantity=item['quantity']
             )
             db.session.add(new_entry)
 
+        # Commit the transaction
         db.session.commit()
-        return jsonify({"message": "All items added successfully!"})
+
+        return jsonify({"message": "Data submitted successfully."}), 200
     except Exception as e:
-        db.session.rollback()
-        print("Error:", e)
+        db.session.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/stock_disbursement', methods=['GET'])
 def stock_disbursement():
