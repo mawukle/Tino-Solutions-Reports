@@ -2095,7 +2095,7 @@ def submit_component():
                 app.logger.warning(f"Missing required fields in item: {item}")
                 return jsonify({"error": "Each item must include component, item_description, and quantity."}), 400
 
-            new_entry = ClientItems(
+            new_entry = Client_Items(
                 client_name=client_name,
                 date=date,
                 component=component,
