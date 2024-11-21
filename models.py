@@ -109,5 +109,5 @@ class Client_Items(db.Model):
     item_description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
-    def __repr__(self):
-        return f"<ClientItem {self.client_item_id}, {self.client_name}, {self.date}>"
+def __repr__(self):
+    return f"<ClientItem {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"

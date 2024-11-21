@@ -2066,33 +2066,55 @@ def get_item_descriptions(component):
 @app.route('/submit_component', methods=['POST'])
 def submit_component():
     try:
+        # Log the start of the request
+        app.logger.info("Processing /submit_component request...")
+
         # Get the data sent from the frontend
         data = request.get_json()
+        app.logger.info(f"Received data: {data}")
+
+        # Extract and validate the input
         client_name = data.get('client_name')
         date = data.get('date')
         items = data.get('items')  # List of items with details
 
         if not client_name or not date or not items:
+            app.logger.warning("Missing required fields: client_name, date, or items.")
             return jsonify({"error": "Client name, date, and items are required."}), 400
+
+        # Log each item to be added
+        app.logger.info(f"Client: {client_name}, Date: {date}, Items: {items}")
 
         # Loop through the items and add them to the database
         for item in items:
-            new_entry = Client_Items(
+            component = item.get('component')
+            item_description = item.get('item_description')
+            quantity = item.get('quantity')
+
+            if not component or not item_description or not quantity:
+                app.logger.warning(f"Missing required fields in item: {item}")
+                return jsonify({"error": "Each item must include component, item_description, and quantity."}), 400
+
+            new_entry = ClientItems(
                 client_name=client_name,
                 date=date,
-                component=item['component'],
-                item_description=item['item_description'],
-                quantity=item['quantity']
+                component=component,
+                item_description=item_description,
+                quantity=quantity
             )
+            app.logger.info(f"Adding new entry to database: {new_entry}")
             db.session.add(new_entry)
 
         # Commit the transaction
         db.session.commit()
+        app.logger.info("All items added successfully. Transaction committed.")
 
         return jsonify({"message": "Data submitted successfully."}), 200
     except Exception as e:
-        db.session.rollback()  # Rollback in case of error
-        return jsonify({"error": str(e)}), 500
+        # Rollback the session in case of an error
+        db.session.rollback()
+        app.logger.error(f"Error in /submit_component: {e}", exc_info=True)
+        return jsonify({"error": "An internal error occurred. Please try again later."}), 500
 
 
 @app.route('/stock_disbursement', methods=['GET'])
