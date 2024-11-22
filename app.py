@@ -2101,8 +2101,7 @@ def submit_component():
         # Log details for the transaction
         app.logger.info(f"Client: {client_name}, Date: {date}, Installed By: {installed_by}, Items: {items}")
 
-        # Validate and prepare entries
-        new_entries = []
+        # Process and update each item
         for item in items:
             component = item.get('component')
             item_description = item.get('item_description')
@@ -2119,24 +2118,37 @@ def submit_component():
                 app.logger.warning(f"Invalid quantity for item: {item}")
                 return jsonify({"error": "Quantity must be a valid integer."}), 400
 
-            # Add the new entry, including "Installed By"
-            new_entries.append(Client_Items(
+            # Fetch the corresponding item in the Items_List table
+            stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
+            if not stock_item:
+                app.logger.warning(f"Item not found: {item_description}")
+                return jsonify({"error": f"Item '{item_description}' not found in stock."}), 400
+
+            # Check if enough stock is available
+            if stock_item.Quantity < quantity:
+                app.logger.warning(f"Insufficient stock for {item_description}. Requested: {quantity}, Available: {stock_item.Quantity}")
+                return jsonify({"error": f"Not enough stock for '{item_description}'. Available: {stock_item.Quantity}."}), 400
+
+            # Deduct the quantity from stock
+            stock_item.Quantity -= quantity
+            app.logger.info(f"Stock updated for {item_description}. New quantity: {stock_item.Quantity}")
+
+            # Create a record in the Client_Items table
+            new_entry = Client_Items(
                 client_name=client_name,
                 date=date,
                 component=component,
                 item_description=item_description,
                 quantity=quantity,
                 installed_by=installed_by  # Include the "Installed By" field
-            ))
-
-        # Add all entries in a batch
-        db.session.add_all(new_entries)
+            )
+            db.session.add(new_entry)
 
         # Commit the transaction
         db.session.commit()
         app.logger.info("All items added successfully. Transaction committed.")
 
-        return jsonify({"message": "Data submitted successfully."}), 200
+        return jsonify({"message": "Data submitted and stock updated successfully."}), 200
 
     except Exception as e:
         # Rollback the session in case of an error
