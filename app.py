@@ -2198,6 +2198,18 @@ def update_stock():
         app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
         return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
 
+@app.route('/get_remaining_stock/<item_description>', methods=['GET'])
+def get_remaining_stock(item_description):
+    try:
+        # Query the Items_List table for the remaining quantity
+        item = Items_List.query.filter_by(Item_Description=item_description).first()
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+
+        # Return the quantity as remaining stock
+        return jsonify({'remaining_stock': item.Quantity})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 
