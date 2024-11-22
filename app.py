@@ -2201,30 +2201,6 @@ def update_stock():
 from flask import jsonify
 from sqlalchemy import func
 
-@app.route('/get_remaining_stock/<item_description>', methods=['GET'])
-def get_remaining_stock(item_description):
-    try:
-        # Log the received item description for debugging
-        app.logger.info(f"Received request for item description: {item_description}")
-
-        # Fetch the item from the database (case-insensitive and trimmed matching)
-        item = Items_List.query.filter(
-            func.lower(Items_List.Item_Description) == func.lower(item_description.strip())
-        ).first()
-
-        if not item:
-            # Log when no match is found
-            app.logger.warning(f"No match found for: {item_description}")
-            return jsonify({'error': 'Item not found'}), 404
-
-        # Log successful retrieval
-        app.logger.info(f"Found item: {item.Item_Description}, Remaining stock: {item.Quantity}")
-        return jsonify({'remaining_stock': item.Quantity})
-
-    except Exception as e:
-        # Log any unexpected errors
-        app.logger.error(f"Error processing request: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
 
 

@@ -6,18 +6,22 @@
     <title>Stock Disbursement</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
     <h1>Stock Disbursement</h1>
 
     <form id="add-component-form">
+        <!-- Autocomplete for client name -->
         <label for="client-name">Enter Client Name:</label>
         <input type="text" id="client_name" name="client_name" required>
         <br><br>
 
-        <label for="date">Select Date:</label>
-        <input type="date" id="job_date_display" name="date" required>
-        <input type="hidden" id="job_date" name="hidden_date">
+        <!-- Custom Date Picker -->
+        <label for="job_date_display">Select Date:</label>
+        <input type="text" id="job_date_display" required>
+        <input type="hidden" id="job_date" name="date">
         <br><br>
 
         <!-- Add Component Button -->
@@ -57,7 +61,6 @@
                 <th>Component</th>
                 <th>Item Description</th>
                 <th>Quantity</th>
-                <th>Remaining Stock</th>
             </tr>
         </thead>
         <tbody>
@@ -70,6 +73,55 @@
 
     <script>
         $(document).ready(function () {
+            // Datepicker with custom formatting
+            $('#job_date_display').datepicker({
+                dateFormat: 'yy-mm-dd',
+                onSelect: function(dateText) {
+                    const selectedDate = new Date(dateText);
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
+
+                    // Add day suffix (st, nd, rd, th)
+                    const day = selectedDate.getDate();
+                    const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
+                                  (day == 2 || day == 22) ? 'nd' :
+                                  (day == 3 || day == 23) ? 'rd' : 'th';
+                    const dayWithSuffix = `${day}${suffix}`;
+
+                    // Update display and hidden input
+                    const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
+                    $('#job_date_display').val(formattedDateWithSuffix);
+                    $('#job_date').val(dateText);  // Store the date for submission
+                }
+            });
+
+            // Autocomplete for client names
+            $("#client_name").autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "{{ url_for('autocomplete_client') }}",
+                        type: "GET",
+                        data: { term: request.term },
+                        success: function(data) {
+                            response(data);
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function(event, ui) {
+                    $.ajax({
+                        url: "{{ url_for('get_client_details') }}",
+                        type: "GET",
+                        data: { client_name: ui.item.value },
+                        success: function(data) {
+                            if (data) {
+                                $("#client_location").val(data.town);  // Set the Location field
+                            }
+                        }
+                    });
+                }
+            });
+
             // Load components when 'Add Component' is clicked
             $('#add-component').click(function () {
                 $.get('/get_components', function (data) {
@@ -110,48 +162,45 @@
                     return;
                 }
 
-                // Fetch the remaining stock for the selected item description
-                $.get(`/get_remaining_stock/${itemDescription}`, function (data) {
-                    const remainingStock = data.remaining_stock;
+                const tableRow = `
+                    <tr>
+                        <td>${component}</td>
+                        <td>${itemDescription}</td>
+                        <td>${quantity}</td>
+                    </tr>
+                `;
+                $('#issued-items-table tbody').append(tableRow);
 
-                    const tableRow = `
-                        <tr>
-                            <td>${component}</td>
-                            <td>${itemDescription}</td>
-                            <td>${quantity}</td>
-                            <td>${remainingStock}</td>
-                        </tr>
-                    `;
-                    $('#issued-items-table tbody').append(tableRow);
-
-                    // Clear fields after adding
-                    $('#component-dropdown').val('');
-                    $('#item-description-dropdown').val('');
-                    $('#quantity').val('');
-                }).fail(function () {
-                    alert('Error fetching remaining stock.');
-                });
+                // Clear fields after adding
+                $('#component-dropdown').val('');
+                $('#item-description-dropdown').val('');
+                $('#quantity').val('');
             });
 
             // Submit all items in the table
             $('#submit-all').click(function () {
-                const clientName = $('#client_name').val().trim();
-                const date = $('#job_date').val();
-                const installedBy = $('#installed-by').val();
+                const clientName = $('#client_name').val().trim(); // Trim to remove extra spaces
+                const date = $('#job_date').val(); // Use hidden input for actual date
+                const installedBy = $('#installed-by').val(); // Always has a value
 
-                if (!clientName || !date) {
-                    alert('Please fill all fields including "Installed By".');
+                // Validate client name and date
+                if (!clientName) {
+                    alert('Please enter a valid client name.');
+                    return;
+                }
+                if (!date) {
+                    alert('Please select a valid date.');
                     return;
                 }
 
+                // Ensure table has at least one row
                 const items = [];
                 $('#issued-items-table tbody tr').each(function () {
                     const row = $(this).find('td');
                     items.push({
                         component: row.eq(0).text(),
                         item_description: row.eq(1).text(),
-                        quantity: row.eq(2).text(),
-                        remaining_stock: row.eq(3).text()
+                        quantity: row.eq(2).text()
                     });
                 });
 
@@ -160,10 +209,12 @@
                     return;
                 }
 
+                // Confirm submission
                 if (!confirm("Are you sure you want to submit these items? This action will update stock quantities.")) {
                     return;
                 }
 
+                // AJAX request to submit data
                 $.ajax({
                     url: '/submit_component',
                     method: 'POST',
@@ -177,7 +228,7 @@
                     success: function (response) {
                         alert(response.message);
                         $('#issued-items-table tbody').empty(); // Clear table after submission
-                        $('#client_name').val('');
+                        $('#client_name').val(''); // Clear form fields
                         $('#job_date_display').val('');
                         $('#job_date').val('');
                     },
