@@ -2146,11 +2146,45 @@ def submit_component():
         app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
         return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
 
-
 @app.route('/stock_disbursement', methods=['GET'])
 def stock_disbursement():
     """Render the stock disbursement page."""
     return render_template('stock_disbursement.html')
+
+@app.route('/update_stock', methods=['POST'])
+def update_stock():
+    """
+    Update the Quantity in the Items_List table by subtracting the corresponding quantity
+    in the client_items table for matching item_description values.
+    """
+    try:
+        # Log the start of the request
+        app.logger.info("Processing /update_stock request...")
+
+        # Execute the SQL query to update stock
+        db.session.execute(
+            text("""
+                UPDATE Items_List AS il
+                JOIN client_items AS ci
+                ON il.Item_Description = ci.item_description
+                SET il.Quantity = il.Quantity - ci.quantity
+                WHERE il.Quantity >= ci.quantity;
+            """)
+        )
+
+        # Commit the changes
+        db.session.commit()
+        app.logger.info("Stock updated successfully.")
+
+        return jsonify({"message": "Stock updated successfully."}), 200
+
+    except SQLAlchemyError as e:
+        # Rollback the session in case of an error
+        db.session.rollback()
+        import uuid
+        error_id = str(uuid.uuid4())
+        app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
+        return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
 
 
 

@@ -46,7 +46,6 @@
         </select>
         <br><br>
 
-
         <button type="button" id="add-to-table">Add to Table</button>
     </form>
 
@@ -150,6 +149,11 @@
                     return;
                 }
 
+                // Confirm submission
+                if (!confirm("Are you sure you want to submit these items? This action will update stock quantities.")) {
+                    return;
+                }
+
                 $.ajax({
                     url: '/submit_component',
                     method: 'POST',
@@ -157,7 +161,7 @@
                     data: JSON.stringify({
                         client_name: clientName,
                         date: date,
-                        installed_by: installedBy, // Include the "Installed By" field
+                        installed_by: installedBy,
                         items: items
                     }),
                     success: function (response) {
@@ -165,8 +169,9 @@
                         $('#issued-items-table tbody').empty(); // Clear table after submission
                         $('#installed-by').val(''); // Clear "Installed By"
                     },
-                    error: function () {
-                        alert('Error submitting items.');
+                    error: function (response) {
+                        const error = response.responseJSON?.error || "Error submitting items.";
+                        alert(error);
                     }
                 });
             });
