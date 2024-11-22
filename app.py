@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Item, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, Client_Items  # Import db only once from models
+from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, Client_Items  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case
@@ -768,7 +768,7 @@ def item_list():
                 for index, row in data.iterrows():
                     try:
                         # Create an Item object for each row
-                        item = Item(
+                        item = Items_List(
                             Item_ID=row['Item_ID'],
                             Item_Description=row['Item_Description'],
                             Retail_Price_With_Tax=row['Retail_Price_With_Tax'],
@@ -2039,7 +2039,7 @@ def uploaded_file(filename):
 @app.route('/get_components', methods=['GET'])
 def get_components():
     try:
-        components = db.session.query(Item.Component).distinct().filter(Item.Component.isnot(None)).all()
+        components = db.session.query(Items_List.Component).distinct().filter(Items_List.Component.isnot(None)).all()
         components_list = [component[0] for component in components]
         return jsonify(components_list)
     except Exception as e:
@@ -2051,8 +2051,8 @@ def get_item_descriptions(component):
     try:
         # Use SQLAlchemy ORM to query the database
         item_descriptions = (
-            db.session.query(Item.Item_Description)
-            .filter(Item.Component == component)
+            db.session.query(Items_List.Item_Description)
+            .filter(Items_List.Component == component)
             .distinct()
             .all()
         )

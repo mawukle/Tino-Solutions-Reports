@@ -19,7 +19,7 @@ class Client_List(db.Model):
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
 # Define the updated Items model to map to the Items_List table
-class Item(db.Model):
+class Items_List(db.Model):
     __tablename__ = 'Items_List'
     Item_ID = db.Column(db.Integer, primary_key=True)
     Quantity = db.Column(db.Integer, nullable=True)  # Newly added column
