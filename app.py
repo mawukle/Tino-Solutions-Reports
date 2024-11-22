@@ -2207,7 +2207,7 @@ def get_remaining_stock(item_description):
             return jsonify({'error': 'Item not found'}), 404
 
         # Return the quantity as remaining stock
-        return jsonify({'remaining_stock': item.Quantity})
+        return jsonify({'remaining_stock': item.quantity})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
