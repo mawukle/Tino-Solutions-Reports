@@ -2076,11 +2076,19 @@ def submit_component():
         # Extract and validate the input
         client_name = data.get('client_name')
         date = data.get('date')
+        installed_by = data.get('installed_by')  # Extract the "Installed By" field
         items = data.get('items')  # List of items with details
 
-        if not client_name or not date or not items:
-            app.logger.warning("Missing required fields: client_name, date, or items.")
-            return jsonify({"error": "Client name, date, and items are required."}), 400
+        # Check for missing required fields
+        if not client_name or not date or not installed_by or not items:
+            app.logger.warning("Missing required fields: client_name, date, installed_by, or items.")
+            return jsonify({"error": "Client name, date, installed by, and items are required."}), 400
+
+        # Validate the "Installed By" field
+        valid_installers = ["Tino Team", "Client"]
+        if installed_by not in valid_installers:
+            app.logger.warning(f"Invalid 'Installed By' value: {installed_by}")
+            return jsonify({"error": f"'Installed By' must be one of {valid_installers}."}), 400
 
         # Validate date format
         from datetime import datetime
@@ -2090,8 +2098,8 @@ def submit_component():
             app.logger.warning(f"Invalid date format: {date}")
             return jsonify({"error": "Date must be in YYYY-MM-DD format."}), 400
 
-        # Log each item to be added
-        app.logger.info(f"Client: {client_name}, Date: {date}, Items: {items}")
+        # Log details for the transaction
+        app.logger.info(f"Client: {client_name}, Date: {date}, Installed By: {installed_by}, Items: {items}")
 
         # Validate and prepare entries
         new_entries = []
@@ -2111,12 +2119,14 @@ def submit_component():
                 app.logger.warning(f"Invalid quantity for item: {item}")
                 return jsonify({"error": "Quantity must be a valid integer."}), 400
 
+            # Add the new entry, including "Installed By"
             new_entries.append(Client_Items(
                 client_name=client_name,
                 date=date,
                 component=component,
                 item_description=item_description,
-                quantity=quantity
+                quantity=quantity,
+                installed_by=installed_by  # Include the "Installed By" field
             ))
 
         # Add all entries in a batch

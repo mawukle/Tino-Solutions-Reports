@@ -108,6 +108,7 @@ class Client_Items(db.Model):
     component = db.Column(db.String(255), nullable=False)
     item_description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+    installed_by = db.Column(db.String(50), nullable=False)  # New column
 
 def __repr__(self):
     return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"

@@ -39,6 +39,14 @@
         <input type="number" id="quantity" name="quantity" min="1" required>
         <br><br>
 
+        <label for="installed-by">Installed By:</label>
+        <select id="installed-by" name="installed_by" required>
+            <option value="Tino Team">Tino Team</option>
+            <option value="Client">Client</option>
+        </select>
+        <br><br>
+
+
         <button type="button" id="add-to-table">Add to Table</button>
     </form>
 
@@ -120,9 +128,10 @@
             $('#submit-all').click(function () {
                 const clientName = $('#client-name').val();
                 const date = $('#date').val();
+                const installedBy = $('#installed-by').val();
 
-                if (!clientName || !date) {
-                    alert('Please enter the client name and date.');
+                if (!clientName || !date || !installedBy) {
+                    alert('Please fill all fields including "Installed By".');
                     return;
                 }
 
@@ -148,11 +157,13 @@
                     data: JSON.stringify({
                         client_name: clientName,
                         date: date,
+                        installed_by: installedBy, // Include the "Installed By" field
                         items: items
                     }),
                     success: function (response) {
                         alert(response.message);
                         $('#issued-items-table tbody').empty(); // Clear table after submission
+                        $('#installed-by').val(''); // Clear "Installed By"
                     },
                     error: function () {
                         alert('Error submitting items.');
