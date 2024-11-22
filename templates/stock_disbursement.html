@@ -179,15 +179,21 @@
 
             // Submit all items in the table
             $('#submit-all').click(function () {
-                const clientName = $('#client-name').val();
-                const date = $('#date').val();
-                const installedBy = $('#installed-by').val();
+                const clientName = $('#client_name').val().trim(); // Trim to remove extra spaces
+                const date = $('#job_date').val(); // Use hidden input for actual date
+                const installedBy = $('#installed-by').val(); // Always has a value
 
-                if (!clientName || !date || !installedBy) {
-                    alert('Please fill all fields including "Installed By".');
+                // Validate client name and date
+                if (!clientName) {
+                    alert('Please enter a valid client name.');
+                    return;
+                }
+                if (!date) {
+                    alert('Please select a valid date.');
                     return;
                 }
 
+                // Ensure table has at least one row
                 const items = [];
                 $('#issued-items-table tbody tr').each(function () {
                     const row = $(this).find('td');
@@ -199,7 +205,7 @@
                 });
 
                 if (items.length === 0) {
-                    alert('No items to submit.');
+                    alert('No items to submit. Please add items to the table.');
                     return;
                 }
 
@@ -208,6 +214,7 @@
                     return;
                 }
 
+                // AJAX request to submit data
                 $.ajax({
                     url: '/submit_component',
                     method: 'POST',
@@ -221,7 +228,9 @@
                     success: function (response) {
                         alert(response.message);
                         $('#issued-items-table tbody').empty(); // Clear table after submission
-                        $('#installed-by').val(''); // Clear "Installed By"
+                        $('#client_name').val(''); // Clear form fields
+                        $('#job_date_display').val('');
+                        $('#job_date').val('');
                     },
                     error: function (response) {
                         const error = response.responseJSON?.error || "Error submitting items.";
