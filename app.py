@@ -2198,18 +2198,34 @@ def update_stock():
         app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
         return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
 
+from flask import jsonify
+from sqlalchemy import func
+
 @app.route('/get_remaining_stock/<item_description>', methods=['GET'])
 def get_remaining_stock(item_description):
     try:
-        # Query the Items_List table for the remaining quantity
-        item = Items_List.query.filter_by(Item_Description=item_description).first()
+        # Log the received item description for debugging
+        app.logger.info(f"Received request for item description: {item_description}")
+
+        # Fetch the item from the database (case-insensitive and trimmed matching)
+        item = Items_List.query.filter(
+            func.lower(Items_List.Item_Description) == func.lower(item_description.strip())
+        ).first()
+
         if not item:
+            # Log when no match is found
+            app.logger.warning(f"No match found for: {item_description}")
             return jsonify({'error': 'Item not found'}), 404
 
-        # Return the quantity as remaining stock
-        return jsonify({'remaining_stock': item.quantity})
+        # Log successful retrieval
+        app.logger.info(f"Found item: {item.Item_Description}, Remaining stock: {item.Quantity}")
+        return jsonify({'remaining_stock': item.Quantity})
+
     except Exception as e:
+        # Log any unexpected errors
+        app.logger.error(f"Error processing request: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
 
 
 
