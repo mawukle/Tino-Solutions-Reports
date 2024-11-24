@@ -110,5 +110,14 @@ class Client_Items(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     installed_by = db.Column(db.String(50), nullable=False)  # New column
 
+class Disbursement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.String(50), nullable=False)
+    item_id = db.Column(db.String(50), nullable=False)
+    quantity_disbursed = db.Column(db.Integer, nullable=False)
+    disbursed_by = db.Column(db.String(50), nullable=False)
+    disbursement_date = db.Column(db.Date, nullable=False)
+
+
 def __repr__(self):
     return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"

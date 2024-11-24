@@ -2036,167 +2036,103 @@ def uploaded_file(filename):
 
 
 
-@app.route('/get_components', methods=['GET'])
-def get_components():
-    try:
-        components = db.session.query(Items_List.Component).distinct().filter(Items_List.Component.isnot(None)).all()
-        components_list = [component[0] for component in components]
-        return jsonify(components_list)
-    except Exception as e:
-        print("Error in /get_components:", str(e))  # Log the error
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_item_descriptions/<component>', methods=['GET'])
-def get_item_descriptions(component):
-    try:
-        # Use SQLAlchemy ORM to query the database
-        item_descriptions = (
-            db.session.query(Items_List.Item_Description)
-            .filter(Items_List.Component == component)
-            .distinct()
-            .all()
-        )
-        # Extract the descriptions from the query result
-        descriptions_list = [desc[0] for desc in item_descriptions]
-        return jsonify(descriptions_list)
-    except Exception as e:
-        print("Error in /get_item_descriptions:", str(e))  # Log the error for debugging
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/submit_component', methods=['POST'])
-def submit_component():
-    try:
-        # Log the start of the request
-        app.logger.info("Processing /submit_component request...")
-
-        # Get the data sent from the frontend
-        data = request.get_json()
-        app.logger.info(f"Received data: {data}")
-
-        # Extract and validate the input
-        client_name = data.get('client_name')
-        date = data.get('date')
-        installed_by = data.get('installed_by')  # Extract the "Installed By" field
-        items = data.get('items')  # List of items with details
-
-        # Check for missing required fields
-        if not client_name or not date or not installed_by or not items:
-            app.logger.warning("Missing required fields: client_name, date, installed_by, or items.")
-            return jsonify({"error": "Client name, date, installed by, and items are required."}), 400
-
-        # Validate the "Installed By" field
-        valid_installers = ["Tino Team", "Client"]
-        if installed_by not in valid_installers:
-            app.logger.warning(f"Invalid 'Installed By' value: {installed_by}")
-            return jsonify({"error": f"'Installed By' must be one of {valid_installers}."}), 400
-
-        # Validate date format
-        from datetime import datetime
-        try:
-            date = datetime.strptime(date, '%Y-%m-%d').date()
-        except ValueError:
-            app.logger.warning(f"Invalid date format: {date}")
-            return jsonify({"error": "Date must be in YYYY-MM-DD format."}), 400
-
-        # Log details for the transaction
-        app.logger.info(f"Client: {client_name}, Date: {date}, Installed By: {installed_by}, Items: {items}")
-
-        # Process and update each item
-        for item in items:
-            component = item.get('component')
-            item_description = item.get('item_description')
-            quantity = item.get('quantity')
-
-            if not component or not item_description or not quantity:
-                app.logger.warning(f"Missing required fields in item: {item}")
-                return jsonify({"error": "Each item must include component, item_description, and quantity."}), 400
-
-            # Validate quantity as integer
-            try:
-                quantity = int(quantity)
-            except ValueError:
-                app.logger.warning(f"Invalid quantity for item: {item}")
-                return jsonify({"error": "Quantity must be a valid integer."}), 400
-
-            # Fetch the corresponding item in the Items_List table
-            stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
-            if not stock_item:
-                app.logger.warning(f"Item not found: {item_description}")
-                return jsonify({"error": f"Item '{item_description}' not found in stock."}), 400
-
-            # Check if enough stock is available
-            if stock_item.Quantity < quantity:
-                app.logger.warning(f"Insufficient stock for {item_description}. Requested: {quantity}, Available: {stock_item.Quantity}")
-                return jsonify({"error": f"Not enough stock for '{item_description}'. Available: {stock_item.Quantity}."}), 400
-
-            # Deduct the quantity from stock
-            stock_item.Quantity -= quantity
-            app.logger.info(f"Stock updated for {item_description}. New quantity: {stock_item.Quantity}")
-
-            # Create a record in the Client_Items table
-            new_entry = Client_Items(
-                client_name=client_name,
-                date=date,
-                component=component,
-                item_description=item_description,
-                quantity=quantity,
-                installed_by=installed_by  # Include the "Installed By" field
-            )
-            db.session.add(new_entry)
-
-        # Commit the transaction
-        db.session.commit()
-        app.logger.info("All items added successfully. Transaction committed.")
-
-        return jsonify({"message": "Data submitted and stock updated successfully."}), 200
-
-    except Exception as e:
-        # Rollback the session in case of an error
-        db.session.rollback()
-        import uuid
-        error_id = str(uuid.uuid4())
-        app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
-        return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
-
-@app.route('/stock_disbursement', methods=['GET'])
+@app.route('/stock_disbursement')
 def stock_disbursement():
     """Render the stock disbursement page."""
     return render_template('stock_disbursement.html')
 
-@app.route('/update_stock', methods=['POST'])
-def update_stock():
+@app.route('/get_components', methods=['GET'])
+def get_components():
+    """Retrieve a list of all components."""
+    components = Items_List.query.with_entities(Items_List.Item_ID).distinct().all()
+    component_list = [component.Item_ID for component in components]
+    return jsonify(component_list)
+
+@app.route('/get_item_descriptions/<component>', methods=['GET'])
+def get_item_descriptions(component):
+    """Retrieve item descriptions for a specific component."""
+    item_descriptions = Items_List.query.filter_by(Item_ID=component).with_entities(
+        Items_List.Item_Description
+    ).distinct().all()
+    description_list = [desc.Item_Description for desc in item_descriptions]
+    return jsonify(description_list)
+
+@app.route('/submit_component', methods=['POST'])
+def submit_component():
     """
-    Update the Quantity in the Items_List table by subtracting the corresponding quantity
-    in the client_items table for matching item_description values.
+    Handle submission of stock disbursement details.
     """
+    data = request.get_json()
+    client_name = data.get('client_name')
+    date = data.get('date')
+    installed_by = data.get('installed_by')
+    items = data.get('items')
+
+    if not (client_name and date and installed_by and items):
+        return jsonify({'error': 'Invalid input'}), 400
+
+    # Convert date to proper format
     try:
-        # Log the start of the request
-        app.logger.info("Processing /update_stock request...")
+        job_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Expected YYYY-MM-DD.'}), 400
 
-        # Execute the SQL query to update stock
-        db.session.execute(
-            text("""
-                UPDATE Items_List AS il
-                JOIN client_items AS ci
-                ON il.Item_Description = ci.item_description
-                SET il.Quantity = il.Quantity - ci.quantity
-                WHERE il.Quantity >= ci.quantity;
-            """)
-        )
+    # Verify client exists
+    client = Client_List.query.filter_by(Client_Name=client_name).first()
+    if not client:
+        return jsonify({'error': 'Client not found.'}), 404
 
-        # Commit the changes
+    # Process each item
+    for item in items:
+        component = item.get('component')
+        item_description = item.get('item_description')
+        quantity = item.get('quantity')
+
+        if not (component and item_description and quantity):
+            return jsonify({'error': 'Invalid item data'}), 400
+
+        # Check if item exists in database
+        existing_item = Items_List.query.filter_by(
+            Item_ID=component, Item_Description=item_description
+        ).first()
+
+        if not existing_item:
+            return jsonify({
+                'error': f"Item with component '{component}' and description '{item_description}' not found."
+            }), 404
+
+        try:
+            # Simulate stock deduction (example: reduce quantity from stock table)
+            if existing_item.stock_quantity < int(quantity):
+                return jsonify({
+                    'error': f"Insufficient stock for {item_description}. Available: {existing_item.stock_quantity}."
+                }), 400
+
+            # Deduct quantity from stock
+            existing_item.stock_quantity -= int(quantity)
+
+            # Log the disbursement (insert into a Disbursement table or log entry)
+            new_disbursement = Disbursement(
+                client_id=client.Client_Unique_ID,
+                item_id=existing_item.Item_ID,
+                quantity_disbursed=int(quantity),
+                disbursed_by=installed_by,
+                disbursement_date=job_date
+            )
+            db.session.add(new_disbursement)
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': f"Database error: {str(e)}"}), 500
+
+    # Commit all changes to the database
+    try:
         db.session.commit()
-        app.logger.info("Stock updated successfully.")
-
-        return jsonify({"message": "Stock updated successfully."}), 200
-
-    except SQLAlchemyError as e:
-        # Rollback the session in case of an error
+        return jsonify({'message': 'Stock disbursement submitted successfully!'}), 200
+    except Exception as e:
         db.session.rollback()
-        import uuid
-        error_id = str(uuid.uuid4())
-        app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
-        return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
+        return jsonify({'error': f"Failed to save data: {str(e)}"}), 500
+
 
 from flask import jsonify
 from sqlalchemy import func
