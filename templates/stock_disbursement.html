@@ -172,7 +172,7 @@
                 getRemainingStock(itemDescription)
                     .done(function (remainingStock) {
                         console.log(remainingStock); // Inspect the response structure
-                        const remainingQuantity = remainingStock.Quantity; // Assuming
+                        const remainingQuantity = remainingStock.quantity; // Assuming
                         const tableRow = `
                             <tr>
                                 <td>${component}</td>
