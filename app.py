@@ -2040,9 +2040,12 @@ from flask import jsonify
 
 @app.route('/get_remaining_stock/<item_name>', methods=['GET'])
 def get_remaining_stock(item_name):
-    app.logger.info(f"Received request for item_name: {item_name}")
+    from urllib.parse import unquote
+    item_name_decoded = unquote(item_name)  # Decode the URL-encoded string
+    app.logger.info(f"Decoded item_name: {item_name_decoded}")
+
     try:
-        item = Items_List.query.filter_by(Item_Description=item_name).first()
+        item = Items_List.query.filter_by(Item_Description=item_name_decoded).first()
         if item:
             app.logger.info(f"Item found: {item.Item_Description}, Quantity: {item.Quantity}")
             return jsonify({
@@ -2050,11 +2053,15 @@ def get_remaining_stock(item_name):
                 "Quantity": item.Quantity
             }), 200
         else:
-            app.logger.warning(f"Item '{item_name}' not found in database.")
-            return jsonify({"error": f"Item '{item_name}' not found"}), 404
+            app.logger.warning(f"Item '{item_name_decoded}' not found in database.")
+            return jsonify({"error": f"Item '{item_name_decoded}' not found"}), 404
     except Exception as e:
         app.logger.error(f"Error fetching item: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+from sqlalchemy import func
+
+item = Items_List.query.filter(func.lower(Items_List.Item_Description) == item_name_decoded.lower()).first()
 
 @app.route('/get_components', methods=['GET'])
 def get_components():
