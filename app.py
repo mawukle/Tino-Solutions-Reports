@@ -2036,25 +2036,27 @@ def uploaded_file(filename):
 
 
 
-@app.route('/get_remaining_stock/<item_description>', methods=['GET'])
-def get_remaining_stock(item_description):
-    """
-    Get the remaining stock quantity for a specific item description.
-    """
+from flask import jsonify
+
+@app.route('/get_remaining_stock/<item_name>', methods=['GET'])
+def get_remaining_stock(item_name):
     try:
-        # Query the database to get the stock quantity for the given item description
-        stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
+        # Query the Items_List table to find the item by Item_Description
+        item = Items_List.query.filter_by(Item_Description=item_name).first()
 
-        # Check if the item exists in the database
-        if not stock_item:
-            return jsonify({"error": f"Item '{item_description}' not found in stock."}), 404
-
-        # Return the remaining stock
-        return jsonify({"item_description": item_description, "remaining_stock": stock_item.Quantity})
-
+        if item:
+            # Return the Quantity if the item is found
+            return jsonify({
+                "Item_Description": item.Item_Description,
+                "Quantity": item.Quantity
+            }), 200
+        else:
+            # Return a 404 if the item is not found
+            return jsonify({"error": f"Item '{item_name}' not found"}), 404
     except Exception as e:
-        app.logger.error(f"Error in /get_remaining_stock for '{item_description}': {e}", exc_info=True)
-        return jsonify({"error": "An internal error occurred."}), 500
+        # Handle any unexpected errors
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/get_components', methods=['GET'])
 def get_components():
