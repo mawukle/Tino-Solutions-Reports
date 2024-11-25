@@ -2036,6 +2036,29 @@ def uploaded_file(filename):
 
 
 
+@app.route('/get_remaining_stock/<item_description>', methods=['GET'])
+def get_remaining_stock(item_description):
+    """
+    Fetch the remaining stock quantity for a specific item description.
+    """
+    try:
+        # Query the Items_List table for the remaining quantity of the specified item
+        stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
+
+        if not stock_item:
+            app.logger.warning(f"Item not found: {item_description}")
+            return jsonify({"error": f"Item '{item_description}' not found in stock."}), 404
+
+        # Return the remaining stock
+        return jsonify({"item_description": item_description, "remaining_stock": stock_item.Quantity}), 200
+
+    except Exception as e:
+        import uuid
+        error_id = str(uuid.uuid4())
+        app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
+        return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
+
+
 @app.route('/get_components', methods=['GET'])
 def get_components():
     try:
@@ -2043,54 +2066,48 @@ def get_components():
         components_list = [component[0] for component in components]
         return jsonify(components_list)
     except Exception as e:
-        print("Error in /get_components:", str(e))  # Log the error
+        print("Error in /get_components:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/get_item_descriptions/<component>', methods=['GET'])
 def get_item_descriptions(component):
     try:
-        # Use SQLAlchemy ORM to query the database
         item_descriptions = (
             db.session.query(Items_List.Item_Description)
             .filter(Items_List.Component == component)
             .distinct()
             .all()
         )
-        # Extract the descriptions from the query result
         descriptions_list = [desc[0] for desc in item_descriptions]
         return jsonify(descriptions_list)
     except Exception as e:
-        print("Error in /get_item_descriptions:", str(e))  # Log the error for debugging
+        print("Error in /get_item_descriptions:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/submit_component', methods=['POST'])
 def submit_component():
     try:
-        # Log the start of the request
         app.logger.info("Processing /submit_component request...")
 
-        # Get the data sent from the frontend
         data = request.get_json()
         app.logger.info(f"Received data: {data}")
 
-        # Extract and validate the input
         client_name = data.get('client_name')
         date = data.get('date')
-        installed_by = data.get('installed_by')  # Extract the "Installed By" field
-        items = data.get('items')  # List of items with details
+        installed_by = data.get('installed_by')
+        items = data.get('items')
 
-        # Check for missing required fields
         if not client_name or not date or not installed_by or not items:
             app.logger.warning("Missing required fields: client_name, date, installed_by, or items.")
             return jsonify({"error": "Client name, date, installed by, and items are required."}), 400
 
-        # Validate the "Installed By" field
         valid_installers = ["Tino Team", "Client"]
         if installed_by not in valid_installers:
             app.logger.warning(f"Invalid 'Installed By' value: {installed_by}")
             return jsonify({"error": f"'Installed By' must be one of {valid_installers}."}), 400
 
-        # Validate date format
         from datetime import datetime
         try:
             date = datetime.strptime(date, '%Y-%m-%d').date()
@@ -2098,10 +2115,8 @@ def submit_component():
             app.logger.warning(f"Invalid date format: {date}")
             return jsonify({"error": "Date must be in YYYY-MM-DD format."}), 400
 
-        # Log details for the transaction
         app.logger.info(f"Client: {client_name}, Date: {date}, Installed By: {installed_by}, Items: {items}")
 
-        # Process and update each item
         for item in items:
             component = item.get('component')
             item_description = item.get('item_description')
@@ -2111,47 +2126,40 @@ def submit_component():
                 app.logger.warning(f"Missing required fields in item: {item}")
                 return jsonify({"error": "Each item must include component, item_description, and quantity."}), 400
 
-            # Validate quantity as integer
             try:
                 quantity = int(quantity)
             except ValueError:
                 app.logger.warning(f"Invalid quantity for item: {item}")
                 return jsonify({"error": "Quantity must be a valid integer."}), 400
 
-            # Fetch the corresponding item in the Items_List table
             stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
             if not stock_item:
                 app.logger.warning(f"Item not found: {item_description}")
                 return jsonify({"error": f"Item '{item_description}' not found in stock."}), 400
 
-            # Check if enough stock is available
             if stock_item.Quantity < quantity:
                 app.logger.warning(f"Insufficient stock for {item_description}. Requested: {quantity}, Available: {stock_item.Quantity}")
                 return jsonify({"error": f"Not enough stock for '{item_description}'. Available: {stock_item.Quantity}."}), 400
 
-            # Deduct the quantity from stock
             stock_item.Quantity -= quantity
             app.logger.info(f"Stock updated for {item_description}. New quantity: {stock_item.Quantity}")
 
-            # Create a record in the Client_Items table
             new_entry = Client_Items(
                 client_name=client_name,
                 date=date,
                 component=component,
                 item_description=item_description,
                 quantity=quantity,
-                installed_by=installed_by  # Include the "Installed By" field
+                installed_by=installed_by
             )
             db.session.add(new_entry)
 
-        # Commit the transaction
         db.session.commit()
         app.logger.info("All items added successfully. Transaction committed.")
 
         return jsonify({"message": "Data submitted and stock updated successfully."}), 200
 
     except Exception as e:
-        # Rollback the session in case of an error
         db.session.rollback()
         import uuid
         error_id = str(uuid.uuid4())

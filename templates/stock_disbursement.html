@@ -61,6 +61,7 @@
                 <th>Component</th>
                 <th>Item Description</th>
                 <th>Quantity</th>
+                <th>Remaining Stock</th>
             </tr>
         </thead>
         <tbody>
@@ -151,6 +152,11 @@
                 }
             });
 
+            // Fetch remaining stock for an item description
+            function getRemainingStock(itemDescription) {
+                return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`);
+            }
+
             // Add a row to the table
             $('#add-to-table').click(function () {
                 const component = $('#component-dropdown').val();
@@ -162,19 +168,27 @@
                     return;
                 }
 
-                const tableRow = `
-                    <tr>
-                        <td>${component}</td>
-                        <td>${itemDescription}</td>
-                        <td>${quantity}</td>
-                    </tr>
-                `;
-                $('#issued-items-table tbody').append(tableRow);
+                // Fetch remaining stock
+                getRemainingStock(itemDescription)
+                    .done(function (remainingStock) {
+                        const tableRow = `
+                            <tr>
+                                <td>${component}</td>
+                                <td>${itemDescription}</td>
+                                <td>${quantity}</td>
+                                <td>${remainingStock}</td>
+                            </tr>
+                        `;
+                        $('#issued-items-table tbody').append(tableRow);
 
-                // Clear fields after adding
-                $('#component-dropdown').val('');
-                $('#item-description-dropdown').val('');
-                $('#quantity').val('');
+                        // Clear fields after adding
+                        $('#component-dropdown').val('');
+                        $('#item-description-dropdown').val('');
+                        $('#quantity').val('');
+                    })
+                    .fail(function () {
+                        alert('Error fetching remaining stock.');
+                    });
             });
 
             // Submit all items in the table
@@ -240,5 +254,6 @@
             });
         });
     </script>
+
 </body>
 </html>
