@@ -2036,7 +2036,6 @@ def uploaded_file(filename):
 
 
 
-from flask import jsonify
 
 @app.route('/get_remaining_stock/<item_name>', methods=['GET'])
 def get_remaining_stock(item_name):
@@ -2070,7 +2069,6 @@ def get_components():
     except Exception as e:
         print("Error in /get_components:", str(e))
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/get_item_descriptions/<component>', methods=['GET'])
 def get_item_descriptions(component):
@@ -2208,8 +2206,6 @@ def update_stock():
         app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
         return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
 
-from flask import jsonify
-from sqlalchemy import func
 
 
 
