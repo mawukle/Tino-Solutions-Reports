@@ -2039,25 +2039,22 @@ def uploaded_file(filename):
 @app.route('/get_remaining_stock/<item_description>', methods=['GET'])
 def get_remaining_stock(item_description):
     """
-    Fetch the remaining stock quantity for a specific item description.
+    Get the remaining stock quantity for a specific item description.
     """
     try:
-        # Query the Items_List table for the remaining quantity of the specified item
+        # Query the database to get the stock quantity for the given item description
         stock_item = Items_List.query.filter_by(Item_Description=item_description).first()
 
+        # Check if the item exists in the database
         if not stock_item:
-            app.logger.warning(f"Item not found: {item_description}")
             return jsonify({"error": f"Item '{item_description}' not found in stock."}), 404
 
         # Return the remaining stock
-        return jsonify({"item_description": item_description, "remaining_stock": stock_item.Quantity}), 200
+        return jsonify({"item_description": item_description, "remaining_stock": stock_item.Quantity})
 
     except Exception as e:
-        import uuid
-        error_id = str(uuid.uuid4())
-        app.logger.error(f"Error ID {error_id}: {e}", exc_info=True)
-        return jsonify({"error": f"An internal error occurred. Reference ID: {error_id}"}), 500
-
+        app.logger.error(f"Error in /get_remaining_stock for '{item_description}': {e}", exc_info=True)
+        return jsonify({"error": "An internal error occurred."}), 500
 
 @app.route('/get_components', methods=['GET'])
 def get_components():
