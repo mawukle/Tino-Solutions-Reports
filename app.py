@@ -2043,6 +2043,7 @@ def get_remaining_stock(item_name):
     from urllib.parse import unquote
     item_name_decoded = unquote(item_name)  # Decode the URL-encoded string
     app.logger.info(f"Decoded item_name: {item_name_decoded}")
+    item = Items_List.query.filter(func.lower(Items_List.Item_Description) == item_name_decoded.lower()).first()
 
     try:
         item = Items_List.query.filter_by(Item_Description=item_name_decoded).first()
@@ -2059,9 +2060,6 @@ def get_remaining_stock(item_name):
         app.logger.error(f"Error fetching item: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-from sqlalchemy import func
-
-item = Items_List.query.filter(func.lower(Items_List.Item_Description) == item_name_decoded.lower()).first()
 
 @app.route('/get_components', methods=['GET'])
 def get_components():
