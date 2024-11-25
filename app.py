@@ -2040,23 +2040,21 @@ from flask import jsonify
 
 @app.route('/get_remaining_stock/<item_name>', methods=['GET'])
 def get_remaining_stock(item_name):
+    app.logger.info(f"Received request for item_name: {item_name}")
     try:
-        # Query the Items_List table to find the item by Item_Description
         item = Items_List.query.filter_by(Item_Description=item_name).first()
-
         if item:
-            # Return the Quantity if the item is found
+            app.logger.info(f"Item found: {item.Item_Description}, Quantity: {item.Quantity}")
             return jsonify({
                 "Item_Description": item.Item_Description,
                 "Quantity": item.Quantity
             }), 200
         else:
-            # Return a 404 if the item is not found
+            app.logger.warning(f"Item '{item_name}' not found in database.")
             return jsonify({"error": f"Item '{item_name}' not found"}), 404
     except Exception as e:
-        # Handle any unexpected errors
+        app.logger.error(f"Error fetching item: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/get_components', methods=['GET'])
 def get_components():
