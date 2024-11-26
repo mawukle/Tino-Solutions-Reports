@@ -636,3 +636,10 @@ textarea {
 /*    overflow: hidden; /* Prevents scrollbars from appearing */
 
 }
+#client_name {
+    display: flex;
+    gap: 10px;
+    /*flex-wrap: nowrap;*/
+    /*flex: 1;*/
+    min-width: 500px;
+}
