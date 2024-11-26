@@ -2209,6 +2209,110 @@ def update_stock():
 
 
 
+@app.route('/stock_summary', methods=['GET', 'POST'])
+def stock_summary():
+    try:
+        # Initialize variables for form data
+        filter_type = ''
+        item_description = ''
+        start_date = ''
+        end_date = ''
+        group_by = 'Item_Description'  # Default grouping by Item Description
+
+        # Fetch item descriptions for autocomplete
+        item_descriptions = [item.Item_Description for item in Items_List.query.all()]
+
+        if request.method == 'POST':
+            # Get the form data
+            filter_type = request.form.get('filter_type', '')
+            item_description = request.form.get('item_description', '')
+            start_date = request.form.get('start_date', '')
+            end_date = request.form.get('end_date', '')
+            group_by = request.form.get('group_by', 'Item_Description')
+
+            logging.debug(f"Filter Type: {filter_type}")
+            logging.debug(f"Item Description: {item_description}")
+            logging.debug(f"Start Date: {start_date}")
+            logging.debug(f"End Date: {end_date}")
+            logging.debug(f"Group By: {group_by}")
+
+            conditions = []
+
+            # Filtering based on the filter type
+            if filter_type in ['item_description', 'both'] and item_description:
+                conditions.append(client_items.item_description == item_description)
+
+            if filter_type in ['date', 'both'] and start_date and end_date:
+                conditions.append(client_items.date.between(start_date, end_date))
+
+            # Handle grouping
+            group_column_map = {
+                "Client_Name": Client_List.Client_Name,
+                "Item_Description": client_items.item_description,
+                "Date": client_items.date
+            }
+
+            group_column = group_column_map.get(group_by, client_items.item_description)
+
+            # Query to get the client-item details
+            jobs_query = db.session.query(
+                client_items.client_item_id,
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                client_items.date,
+                func.max(client_items.component).label('Component'),
+                func.max(client_items.item_description).label('Item_Description'),
+                func.max(client_items.quantity).label('Quantity'),
+                func.max(client_items.installed_by).label('Installed_By'),
+            ).join(Client_List, client_items.client_name == Client_List.Client_Name
+            ).filter(and_(*conditions)
+            ).group_by(client_items.client_item_id, group_column
+            ).order_by(client_items.date.desc())
+
+            jobs = jobs_query.all()
+
+            # Group jobs by selected group_by option
+            grouped_jobs = {}
+            for job in jobs:
+                group_key = {
+                    "Client_Name": job.Client_Name,
+                    "Item_Description": job.Item_Description,
+                    "Date": job.date
+                }.get(group_by, job.Item_Description)
+                grouped_jobs.setdefault(group_key, []).append(job)
+
+            return render_template(
+                'stock_summary.html',
+                grouped_jobs=grouped_jobs,
+                item_descriptions=item_descriptions,
+                filter_type=filter_type,
+                item_description=item_description,
+                start_date=start_date,
+                end_date=end_date,
+                group_by=group_by
+            )
+
+        # If GET request, render the form without any filtering applied
+        return render_template(
+            'stock_summary.html',
+            item_descriptions=item_descriptions,
+            filter_type=filter_type,
+            item_description=item_description,
+            start_date=start_date,
+            end_date=end_date,
+            group_by=group_by
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error occurred: {e}")
+        return str(e)
+
+    finally:
+        db.session.close()
+
+
+
+
 
 if __name__ == '__main__':
 
