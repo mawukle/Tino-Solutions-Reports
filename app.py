@@ -2037,7 +2037,7 @@ def uploaded_file(filename):
 
 
 from urllib.parse import unquote
-@app.route('/get_remaining_stock/<item_name>', methods=['GET'])
+@app.route('/get_remaining_stock/<path:item_name>', methods=['GET'])
 def get_remaining_stock(item_name):
     item_name_decoded = unquote(item_name)
     app.logger.info(f"Received item_name: {item_name}")
