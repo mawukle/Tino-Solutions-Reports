@@ -643,3 +643,6 @@ textarea {
     /*flex: 1;*/
     min-width: 280px;
 }
+.ui-datepicker {
+    z-index: 1000 !important; /* Ensure the datepicker appears on top */
+}
