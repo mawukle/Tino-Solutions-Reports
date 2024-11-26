@@ -154,7 +154,19 @@
 
             // Fetch remaining stock for an item description
             function getRemainingStock(itemDescription) {
-                return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`);
+                return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`)
+                    .then(function (response) {
+                        // Explicitly parse if response is raw text
+                        if (typeof response === 'string') {
+                            try {
+                                response = JSON.parse(response);
+                            } catch (e) {
+                                console.error("Failed to parse response:", response);
+                                throw new Error("Invalid JSON response from server.");
+                            }
+                        }
+                        return response;
+                    });
             }
 
             // Add a row to the table
@@ -171,10 +183,10 @@
                 // Fetch remaining stock
                 getRemainingStock(itemDescription)
                     .done(function (remainingStock) {
-                        console.log(remainingStock); // Log the full object to inspect the structure
+                        console.log("Remaining Stock Response:", remainingStock); // Log to inspect the structure
 
-                        // Extract the numeric value (assuming 'quantity' is the correct field name)
-                        const remainingQuantity = remainingStock.quantity; // Adjust if needed
+                        // Extract the numeric value for the remaining quantity
+                        const remainingQuantity = remainingStock.quantity; // Adjust key if needed
 
                         if (remainingQuantity === undefined) {
                             alert('Error: Quantity not found in response.');
@@ -196,7 +208,8 @@
                         $('#item-description-dropdown').val('');
                         $('#quantity').val('');
                     })
-                    .fail(function () {
+                    .fail(function (error) {
+                        console.error("Error fetching remaining stock:", error);
                         alert('Error fetching remaining stock.');
                     });
             });
