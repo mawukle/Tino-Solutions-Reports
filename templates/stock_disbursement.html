@@ -5,278 +5,299 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Disbursement</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
-    <h1>Stock Disbursement</h1>
+    <div class="container_4">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
 
-    <form id="add-component-form">
-        <!-- Autocomplete for client name -->
-        <label for="client-name">Enter Client Name:</label>
-        <input type="text" id="client_name" name="client_name" required>
-        <br><br>
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
 
-        <!-- Custom Date Picker -->
-        <label for="job_date_display">Select Date:</label>
-        <input type="text" id="job_date_display" required>
-        <input type="hidden" id="job_date" name="date">
-        <br><br>
+        <h1>Stock Disbursement</h1>
 
-        <!-- Add Component Button -->
-        <button type="button" id="add-component">Add Component</button>
-        <br><br>
+        <!-- Stock Disbursement Form -->
+        <form id="add-component-form" class="filter-form">
+            <div class="form-filters">
+                <div>
+                    <label for="client_name">Enter Client Name:</label>
+                    <input type="text" id="client_name" name="client_name" required>
+                </div>
+                <br>
+                <div>
+                    <label for="job_date_display">Select Date:</label>
+                    <input type="text" id="job_date_display" required>
+                    <input type="hidden" id="job_date" name="date">
+                </div>
+                <br>
+                <div>
+                    <button type="button" id="add-component">Add Component</button>
+                </div>
+                <br>
+                <div>
+                    <label for="component-dropdown">Select Component:</label>
+                    <select id="component-dropdown" required>
+                        <option value="">--Select Component--</option>
+                    </select>
+                </div>
+                <br>
+                <div>
+                    <label for="item-description-dropdown">Select Item Description:</label>
+                    <select id="item-description-dropdown" required>
+                        <option value="">--Select Item Description--</option>
+                    </select>
+                </div>
+                <br>
+                <div>
+                    <label for="quantity">Enter Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                </div>
+                <br>
+                <div>
+                    <label for="installed-by">Installed By:</label>
+                    <select id="installed-by" name="installed_by" required>
+                        <option value="Tino Team">Tino Team</option>
+                        <option value="Client">Client</option>
+                    </select>
+                </div>
+                <br>
+                <div>
+                    <button type="button" id="add-to-table">Add to Table</button>
+                </div>
+            </div>
+        </form>
 
-        <label for="component-dropdown">Select Component:</label>
-        <select id="component-dropdown" required>
-            <option value="">--Select Component--</option>
-        </select>
-        <br><br>
+        <!-- Items Issued Table -->
+        <h2>Items Issued</h2>
+        <div class="table-container">
+            <table id="issued-items-table" border="1">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Item Description</th>
+                        <th>Quantity</th>
+                        <th>Remaining Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+        <br>
 
-        <label for="item-description-dropdown">Select Item Description:</label>
-        <select id="item-description-dropdown" required>
-            <option value="">--Select Item Description--</option>
-        </select>
-        <br><br>
+        <button id="submit-all" type="button">Submit All</button>
+        
+        <script>
+            $(document).ready(function () {
+                // Datepicker with custom formatting
+                $('#job_date_display').datepicker({
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(dateText) {
+                        const selectedDate = new Date(dateText);
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
 
-        <label for="quantity">Enter Quantity:</label>
-        <input type="number" id="quantity" name="quantity" min="1" required>
-        <br><br>
+                        // Add day suffix (st, nd, rd, th)
+                        const day = selectedDate.getDate();
+                        const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
+                                      (day == 2 || day == 22) ? 'nd' :
+                                      (day == 3 || day == 23) ? 'rd' : 'th';
+                        const dayWithSuffix = `${day}${suffix}`;
 
-        <label for="installed-by">Installed By:</label>
-        <select id="installed-by" name="installed_by" required>
-            <option value="Tino Team">Tino Team</option>
-            <option value="Client">Client</option>
-        </select>
-        <br><br>
-
-        <button type="button" id="add-to-table">Add to Table</button>
-    </form>
-
-    <h2>Items Issued</h2>
-    <table id="issued-items-table" border="1">
-        <thead>
-            <tr>
-                <th>Component</th>
-                <th>Item Description</th>
-                <th>Quantity</th>
-                <th>Remaining Stock</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Rows will be dynamically added here -->
-        </tbody>
-    </table>
-    <br>
-
-    <button id="submit-all" type="button">Submit All</button>
-
-    <script>
-        $(document).ready(function () {
-            // Datepicker with custom formatting
-            $('#job_date_display').datepicker({
-                dateFormat: 'yy-mm-dd',
-                onSelect: function(dateText) {
-                    const selectedDate = new Date(dateText);
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
-
-                    // Add day suffix (st, nd, rd, th)
-                    const day = selectedDate.getDate();
-                    const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
-                                  (day == 2 || day == 22) ? 'nd' :
-                                  (day == 3 || day == 23) ? 'rd' : 'th';
-                    const dayWithSuffix = `${day}${suffix}`;
-
-                    // Update display and hidden input
-                    const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
-                    $('#job_date_display').val(formattedDateWithSuffix);
-                    $('#job_date').val(dateText);  // Store the date for submission
-                }
-            });
-
-            // Autocomplete for client names
-            $("#client_name").autocomplete({
-                source: function(request, response) {
-                    $.ajax({
-                        url: "{{ url_for('autocomplete_client') }}",
-                        type: "GET",
-                        data: { term: request.term },
-                        success: function(data) {
-                            response(data);
-                        }
-                    });
-                },
-                minLength: 2,
-                select: function(event, ui) {
-                    $.ajax({
-                        url: "{{ url_for('get_client_details') }}",
-                        type: "GET",
-                        data: { client_name: ui.item.value },
-                        success: function(data) {
-                            if (data) {
-                                $("#client_location").val(data.town);  // Set the Location field
-                            }
-                        }
-                    });
-                }
-            });
-
-            // Load components when 'Add Component' is clicked
-            $('#add-component').click(function () {
-                $.get('/get_components', function (data) {
-                    const componentDropdown = $('#component-dropdown');
-                    componentDropdown.empty().append('<option value="">--Select Component--</option>');
-                    data.forEach(function (component) {
-                        componentDropdown.append(`<option value="${component}">${component}</option>`);
-                    });
-                }).fail(function () {
-                    alert('Error loading components.');
-                });
-            });
-
-            // Load item descriptions when a component is selected
-            $('#component-dropdown').change(function () {
-                const selectedComponent = $(this).val();
-                if (selectedComponent) {
-                    $.get(`/get_item_descriptions/${selectedComponent}`, function (data) {
-                        const itemDescriptionDropdown = $('#item-description-dropdown');
-                        itemDescriptionDropdown.empty().append('<option value="">--Select Item Description--</option>');
-                        data.forEach(function (item) {
-                            itemDescriptionDropdown.append(`<option value="${item}">${item}</option>`);
-                        });
-                    }).fail(function () {
-                        alert('Error loading item descriptions.');
-                    });
-                }
-            });
-
-            // Fetch remaining stock for an item description
-            function getRemainingStock(itemDescription) {
-                return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`)
-                    .then(function (response) {
-                        // Explicitly parse if response is raw text
-                        if (typeof response === 'string') {
-                            try {
-                                response = JSON.parse(response);
-                            } catch (e) {
-                                console.error("Failed to parse response:", response);
-                                throw new Error("Invalid JSON response from server.");
-                            }
-                        }
-                        return response;
-                    });
-            }
-
-            // Add a row to the table
-            $('#add-to-table').click(function () {
-                const component = $('#component-dropdown').val();
-                const itemDescription = $('#item-description-dropdown').val();
-                const quantity = $('#quantity').val();
-
-                if (!component || !itemDescription || !quantity) {
-                    alert('Please fill all fields.');
-                    return;
-                }
-
-                // Fetch remaining stock
-                getRemainingStock(itemDescription)
-                    .done(function (remainingStock) {
-                        console.log("Remaining Stock Response:", remainingStock); // Log to inspect the structure
-
-                        // Extract the numeric value for the remaining quantity
-                        const remainingQuantity = remainingStock.Quantity; // Adjust key if needed
-
-                        if (remainingQuantity === undefined) {
-                            alert('Error: Quantity not found in response.');
-                            return;
-                        }
-
-                        const tableRow = `
-                            <tr>
-                                <td>${component}</td>
-                                <td>${itemDescription}</td>
-                                <td>${quantity}</td>
-                                <td>${remainingQuantity}</td> <!-- Display remaining stock -->
-                            </tr>
-                        `;
-                        $('#issued-items-table tbody').append(tableRow);
-
-                        // Clear fields after adding
-                        $('#component-dropdown').val('');
-                        $('#item-description-dropdown').val('');
-                        $('#quantity').val('');
-                    })
-                    .fail(function (error) {
-                        console.error("Error fetching remaining stock:", error);
-                        alert('Error fetching remaining stock.');
-                    });
-            });
-
-            // Submit all items in the table
-            $('#submit-all').click(function () {
-                const clientName = $('#client_name').val().trim(); // Trim to remove extra spaces
-                const date = $('#job_date').val(); // Use hidden input for actual date
-                const installedBy = $('#installed-by').val(); // Always has a value
-
-                // Validate client name and date
-                if (!clientName) {
-                    alert('Please enter a valid client name.');
-                    return;
-                }
-                if (!date) {
-                    alert('Please select a valid date.');
-                    return;
-                }
-
-                // Ensure table has at least one row
-                const items = [];
-                $('#issued-items-table tbody tr').each(function () {
-                    const row = $(this).find('td');
-                    items.push({
-                        component: row.eq(0).text(),
-                        item_description: row.eq(1).text(),
-                        quantity: row.eq(2).text()
-                    });
-                });
-
-                if (items.length === 0) {
-                    alert('No items to submit. Please add items to the table.');
-                    return;
-                }
-
-                // Confirm submission
-                if (!confirm("Are you sure you want to submit these items? This action will update stock quantities.")) {
-                    return;
-                }
-
-                // AJAX request to submit data
-                $.ajax({
-                    url: '/submit_component',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        client_name: clientName,
-                        date: date,
-                        installed_by: installedBy,
-                        items: items
-                    }),
-                    success: function (response) {
-                        alert(response.message);
-                        $('#issued-items-table tbody').empty(); // Clear table after submission
-                        $('#client_name').val(''); // Clear form fields
-                        $('#job_date_display').val('');
-                        $('#job_date').val('');
-                    },
-                    error: function (response) {
-                        const error = response.responseJSON?.error || "Error submitting items.";
-                        alert(error);
+                        // Update display and hidden input
+                        const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
+                        $('#job_date_display').val(formattedDateWithSuffix);
+                        $('#job_date').val(dateText);  // Store the date for submission
                     }
                 });
-            });
-        });
-    </script>
 
+                // Autocomplete for client names
+                $("#client_name").autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{{ url_for('autocomplete_client') }}",
+                            type: "GET",
+                            data: { term: request.term },
+                            success: function(data) {
+                                response(data);
+                            }
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        $.ajax({
+                            url: "{{ url_for('get_client_details') }}",
+                            type: "GET",
+                            data: { client_name: ui.item.value },
+                            success: function(data) {
+                                if (data) {
+                                    $("#client_location").val(data.town);  // Set the Location field
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // Load components when 'Add Component' is clicked
+                $('#add-component').click(function () {
+                    $.get('/get_components', function (data) {
+                        const componentDropdown = $('#component-dropdown');
+                        componentDropdown.empty().append('<option value="">--Select Component--</option>');
+                        data.forEach(function (component) {
+                            componentDropdown.append(`<option value="${component}">${component}</option>`);
+                        });
+                    }).fail(function () {
+                        alert('Error loading components.');
+                    });
+                });
+
+                // Load item descriptions when a component is selected
+                $('#component-dropdown').change(function () {
+                    const selectedComponent = $(this).val();
+                    if (selectedComponent) {
+                        $.get(`/get_item_descriptions/${selectedComponent}`, function (data) {
+                            const itemDescriptionDropdown = $('#item-description-dropdown');
+                            itemDescriptionDropdown.empty().append('<option value="">--Select Item Description--</option>');
+                            data.forEach(function (item) {
+                                itemDescriptionDropdown.append(`<option value="${item}">${item}</option>`);
+                            });
+                        }).fail(function () {
+                            alert('Error loading item descriptions.');
+                        });
+                    }
+                });
+
+                // Fetch remaining stock for an item description
+                function getRemainingStock(itemDescription) {
+                    return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`)
+                        .then(function (response) {
+                            // Explicitly parse if response is raw text
+                            if (typeof response === 'string') {
+                                try {
+                                    response = JSON.parse(response);
+                                } catch (e) {
+                                    console.error("Failed to parse response:", response);
+                                    throw new Error("Invalid JSON response from server.");
+                                }
+                            }
+                            return response;
+                        });
+                }
+
+                // Add a row to the table
+                $('#add-to-table').click(function () {
+                    const component = $('#component-dropdown').val();
+                    const itemDescription = $('#item-description-dropdown').val();
+                    const quantity = $('#quantity').val();
+
+                    if (!component || !itemDescription || !quantity) {
+                        alert('Please fill all fields.');
+                        return;
+                    }
+
+                    // Fetch remaining stock
+                    getRemainingStock(itemDescription)
+                        .done(function (remainingStock) {
+                            console.log("Remaining Stock Response:", remainingStock); // Log to inspect the structure
+
+                            // Extract the numeric value for the remaining quantity
+                            const remainingQuantity = remainingStock.Quantity; // Adjust key if needed
+
+                            if (remainingQuantity === undefined) {
+                                alert('Error: Quantity not found in response.');
+                                return;
+                            }
+
+                            const tableRow = `
+                                <tr>
+                                    <td>${component}</td>
+                                    <td>${itemDescription}</td>
+                                    <td>${quantity}</td>
+                                    <td>${remainingQuantity}</td> <!-- Display remaining stock -->
+                                </tr>
+                            `;
+                            $('#issued-items-table tbody').append(tableRow);
+
+                            // Clear fields after adding
+                            $('#component-dropdown').val('');
+                            $('#item-description-dropdown').val('');
+                            $('#quantity').val('');
+                        })
+                        .fail(function (error) {
+                            console.error("Error fetching remaining stock:", error);
+                            alert('Error fetching remaining stock.');
+                        });
+                });
+
+                // Submit all items in the table
+                $('#submit-all').click(function () {
+                    const clientName = $('#client_name').val().trim(); // Trim to remove extra spaces
+                    const date = $('#job_date').val(); // Use hidden input for actual date
+                    const installedBy = $('#installed-by').val(); // Always has a value
+
+                    // Validate client name and date
+                    if (!clientName) {
+                        alert('Please enter a valid client name.');
+                        return;
+                    }
+                    if (!date) {
+                        alert('Please select a valid date.');
+                        return;
+                    }
+
+                    // Ensure table has at least one row
+                    const items = [];
+                    $('#issued-items-table tbody tr').each(function () {
+                        const row = $(this).find('td');
+                        items.push({
+                            component: row.eq(0).text(),
+                            item_description: row.eq(1).text(),
+                            quantity: row.eq(2).text()
+                        });
+                    });
+
+                    if (items.length === 0) {
+                        alert('No items to submit. Please add items to the table.');
+                        return;
+                    }
+
+                    // Confirm submission
+                    if (!confirm("Are you sure you want to submit these items? This action will update stock quantities.")) {
+                        return;
+                    }
+
+                    // AJAX request to submit data
+                    $.ajax({
+                        url: '/submit_component',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            client_name: clientName,
+                            date: date,
+                            installed_by: installedBy,
+                            items: items
+                        }),
+                        success: function (response) {
+                            alert(response.message);
+                            $('#issued-items-table tbody').empty(); // Clear table after submission
+                            $('#client_name').val(''); // Clear form fields
+                            $('#job_date_display').val('');
+                            $('#job_date').val('');
+                        },
+                        error: function (response) {
+                            const error = response.responseJSON?.error || "Error submitting items.";
+                            alert(error);
+                        }
+                    });
+                });
+            });
+        </script>
+
+
+    </div>
 </body>
 </html>
