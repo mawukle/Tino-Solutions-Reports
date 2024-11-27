@@ -2310,6 +2310,21 @@ def stock_summary():
     finally:
         db.session.close()
 
+@app.route('/autocomplete_item_description', methods=['GET'])
+def autocomplete_item_description():
+    search_term = request.args.get('query', '')
+    if not search_term:
+        return jsonify([])  # Return an empty list if no search term provided
+
+    # Query database for matching Item_Description values
+    matches = (
+        Items_List.query.filter(Items_List.Item_Description.ilike(f"%{search_term}%"))
+        .limit(10)  # Limit results to 10 to avoid overloading
+        .all()
+    )
+
+    # Return JSON response with matching descriptions
+    return jsonify([item.Item_Description for item in matches])
 
 
 
