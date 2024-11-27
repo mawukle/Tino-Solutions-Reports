@@ -99,7 +99,7 @@ class Client_Items(db.Model):
     item_description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 """
-class Client_Items(db.Model):
+class client_items(db.Model):
     __tablename__ = 'client_items'
 
     client_item_id = db.Column(db.Integer, primary_key=True)  # Rename the primary key column to 'client_item_id'

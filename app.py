@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, Client_Items  # Import db only once from models
+from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case
@@ -2143,7 +2143,7 @@ def submit_component():
             stock_item.Quantity -= quantity
             app.logger.info(f"Stock updated for {item_description}. New quantity: {stock_item.Quantity}")
 
-            new_entry = Client_Items(
+            new_entry = client_items(
                 client_name=client_name,
                 date=date,
                 component=component,
