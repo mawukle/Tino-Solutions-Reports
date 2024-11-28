@@ -2287,26 +2287,30 @@ def stock_summary():
 
             # Calculate capacities for the date range
             if start_date and end_date:
-                filtered_items = db.session.query(
-                    client_items.item_description,
-                    client_items.component
-                ).filter(client_items.date.between(start_date, end_date)).subquery()
-
-                # Sum kVA/kW and kWh values for components within the date range
+                # Query to calculate total capacities by multiplying quantity and kVA_kW/kWh
                 panel_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW)
-                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
-                ).filter(filtered_items.c.component == "Solar Panels").scalar() or 0
+                    func.sum(client_items.quantity * Items_List.kVA_kW)
+                ).join(Items_List, Items_List.Item_Description == client_items.item_description
+                ).filter(
+                    client_items.date.between(start_date, end_date),
+                    client_items.component == "Solar Panel"
+                ).scalar() or 0
 
                 inverter_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW)
-                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
-                ).filter(filtered_items.c.component == "Inverter").scalar() or 0
+                    func.sum(client_items.quantity * Items_List.kVA_kW)
+                ).join(Items_List, Items_List.Item_Description == client_items.item_description
+                ).filter(
+                    client_items.date.between(start_date, end_date),
+                    client_items.component == "Inverter"
+                ).scalar() or 0
 
                 battery_capacity = db.session.query(
-                    func.sum(Items_List.kWh)
-                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
-                ).filter(filtered_items.c.component == "Batteries").scalar() or 0
+                    func.sum(client_items.quantity * Items_List.kWh)
+                ).join(Items_List, Items_List.Item_Description == client_items.item_description
+                ).filter(
+                    client_items.date.between(start_date, end_date),
+                    client_items.component == "Battery"
+                ).scalar() or 0
 
         # Render the template
         return render_template(
