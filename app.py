@@ -2287,28 +2287,24 @@ def stock_summary():
 
             # Calculate capacities for the date range
             if start_date and end_date:
-                # Filtered items for the date range
                 filtered_items = db.session.query(
                     client_items.item_description,
-                    client_items.component,
-                    client_items.quantity
+                    client_items.component
                 ).filter(client_items.date.between(start_date, end_date)).subquery()
 
-                # Sum kVA/kW for Solar Panels, multiplied by quantity
+                # Sum kVA/kW and kWh values for components within the date range
                 panel_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW * filtered_items.c.quantity)
+                    func.sum(Items_List.kVA_kW)
                 ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
                 ).filter(filtered_items.c.component == "Solar Panel").scalar() or 0
 
-                # Sum kVA/kW for Inverters, multiplied by quantity
                 inverter_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW * filtered_items.c.quantity)
+                    func.sum(Items_List.kVA_kW)
                 ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
                 ).filter(filtered_items.c.component == "Inverter").scalar() or 0
 
-                # Sum kWh for Batteries, multiplied by quantity
                 battery_capacity = db.session.query(
-                    func.sum(Items_List.kWh * filtered_items.c.quantity)
+                    func.sum(Items_List.kWh)
                 ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
                 ).filter(filtered_items.c.component == "Battery").scalar() or 0
 
