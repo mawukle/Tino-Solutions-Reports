@@ -2285,10 +2285,17 @@ def stock_summary():
                 }.get(group_by, job.Item_Description)
                 grouped_jobs.setdefault(group_key, []).append(job)
 
-        # Calculate capacities
-        panel_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(Items_List.Component == "Solar Panels").scalar() or 0
-        inverter_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(Items_List.Component == "Inverter").scalar() or 0
-        battery_capacity = db.session.query(func.sum(Items_List.kWh)).filter(Items_List.Component == "Batteries").scalar() or 0
+            # Calculate capacities with the selected date range
+            date_filter = Items_List.date.between(start_date, end_date) if start_date and end_date else True
+            panel_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(
+                and_(Items_List.Component == "Solar Panel", date_filter)
+            ).scalar() or 0
+            inverter_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(
+                and_(Items_List.Component == "Inverter", date_filter)
+            ).scalar() or 0
+            battery_capacity = db.session.query(func.sum(Items_List.kWh)).filter(
+                and_(Items_List.Component == "Battery", date_filter)
+            ).scalar() or 0
 
         # Render the template
         return render_template(
