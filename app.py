@@ -2285,17 +2285,28 @@ def stock_summary():
                 }.get(group_by, job.Item_Description)
                 grouped_jobs.setdefault(group_key, []).append(job)
 
-            # Calculate capacities with the selected date range
-            date_filter = Items_List.date.between(start_date, end_date) if start_date and end_date else True
-            panel_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(
-                and_(Items_List.Component == "Solar Panel", date_filter)
-            ).scalar() or 0
-            inverter_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(
-                and_(Items_List.Component == "Inverter", date_filter)
-            ).scalar() or 0
-            battery_capacity = db.session.query(func.sum(Items_List.kWh)).filter(
-                and_(Items_List.Component == "Battery", date_filter)
-            ).scalar() or 0
+            # Calculate capacities for the date range
+            if start_date and end_date:
+                filtered_items = db.session.query(
+                    client_items.item_description,
+                    client_items.component
+                ).filter(client_items.date.between(start_date, end_date)).subquery()
+
+                # Sum kVA/kW and kWh values for components within the date range
+                panel_capacity = db.session.query(
+                    func.sum(Items_List.kVA_kW)
+                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
+                ).filter(filtered_items.c.component == "Solar Panels").scalar() or 0
+
+                inverter_capacity = db.session.query(
+                    func.sum(Items_List.kVA_kW)
+                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
+                ).filter(filtered_items.c.component == "Inverter").scalar() or 0
+
+                battery_capacity = db.session.query(
+                    func.sum(Items_List.kWh)
+                ).join(filtered_items, Items_List.Item_Description == filtered_items.c.item_description
+                ).filter(filtered_items.c.component == "Batteries").scalar() or 0
 
         # Render the template
         return render_template(
@@ -2319,6 +2330,7 @@ def stock_summary():
 
     finally:
         db.session.close()
+
 
 @app.route('/autocomplete_item_description', methods=['GET'])
 def autocomplete_item_description():
