@@ -2222,6 +2222,11 @@ def stock_summary():
         # Fetch item descriptions for autocomplete
         item_descriptions = [item.Item_Description for item in Items_List.query.all()]
 
+        # Initialize capacity variables
+        panel_capacity = 0
+        inverter_capacity = 0
+        battery_capacity = 0
+
         if request.method == 'POST':
             # Get the form data
             filter_type = request.form.get('filter_type', '')
@@ -2280,26 +2285,24 @@ def stock_summary():
                 }.get(group_by, job.Item_Description)
                 grouped_jobs.setdefault(group_key, []).append(job)
 
-            return render_template(
-                'stock_summary.html',
-                grouped_jobs=grouped_jobs,
-                item_descriptions=item_descriptions,
-                filter_type=filter_type,
-                item_description=item_description,
-                start_date=start_date,
-                end_date=end_date,
-                group_by=group_by
-            )
+        # Calculate capacities
+        panel_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(Items_List.Component == "Solar Panels").scalar() or 0
+        inverter_capacity = db.session.query(func.sum(Items_List.kVA_kW)).filter(Items_List.Component == "Inverter").scalar() or 0
+        battery_capacity = db.session.query(func.sum(Items_List.kWh)).filter(Items_List.Component == "Batteries").scalar() or 0
 
-        # If GET request, render the form without any filtering applied
+        # Render the template
         return render_template(
             'stock_summary.html',
+            grouped_jobs=grouped_jobs if request.method == 'POST' else {},
             item_descriptions=item_descriptions,
             filter_type=filter_type,
             item_description=item_description,
             start_date=start_date,
             end_date=end_date,
-            group_by=group_by
+            group_by=group_by,
+            panel_capacity=panel_capacity,
+            inverter_capacity=inverter_capacity,
+            battery_capacity=battery_capacity
         )
 
     except Exception as e:

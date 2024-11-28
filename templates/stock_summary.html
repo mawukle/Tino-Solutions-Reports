@@ -60,6 +60,15 @@
             </div>
 
             <button type="submit" class="filter-button">Submit</button>
+
+            <!-- Add this section above the Job Details table -->
+            <div class="summary-section">
+                <h2>Summary:</h2>
+                <p><strong>Panel Capacity (kWp):</strong> {{ panel_capacity }}</p>
+                <p><strong>Inverter Capacity (kW):</strong> {{ inverter_capacity }}</p>
+                <p><strong>Battery Capacity (kWh):</strong> {{ battery_capacity }}</p>
+            </div>
+
         </form>
 
         <!-- Display job details after submission -->
