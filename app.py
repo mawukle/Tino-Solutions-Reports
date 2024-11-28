@@ -2331,6 +2331,7 @@ def stock_summary():
     finally:
         db.session.close()
 
+
 @app.route('/autocomplete_item_description', methods=['GET'])
 def autocomplete_item_description():
     search_term = request.args.get('query', '')
