@@ -180,8 +180,6 @@
                     }
 
                     const rows = [];
-                    const promises = [];
-
                     $('.item-quantity').each(function () {
                         const itemDescription = $(this).data('item');
                         const quantity = $(this).val();
@@ -192,34 +190,22 @@
                         }
 
                         rows.push({ itemDescription, quantity });
-                        promises.push(getRemainingStock(itemDescription)); // Fetch remaining stock for each item
                     });
 
-                    // Wait for all remaining stock fetch requests to resolve
-                    Promise.all(promises)
-                        .then((responses) => {
-                            rows.forEach((row, index) => {
-                                const remainingStock = responses[index]?.Quantity ?? 'N/A'; // Handle missing Quantity field
-                                $('#issued-items-table tbody').append(`
-                                    <tr>
-                                        <td>${component}</td>
-                                        <td>${row.itemDescription}</td>
-                                        <td>${row.quantity}</td>
-                                        <td>${remainingStock}</td> <!-- Display remaining stock -->
-                                    </tr>
-                                `);
-                            });
+                    rows.forEach(function (row) {
+                        $('#issued-items-table tbody').append(`
+                            <tr>
+                                <td>${component}</td>
+                                <td>${row.itemDescription}</td>
+                                <td>${row.quantity}</td>
+                                <td>Fetching...</td> <!-- Placeholder for remaining stock -->
+                            </tr>
+                        `);
+                    });
 
-                            // Clear input fields after adding rows to the table
-                            $('#quantity-container').empty();
-                            $('#item-description-dropdown').val('');
-                        })
-                        .catch((error) => {
-                            console.error("Error fetching remaining stock:", error);
-                            alert('Error fetching remaining stock.');
-                        });
+                    $('#quantity-container').empty(); // Clear the quantity inputs
+                    $('#item-description-dropdown').val(''); // Clear item descriptions
                 });
-
 
                 // Submit all items in the table
                 $('#submit-all').click(function () {
