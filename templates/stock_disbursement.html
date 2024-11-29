@@ -205,6 +205,15 @@
                 });
 
                 $('#submit-all').click(function () {
+                    const clientName = $('#client_name').val();
+                    const date = $('#job_date').val();
+                    const installedBy = $('#installed-by').val();
+
+                    if (!clientName || !date || !installedBy) {
+                        alert('Please fill out all required fields: Client Name, Date, and Installed By.');
+                        return;
+                    }
+
                     const items = [];
                     $('#issued-items-table tbody tr').each(function () {
                         const row = $(this).find('td');
@@ -220,11 +229,18 @@
                         return;
                     }
 
+                    const payload = {
+                        client_name: clientName,
+                        date: date,
+                        installed_by: installedBy,
+                        items: items
+                    };
+
                     $.ajax({
                         url: '/submit_component',
                         method: 'POST',
                         contentType: 'application/json',
-                        data: JSON.stringify({ items }),
+                        data: JSON.stringify(payload),
                         success: function () {
                             alert('Items submitted successfully.');
                             $('#issued-items-table tbody').empty();
