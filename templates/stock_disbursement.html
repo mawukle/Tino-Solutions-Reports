@@ -19,7 +19,7 @@
             flex: 1;
         }
         .quantity-row input {
-            width: 80px; /* Sized to fit a 6-digit number comfortably */
+            width: 80px;
             margin-left: 10px;
         }
     </style>
@@ -28,12 +28,10 @@
     <div class="container_4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
 
-        <!-- Back to Homepage Link -->
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>Stock Disbursement</h1>
 
-        <!-- Stock Disbursement Form -->
         <form id="add-component-form" class="filter-form">
             <div class="form-filters">
                 <div>
@@ -83,7 +81,6 @@
             </div>
         </form>
 
-        <!-- Items Issued Table -->
         <h2>Items Issued</h2>
         <div class="table-container">
             <table id="issued-items-table" border="1">
@@ -101,32 +98,17 @@
             </table>
         </div>
         <br>
-
         <button id="submit-all" type="button">Submit All</button>
 
         <script>
             $(document).ready(function () {
-                // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
                     onSelect: function (dateText) {
-                        const selectedDate = new Date(dateText);
-                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                        const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
-
-                        const day = selectedDate.getDate();
-                        const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
-                                      (day == 2 || day == 22) ? 'nd' :
-                                      (day == 3 || day == 23) ? 'rd' : 'th';
-                        const dayWithSuffix = `${day}${suffix}`;
-
-                        const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
-                        $('#job_date_display').val(formattedDateWithSuffix);
                         $('#job_date').val(dateText);
                     }
                 });
 
-                // Load components when 'Add Component' is clicked
                 $('#add-component').click(function () {
                     $.get('/get_components', function (data) {
                         const componentDropdown = $('#component-dropdown');
@@ -139,7 +121,6 @@
                     });
                 });
 
-                // Load item descriptions when a component is selected
                 $('#component-dropdown').change(function () {
                     const selectedComponent = $(this).val();
                     if (selectedComponent) {
@@ -155,7 +136,6 @@
                     }
                 });
 
-                // Add dynamic quantity inputs for selected item descriptions
                 $('#item-description-dropdown').change(function () {
                     const selectedItems = $(this).val();
                     const container = $('#quantity-container');
@@ -171,7 +151,6 @@
                     });
                 });
 
-                // Add to table
                 $('#add-to-table').click(function () {
                     const component = $('#component-dropdown').val();
                     if (!component) {
@@ -180,34 +159,51 @@
                     }
 
                     const rows = [];
+                    const fetchPromises = [];
+
                     $('.item-quantity').each(function () {
                         const itemDescription = $(this).data('item');
                         const quantity = $(this).val();
 
                         if (!quantity) {
-                            alert(`Please enter quantity for ${itemDescription}.`);
+                            alert(`Please enter a quantity for ${itemDescription}.`);
                             return false;
                         }
 
-                        rows.push({ itemDescription, quantity });
+                        const encodedItemName = encodeURIComponent(itemDescription);
+                        const fetchPromise = $.get(`/get_remaining_stock/${encodedItemName}`)
+                            .then(function (data) {
+                                rows.push({
+                                    itemDescription: data.Item_Description,
+                                    quantity: quantity,
+                                    remainingStock: data.Quantity
+                                });
+                            })
+                            .fail(function (xhr) {
+                                const error = xhr.responseJSON?.error || 'Unknown error occurred';
+                                alert(`Error fetching remaining stock for ${itemDescription}: ${error}`);
+                            });
+
+                        fetchPromises.push(fetchPromise);
                     });
 
-                    rows.forEach(function (row) {
-                        $('#issued-items-table tbody').append(`
-                            <tr>
-                                <td>${component}</td>
-                                <td>${row.itemDescription}</td>
-                                <td>${row.quantity}</td>
-                                <td>Fetching...</td> <!-- Placeholder for remaining stock -->
-                            </tr>
-                        `);
-                    });
+                    Promise.all(fetchPromises).then(() => {
+                        rows.forEach(function (row) {
+                            $('#issued-items-table tbody').append(`
+                                <tr>
+                                    <td>${component}</td>
+                                    <td>${row.itemDescription}</td>
+                                    <td>${row.quantity}</td>
+                                    <td>${row.remainingStock}</td>
+                                </tr>
+                            `);
+                        });
 
-                    $('#quantity-container').empty(); // Clear the quantity inputs
-                    $('#item-description-dropdown').val(''); // Clear item descriptions
+                        $('#quantity-container').empty();
+                        $('#item-description-dropdown').val('');
+                    });
                 });
 
-                // Submit all items in the table
                 $('#submit-all').click(function () {
                     const items = [];
                     $('#issued-items-table tbody tr').each(function () {
