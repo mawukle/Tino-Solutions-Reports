@@ -647,5 +647,5 @@ textarea {
     z-index: 1000 !important; /* Ensure the datepicker appears on top */
 }
 #item_description {
-    width: 400px;  /* Adjust width as needed */
+    width: 280px;  /* Adjust width as needed */
 }
