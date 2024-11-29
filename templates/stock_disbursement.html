@@ -14,12 +14,10 @@
     <div class="container_4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
 
-        <!-- Back to Homepage Link -->
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>Stock Disbursement</h1>
 
-        <!-- Stock Disbursement Form -->
         <form id="add-component-form" class="filter-form">
             <div class="form-filters">
                 <div>
@@ -45,15 +43,14 @@
                 </div>
                 <br>
                 <div>
-                    <label for="item-description-dropdown">Select Item Description:</label>
-                    <select id="item-description-dropdown" required>
-                        <option value="">--Select Item Description--</option>
+                    <label for="item-description-dropdown">Select Item Description(s):</label>
+                    <select id="item-description-dropdown" multiple required>
+                        <!-- Items will be populated dynamically -->
                     </select>
                 </div>
                 <br>
-                <div>
-                    <label for="quantity">Enter Quantity:</label>
-                    <input type="number" id="quantity" name="quantity" min="1" required>
+                <div id="quantity-container">
+                    <!-- Quantities will be added dynamically -->
                 </div>
                 <br>
                 <div>
@@ -70,7 +67,6 @@
             </div>
         </form>
 
-        <!-- Items Issued Table -->
         <h2>Items Issued</h2>
         <div class="table-container">
             <table id="issued-items-table" border="1">
@@ -88,169 +84,105 @@
             </table>
         </div>
         <br>
-
         <button id="submit-all" type="button">Submit All</button>
 
         <script>
             $(document).ready(function () {
-                // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
                     onSelect: function(dateText) {
-                        const selectedDate = new Date(dateText);
-                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                        const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
-
-                        // Add day suffix (st, nd, rd, th)
-                        const day = selectedDate.getDate();
-                        const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
-                                      (day == 2 || day == 22) ? 'nd' :
-                                      (day == 3 || day == 23) ? 'rd' : 'th';
-                        const dayWithSuffix = `${day}${suffix}`;
-
-                        // Update display and hidden input
-                        const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
-                        $('#job_date_display').val(formattedDateWithSuffix);
-                        $('#job_date').val(dateText);  // Store the date for submission
+                        $('#job_date').val(dateText);
                     }
                 });
 
-                // Autocomplete for client names
-                $("#client_name").autocomplete({
-                    source: function(request, response) {
-                        $.ajax({
-                            url: "{{ url_for('autocomplete_client') }}",
-                            type: "GET",
-                            data: { term: request.term },
-                            success: function(data) {
-                                response(data);
-                            }
-                        });
-                    },
-                    minLength: 2,
-                    select: function(event, ui) {
-                        $.ajax({
-                            url: "{{ url_for('get_client_details') }}",
-                            type: "GET",
-                            data: { client_name: ui.item.value },
-                            success: function(data) {
-                                if (data) {
-                                    $("#client_location").val(data.town);  // Set the Location field
-                                }
-                            }
-                        });
-                    }
-                });
-
-                // Load components when 'Add Component' is clicked
                 $('#add-component').click(function () {
                     $.get('/get_components', function (data) {
-                        const componentDropdown = $('#component-dropdown');
-                        componentDropdown.empty().append('<option value="">--Select Component--</option>');
+                        $('#component-dropdown').empty().append('<option value="">--Select Component--</option>');
                         data.forEach(function (component) {
-                            componentDropdown.append(`<option value="${component}">${component}</option>`);
+                            $('#component-dropdown').append(`<option value="${component}">${component}</option>`);
                         });
-                    }).fail(function () {
-                        alert('Error loading components.');
                     });
                 });
 
-                // Load item descriptions when a component is selected
                 $('#component-dropdown').change(function () {
                     const selectedComponent = $(this).val();
                     if (selectedComponent) {
                         $.get(`/get_item_descriptions/${selectedComponent}`, function (data) {
-                            const itemDescriptionDropdown = $('#item-description-dropdown');
-                            itemDescriptionDropdown.empty().append('<option value="">--Select Item Description--</option>');
+                            const dropdown = $('#item-description-dropdown');
+                            dropdown.empty();
                             data.forEach(function (item) {
-                                itemDescriptionDropdown.append(`<option value="${item}">${item}</option>`);
+                                dropdown.append(`<option value="${item}">${item}</option>`);
                             });
-                        }).fail(function () {
-                            alert('Error loading item descriptions.');
                         });
                     }
                 });
 
-                // Fetch remaining stock for an item description
+                $('#item-description-dropdown').change(function () {
+                    const selectedItems = $(this).val();
+                    const container = $('#quantity-container');
+                    container.empty();
+                    selectedItems.forEach(function (item) {
+                        container.append(`
+                            <div class="quantity-row">
+                                <label>${item} Quantity:</label>
+                                <input type="number" class="item-quantity" data-item="${item}" min="1" required>
+                            </div>
+                        `);
+                    });
+                });
+
                 function getRemainingStock(itemDescription) {
-                    return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`)
-                        .then(function (response) {
-                            // Explicitly parse if response is raw text
-                            if (typeof response === 'string') {
-                                try {
-                                    response = JSON.parse(response);
-                                } catch (e) {
-                                    console.error("Failed to parse response:", response);
-                                    throw new Error("Invalid JSON response from server.");
-                                }
-                            }
-                            return response;
-                        });
+                    return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`);
                 }
 
-                // Add a row to the table
                 $('#add-to-table').click(function () {
                     const component = $('#component-dropdown').val();
-                    const itemDescription = $('#item-description-dropdown').val();
-                    const quantity = $('#quantity').val();
-
-                    if (!component || !itemDescription || !quantity) {
-                        alert('Please fill all fields.');
+                    if (!component) {
+                        alert('Please select a component.');
                         return;
                     }
 
-                    // Fetch remaining stock
-                    getRemainingStock(itemDescription)
-                        .done(function (remainingStock) {
-                            console.log("Remaining Stock Response:", remainingStock); // Log to inspect the structure
+                    const quantities = [];
+                    $('.item-quantity').each(function () {
+                        const item = $(this).data('item');
+                        const quantity = $(this).val();
+                        if (!quantity) {
+                            alert(`Please enter quantity for ${item}.`);
+                            return false;
+                        }
+                        quantities.push({ item, quantity });
+                    });
 
-                            // Extract the numeric value for the remaining quantity
-                            const remainingQuantity = remainingStock.Quantity; // Adjust key if needed
+                    const promises = quantities.map(({ item }) => getRemainingStock(item));
+                    Promise.all(promises).then((responses) => {
+                        responses.forEach((stock, index) => {
+                            const item = quantities[index].item;
+                            const quantity = quantities[index].quantity;
+                            const remainingStock = stock.Quantity || 'N/A';
 
-                            if (remainingQuantity === undefined) {
-                                alert('Error: Quantity not found in response.');
-                                return;
-                            }
-
-                            const tableRow = `
+                            const row = `
                                 <tr>
                                     <td>${component}</td>
-                                    <td>${itemDescription}</td>
+                                    <td>${item}</td>
                                     <td>${quantity}</td>
-                                    <td>${remainingQuantity}</td> <!-- Display remaining stock -->
+                                    <td>${remainingStock}</td>
                                 </tr>
                             `;
-                            $('#issued-items-table tbody').append(tableRow);
-
-                            // Clear fields after adding
-                            $('#component-dropdown').val('');
-                            $('#item-description-dropdown').val('');
-                            $('#quantity').val('');
-                        })
-                        .fail(function (error) {
-                            console.error("Error fetching remaining stock:", error);
-                            alert('Error fetching remaining stock.');
+                            $('#issued-items-table tbody').append(row);
                         });
+
+                        $('#component-dropdown').val('');
+                        $('#item-description-dropdown').empty();
+                        $('#quantity-container').empty();
+                    });
                 });
 
-                // Submit all items in the table
                 $('#submit-all').click(function () {
-                    const clientName = $('#client_name').val().trim(); // Trim to remove extra spaces
-                    const date = $('#job_date').val(); // Use hidden input for actual date
-                    const installedBy = $('#installed-by').val(); // Always has a value
-
-                    // Validate client name and date
-                    if (!clientName) {
-                        alert('Please enter a valid client name.');
-                        return;
-                    }
-                    if (!date) {
-                        alert('Please select a valid date.');
-                        return;
-                    }
-
-                    // Ensure table has at least one row
+                    const clientName = $('#client_name').val();
+                    const date = $('#job_date').val();
+                    const installedBy = $('#installed-by').val();
                     const items = [];
+
                     $('#issued-items-table tbody tr').each(function () {
                         const row = $(this).find('td');
                         items.push({
@@ -261,43 +193,24 @@
                     });
 
                     if (items.length === 0) {
-                        alert('No items to submit. Please add items to the table.');
+                        alert('No items to submit.');
                         return;
                     }
 
-                    // Confirm submission
-                    if (!confirm("Are you sure you want to submit these items? This action will update stock quantities.")) {
-                        return;
-                    }
-
-                    // AJAX request to submit data
-                    $.ajax({
-                        url: '/submit_component',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            client_name: clientName,
-                            date: date,
-                            installed_by: installedBy,
-                            items: items
-                        }),
-                        success: function (response) {
-                            alert(response.message);
-                            $('#issued-items-table tbody').empty(); // Clear table after submission
-                            $('#client_name').val(''); // Clear form fields
-                            $('#job_date_display').val('');
-                            $('#job_date').val('');
-                        },
-                        error: function (response) {
-                            const error = response.responseJSON?.error || "Error submitting items.";
-                            alert(error);
-                        }
+                    $.post('/submit_component', {
+                        client_name: clientName,
+                        date: date,
+                        installed_by: installedBy,
+                        items: JSON.stringify(items)
+                    }).done(function () {
+                        alert('Submission successful.');
+                        $('#issued-items-table tbody').empty();
+                    }).fail(function () {
+                        alert('Error during submission.');
                     });
                 });
             });
         </script>
-
-
     </div>
 </body>
 </html>
