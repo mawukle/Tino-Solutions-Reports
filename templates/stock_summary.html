@@ -115,8 +115,9 @@
     </div>
 
     <script>
-        // Toggle input fields based on selected filter type
+        // Enable autocomplete for Item Description field
         $(document).ready(function() {
+            // Toggle input fields based on selected filter type
             $('input[name="filter_type"]').change(function() {
                 if (this.value === 'item_description') {
                     $('#member_filter').show();
@@ -130,15 +131,30 @@
                 }
             });
 
-            // Enable autocomplete for Item Description
+            // Enable autocomplete for Item Description names when filtering by Item Description
             $("#item_description").autocomplete({
-                source: "{{ url_for('autocomplete_item_description') }}",
-                minLength: 2  // Minimum characters before triggering autocomplete
+                source: function(request, response) {
+                    $.ajax({
+                        url: "{{ url_for('autocomplete_item_description') }}",
+                        data: {
+                            query: request.term  // Sends the search term to the server
+                        },
+                        success: function(data) {
+                            response(data);  // Populate the autocomplete suggestions
+                        }
+                    });
+                },
+                minLength: 2,  // Minimum characters before triggering autocomplete
+                select: function(event, ui) {
+                    // Optionally handle the selected item (e.g., prefill other fields, etc.)
+                    console.log("Selected: " + ui.item.value);
+                }
             });
 
             // Initialize the filter visibility based on selected filter type
             $('input[name="filter_type"]:checked').trigger('change');
         });
     </script>
+
 </body>
 </html>
