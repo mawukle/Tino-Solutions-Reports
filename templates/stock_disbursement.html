@@ -9,15 +9,31 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        .quantity-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .quantity-row label {
+            flex: 1;
+        }
+        .quantity-row input {
+            width: 80px; /* Sized to fit a 6-digit number comfortably */
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container_4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
 
+        <!-- Back to Homepage Link -->
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>Stock Disbursement</h1>
 
+        <!-- Stock Disbursement Form -->
         <form id="add-component-form" class="filter-form">
             <div class="form-filters">
                 <div>
@@ -43,14 +59,14 @@
                 </div>
                 <br>
                 <div>
-                    <label for="item-description-dropdown">Select Item Description(s):</label>
+                    <label for="item-description-dropdown">Select Item Description:</label>
                     <select id="item-description-dropdown" multiple required>
-                        <!-- Items will be populated dynamically -->
+                        <option value="">--Select Item Description--</option>
                     </select>
                 </div>
                 <br>
-                <div id="quantity-container">
-                    <!-- Quantities will be added dynamically -->
+                <div id="quantity-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Quantity inputs will be dynamically added here -->
                 </div>
                 <br>
                 <div>
@@ -67,6 +83,7 @@
             </div>
         </form>
 
+        <!-- Items Issued Table -->
         <h2>Items Issued</h2>
         <div class="table-container">
             <table id="issued-items-table" border="1">
@@ -84,57 +101,77 @@
             </table>
         </div>
         <br>
+
         <button id="submit-all" type="button">Submit All</button>
 
         <script>
             $(document).ready(function () {
+                // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
-                    onSelect: function(dateText) {
+                    onSelect: function (dateText) {
+                        const selectedDate = new Date(dateText);
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        const formattedDate = selectedDate.toLocaleDateString('en-GB', options);
+
+                        const day = selectedDate.getDate();
+                        const suffix = (day == 1 || day == 21 || day == 31) ? 'st' :
+                                      (day == 2 || day == 22) ? 'nd' :
+                                      (day == 3 || day == 23) ? 'rd' : 'th';
+                        const dayWithSuffix = `${day}${suffix}`;
+
+                        const formattedDateWithSuffix = formattedDate.replace(/\d+/, dayWithSuffix);
+                        $('#job_date_display').val(formattedDateWithSuffix);
                         $('#job_date').val(dateText);
                     }
                 });
 
+                // Load components when 'Add Component' is clicked
                 $('#add-component').click(function () {
                     $.get('/get_components', function (data) {
-                        $('#component-dropdown').empty().append('<option value="">--Select Component--</option>');
+                        const componentDropdown = $('#component-dropdown');
+                        componentDropdown.empty().append('<option value="">--Select Component--</option>');
                         data.forEach(function (component) {
-                            $('#component-dropdown').append(`<option value="${component}">${component}</option>`);
+                            componentDropdown.append(`<option value="${component}">${component}</option>`);
                         });
+                    }).fail(function () {
+                        alert('Error loading components.');
                     });
                 });
 
+                // Load item descriptions when a component is selected
                 $('#component-dropdown').change(function () {
                     const selectedComponent = $(this).val();
                     if (selectedComponent) {
                         $.get(`/get_item_descriptions/${selectedComponent}`, function (data) {
-                            const dropdown = $('#item-description-dropdown');
-                            dropdown.empty();
+                            const itemDescriptionDropdown = $('#item-description-dropdown');
+                            itemDescriptionDropdown.empty().append('<option value="">--Select Item Description--</option>');
                             data.forEach(function (item) {
-                                dropdown.append(`<option value="${item}">${item}</option>`);
+                                itemDescriptionDropdown.append(`<option value="${item}">${item}</option>`);
                             });
+                        }).fail(function () {
+                            alert('Error loading item descriptions.');
                         });
                     }
                 });
 
+                // Add dynamic quantity inputs for selected item descriptions
                 $('#item-description-dropdown').change(function () {
                     const selectedItems = $(this).val();
                     const container = $('#quantity-container');
                     container.empty();
+
                     selectedItems.forEach(function (item) {
                         container.append(`
                             <div class="quantity-row">
-                                <label>${item} Quantity:</label>
-                                <input type="number" class="item-quantity" data-item="${item}" min="1" required>
+                                <label>${item}:</label>
+                                <input type="number" class="item-quantity" data-item="${item}" min="1" max="999999" required>
                             </div>
                         `);
                     });
                 });
 
-                function getRemainingStock(itemDescription) {
-                    return $.get(`/get_remaining_stock/${encodeURIComponent(itemDescription)}`);
-                }
-
+                // Add to table
                 $('#add-to-table').click(function () {
                     const component = $('#component-dropdown').val();
                     if (!component) {
@@ -142,47 +179,37 @@
                         return;
                     }
 
-                    const quantities = [];
+                    const rows = [];
                     $('.item-quantity').each(function () {
-                        const item = $(this).data('item');
+                        const itemDescription = $(this).data('item');
                         const quantity = $(this).val();
+
                         if (!quantity) {
-                            alert(`Please enter quantity for ${item}.`);
+                            alert(`Please enter quantity for ${itemDescription}.`);
                             return false;
                         }
-                        quantities.push({ item, quantity });
+
+                        rows.push({ itemDescription, quantity });
                     });
 
-                    const promises = quantities.map(({ item }) => getRemainingStock(item));
-                    Promise.all(promises).then((responses) => {
-                        responses.forEach((stock, index) => {
-                            const item = quantities[index].item;
-                            const quantity = quantities[index].quantity;
-                            const remainingStock = stock.Quantity || 'N/A';
-
-                            const row = `
-                                <tr>
-                                    <td>${component}</td>
-                                    <td>${item}</td>
-                                    <td>${quantity}</td>
-                                    <td>${remainingStock}</td>
-                                </tr>
-                            `;
-                            $('#issued-items-table tbody').append(row);
-                        });
-
-                        $('#component-dropdown').val('');
-                        $('#item-description-dropdown').empty();
-                        $('#quantity-container').empty();
+                    rows.forEach(function (row) {
+                        $('#issued-items-table tbody').append(`
+                            <tr>
+                                <td>${component}</td>
+                                <td>${row.itemDescription}</td>
+                                <td>${row.quantity}</td>
+                                <td>Fetching...</td> <!-- Placeholder for remaining stock -->
+                            </tr>
+                        `);
                     });
+
+                    $('#quantity-container').empty(); // Clear the quantity inputs
+                    $('#item-description-dropdown').val(''); // Clear item descriptions
                 });
 
+                // Submit all items in the table
                 $('#submit-all').click(function () {
-                    const clientName = $('#client_name').val();
-                    const date = $('#job_date').val();
-                    const installedBy = $('#installed-by').val();
                     const items = [];
-
                     $('#issued-items-table tbody tr').each(function () {
                         const row = $(this).find('td');
                         items.push({
@@ -193,20 +220,22 @@
                     });
 
                     if (items.length === 0) {
-                        alert('No items to submit.');
+                        alert('No items to submit. Please add items to the table.');
                         return;
                     }
 
-                    $.post('/submit_component', {
-                        client_name: clientName,
-                        date: date,
-                        installed_by: installedBy,
-                        items: JSON.stringify(items)
-                    }).done(function () {
-                        alert('Submission successful.');
-                        $('#issued-items-table tbody').empty();
-                    }).fail(function () {
-                        alert('Error during submission.');
+                    $.ajax({
+                        url: '/submit_component',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ items }),
+                        success: function () {
+                            alert('Items submitted successfully.');
+                            $('#issued-items-table tbody').empty();
+                        },
+                        error: function () {
+                            alert('Error submitting items.');
+                        }
                     });
                 });
             });
