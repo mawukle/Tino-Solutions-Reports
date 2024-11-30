@@ -693,14 +693,14 @@ textarea {
 }
 
 .member_filter label {
-    font-size: 14px; /* Adjust label font size */
+    font-size: 10px; /* Adjust label font size */
     white-space: nowrap; /* Prevent text wrapping */
 }
 
 .member_filter input[type="text"] {
     flex: 1; /* Allow input to take up remaining space */
-    padding: 6px; /* Add padding for better usability */
-    font-size: 14px; /* Match input font size with the label */
+    padding: 0px; /* Add padding for better usability */
+    font-size: 10px; /* Match input font size with the label */
     border: 1px solid #ccc; /* Add border to input */
     border-radius: 4px; /* Slight rounding of input edges */
 }
