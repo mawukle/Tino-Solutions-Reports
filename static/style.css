@@ -681,3 +681,7 @@ textarea {
     font-weight: bold;
     color: #85BB65; /* To visually match the dropdown */
 }
+
+.member_filter {
+    display: flex;
+}
