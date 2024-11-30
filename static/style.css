@@ -332,7 +332,7 @@ nav a:hover {
 .filter-radio {
     display: flex;
     align-items: center;
-    margin-bottom: 2px; /* Adjust the space between radio button and label */
+    margin-bottom: 4px; /* Adjust the space between radio button and label */
 }
 
 .filter-radio input[type="radio"] {
@@ -351,13 +351,13 @@ nav a:hover {
 .filter-options {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px;
-    margin-bottom: 2px;
+    gap: 6px;
+    margin-bottom: 4px;
     align-items: center;
 }
 
 .filter-options label {
-    margin-right: 2px;
+    margin-right: 6px;
     font-size: 10px;
 }
 
