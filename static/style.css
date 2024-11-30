@@ -671,9 +671,15 @@ textarea {
     border: 1px solid #ddd;
     border-radius: 5px;
     width: 200px;
+    background-color: #85BB65; /* Green background */
+    color: white; /* White font color */
+    text-align: center; /* Center align the text */
+    appearance: none; /* Hides the default dropdown arrow (optional) */
 }
 
 .departments label {
     font-size: 14px;
     margin-right: 10px;
+    font-weight: bold;
+    color: #85BB65; /* To visually match the dropdown */
 }
