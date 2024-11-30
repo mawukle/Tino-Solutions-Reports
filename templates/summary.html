@@ -21,7 +21,7 @@
         <!-- Filter form -->
         <form action="{{ url_for('summary') }}" method="post" class="filter-form">
             <div class="filter-options">
-                <label for="filter_type">Filter by:</label><br>
+                <label for="filter_type">Filter by:</label>
                 <div class="filter-radio">
                     <input type="radio" id="by_member" name="filter_type" value="team_member" {% if request.form.filter_type == 'team_member' %} checked {% endif %}>
                     <label for="by_member">Team Member</label>
