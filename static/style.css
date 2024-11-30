@@ -664,17 +664,16 @@ textarea {
 #item_description {
     width: 280px;  /* Adjust width as needed */
 }
-.departments button {
-    margin: 5px;
-    padding: 10px 15px;
-    background-color: #85BB65;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.departments select {
+    margin: 10px 0;
+    padding: 8px;
     font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 200px;
 }
 
-.departments button:hover {
-    background-color: #4C9A2A;
+.departments label {
+    font-size: 14px;
+    margin-right: 10px;
 }

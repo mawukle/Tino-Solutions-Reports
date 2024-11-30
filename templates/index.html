@@ -8,15 +8,20 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script>
         // Function to show links based on selected department
-        function filterLinks(department) {
+        function filterLinks() {
+            // Get the selected department
+            const department = document.getElementById('departmentSelect').value;
+
             // Hide all navigation menus
             const allMenus = document.querySelectorAll('.department-links');
             allMenus.forEach(menu => menu.style.display = 'none');
 
-            // Show the selected department's menu
-            const selectedMenu = document.getElementById(department);
-            if (selectedMenu) {
-                selectedMenu.style.display = 'block';
+            // Show the selected department's menu if a valid department is selected
+            if (department) {
+                const selectedMenu = document.getElementById(department);
+                if (selectedMenu) {
+                    selectedMenu.style.display = 'block';
+                }
             }
         }
     </script>
@@ -28,11 +33,15 @@
         <h1>Welcome to Tino Solutions Limited</h1>
         <p>Select a department to navigate:</p>
 
-        <!-- Department Buttons -->
+        <!-- Department Dropdown -->
         <div class="departments">
-            <button onclick="filterLinks('installation')">Installation</button>
-            <button onclick="filterLinks('sales')">Sales</button>
-            <button onclick="filterLinks('logistics')">Logistics</button>
+            <label for="departmentSelect">Choose a Department:</label>
+            <select id="departmentSelect" onchange="filterLinks()">
+                <option value="">--Select Department--</option>
+                <option value="installation">Installation</option>
+                <option value="sales">Sales</option>
+                <option value="logistics">Logistics</option>
+            </select>
         </div>
 
         <!-- Navigation Menus -->
