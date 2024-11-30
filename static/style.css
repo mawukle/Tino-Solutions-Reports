@@ -350,6 +350,7 @@ nav a:hover {
 
 .filter-options {
     margin-bottom: 2px;
+    align-items: left;
     display: flex;
     flex-wrap: wrap;
     gap: 2px;
