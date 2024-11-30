@@ -55,7 +55,7 @@ form {
 }
 
 label {
-    flex: 0 0 40%; /* Label width, can be adjusted */
+    flex: 0 0 5%; /* Label width, can be adjusted */
     text-align: right; /* Align text to the right */
     margin-right: 2px; /* Spacing between label and input */
     margin-bottom: 2px;
