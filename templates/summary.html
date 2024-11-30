@@ -43,15 +43,15 @@
                     <label for="end_date">End Date:</label>
                     <input type="date" id="end_date" name="end_date" value="{{ request.form.end_date or '' }}">
                 </div>
-            </div>
 
-            <div id="group_filter">
-                <label for="group_by">Group By:</label>
-                <select id="group_by" name="group_by">
-                    <option value="Client_Name" {% if request.form.group_by == 'Client_Name' %} selected {% endif %}>Client Name</option>
-                    <option value="Date" {% if request.form.group_by == 'Date' %} selected {% endif %}>Date</option>
-                    <option value="Town" {% if request.form.group_by == 'Town' %} selected {% endif %}>Town</option>
-                </select>
+                <div id="group_filter">
+                    <label for="group_by">Group By:</label>
+                    <select id="group_by" name="group_by">
+                        <option value="Client_Name" {% if request.form.group_by == 'Client_Name' %} selected {% endif %}>Client Name</option>
+                        <option value="Date" {% if request.form.group_by == 'Date' %} selected {% endif %}>Date</option>
+                        <option value="Town" {% if request.form.group_by == 'Town' %} selected {% endif %}>Town</option>
+                    </select>
+                </div>
             </div>
 
             <button type="submit" class="filter-button">Submit</button>
