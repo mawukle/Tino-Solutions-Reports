@@ -55,7 +55,9 @@ form {
 }
 
 label {
-    display: block;
+    flex: 0 0 40%; /* Label width, can be adjusted */
+    text-align: right; /* Align text to the right */
+    margin-right: 2px; /* Spacing between label and input */
     margin-bottom: 2px;
 }
 
@@ -64,12 +66,12 @@ input[type="email"],
 input[type="number"],
 input[type="file"],
 select {
+    flex: 1; /*Input takes remaining space */
     padding: 5px;
     font-size: 100%;
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-bottom: 5px;
-    width: 100%;
     box-sizing: border-box;
 }
 
@@ -188,8 +190,10 @@ nav a:hover {
 }
 
 .form-row {
-    display: table-row;
-    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
 }
 
 .back-link {
