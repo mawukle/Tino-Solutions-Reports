@@ -279,7 +279,7 @@ nav a:hover {
 /*#client_filter input,*/
 #date_filter input,
 #group_by {
-    width: 60px; /* Reduced width */
+    width: 150px; /* Reduced width */
     padding: 4px;
     font-size: 10px;
     margin-bottom: 4px;
