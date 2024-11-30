@@ -17,8 +17,6 @@
 
         <!-- Navigation -->
         <nav>
-            <a href="#" onclick="showForm('manualForm')">Add Client Manually</a>
-            <a href="#" onclick="showForm('excelForm')">Upload Excel File</a>
             <a href="{{ url_for('client_list') }}">View Client List</a>
         </nav>
 
@@ -28,7 +26,7 @@
         {% endif %}
 
         <!-- Manual Client Entry Form -->
-        <form id="manualForm" method="POST" style="display: none;"> <!-- Changed class to id -->
+        <form id="manualForm" method="POST">
           <div class="form-row">
             <label for="client_name">Client Name:</label>
             <input type="text" id="client_name" name="client_name" placeholder="Client Name" required>
@@ -48,12 +46,7 @@
             <label for="phone_number">Phone Number:</label>
             <input type="text" id="phone_number" name="phone_number" placeholder="Phone Number">
           </div>
-<!--
-          <div class="form-row">
-            <label for="client_code">Client Code:</label>
-            <input type="text" id="client_code" name="client_code" placeholder="Client Code">
-          </div>
--->
+
           <div class="form-row">
             <label for="contact_person">Contact Person:</label>
             <input type="text" id="contact_person" name="contact_person" placeholder="Contact Person">
@@ -69,24 +62,6 @@
             <button type="submit">Add Client</button>
           </div>
         </form>
-
-        <!-- Excel File Upload Form -->
-        <form id="excelForm" method="POST" enctype="multipart/form-data" style="display: none;">
-            <label for="file">Upload Excel File:</label>
-            <input type="file" id="file" name="file" required>
-
-            <button type="submit">Upload Excel File</button>
-        </form>
     </div>
-
-    <script>
-        function showForm(formId) {
-            document.getElementById('manualForm').style.display = 'none'; // Corrected usage of id
-            document.getElementById('excelForm').style.display = 'none';
-            document.getElementById(formId).style.display = 'block';
-        }
-        // Default view is the manual form
-        showForm('manualForm');
-    </script>
 </body>
 </html>
