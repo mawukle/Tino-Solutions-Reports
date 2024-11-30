@@ -9,15 +9,38 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
     <style>
+        .form-filters div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: nowrap;
+            margin-bottom: 10px;
+        }
+
+        .form-filters label {
+            flex: 0 0 40%; /* Labels take up 40% of the row */
+            margin-right: 10px;
+        }
+
+        .form-filters select,
+        .form-filters input {
+            flex: 1; /* Inputs and dropdowns adjust dynamically */
+            margin-left: 10px;
+        }
+
         .quantity-row {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
+
         .quantity-row label {
             flex: 1;
         }
+
         .quantity-row input {
             width: 80px;
             margin-left: 10px;
@@ -38,35 +61,29 @@
                     <label for="client_name">Enter Client Name:</label>
                     <input type="text" id="client_name" name="client_name" required>
                 </div>
-                <br>
                 <div>
                     <label for="job_date_display">Select Date:</label>
                     <input type="text" id="job_date_display" autocomplete="off" required>
                     <input type="hidden" id="job_date" name="date">
                 </div>
-                <br>
                 <div>
                     <button type="button" id="add-component">Add Component</button>
                 </div>
-                <br>
                 <div>
                     <label for="component-dropdown">Select Component:</label>
                     <select id="component-dropdown" required>
                         <option value="">--Select Component--</option>
                     </select>
                 </div>
-                <br>
                 <div>
                     <label for="item-description-dropdown">Select Item Description:</label>
                     <select id="item-description-dropdown" multiple required>
                         <option value="">--Select Item Description--</option>
                     </select>
                 </div>
-                <br>
                 <div id="quantity-container" style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- Quantity inputs will be dynamically added here -->
                 </div>
-                <br>
                 <div>
                     <label for="installed-by">Installed By:</label>
                     <select id="installed-by" name="installed_by" required>
@@ -74,7 +91,6 @@
                         <option value="Client">Client</option>
                     </select>
                 </div>
-                <br>
                 <div>
                     <button type="button" id="add-to-table">Add to Table</button>
                 </div>
@@ -107,6 +123,12 @@
                     onSelect: function (dateText) {
                         $('#job_date').val(dateText);
                     }
+                });
+
+                $('#item-description-dropdown').select2({
+                    placeholder: "--Select Item Description--",
+                    allowClear: true,
+                    width: '100%'
                 });
 
                 $('#add-component').click(function () {
