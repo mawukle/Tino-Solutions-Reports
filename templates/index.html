@@ -63,7 +63,10 @@
 
             <!-- Logistics Links -->
             <ul id="logistics" class="department-links" style="display: none;">
+                <li><a href="{{ url_for('stock_disbursement') }}">Stock Disbursement</a></li>
+                <li><a href="{{ url_for('stock_summary') }}">Stock Summary</a></li>
                 <li><a href="{{ url_for('client_list') }}">Client List</a></li>
+                <li><a href="{{ url_for('newClient_entryForm') }}">New Client Entry Form</a></li>
             </ul>
 
         </nav>
