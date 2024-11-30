@@ -1661,7 +1661,25 @@ def summary():
                     )
                 conditions.append(job_team_members.Team_Member_ID == team_member.Team_Member_ID)
 
-            if (filter_type == 'date' or filter_type == 'both') and start_date and end_date:
+            if filter_type == 'date' and start_date and end_date:
+                conditions.append(Job_Tracking.Date.between(start_date, end_date))
+
+            if filter_type == 'both' and team_member_name and start_date and end_date:
+                # Combine both conditions
+                team_member = Team_Members.query.filter_by(Team_Member_Name=team_member_name).first()
+                if not team_member:
+                    logging.error(f"No team member found with name: {team_member_name}")
+                    return render_template(
+                        'summary.html',
+                        error="No job details to display.",
+                        team_members=team_members,
+                        filter_type=filter_type,
+                        team_member_name=team_member_name,
+                        start_date=start_date,
+                        end_date=end_date,
+                        group_by=group_by
+                    )
+                conditions.append(job_team_members.Team_Member_ID == team_member.Team_Member_ID)
                 conditions.append(Job_Tracking.Date.between(start_date, end_date))
 
             # Handle grouping
