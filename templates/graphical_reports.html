@@ -56,6 +56,11 @@
 
                     const data = await response.json();
 
+                    if (data.length === 0) {
+                        alert('No rankings available for the selected period.');
+                        return;
+                    }
+
                     // Update chart with new data
                     const teamMembers = data.map(item => item.Team_Member_Name);
                     const rankingScores = data.map(item => item.ranking_score);
@@ -89,10 +94,6 @@
                 }
             });
         </script>
-
-        {% else %}
-        <p>No rankings available for the selected period.</p>
-        {% endif %}
     </div>
 </body>
 </html>
