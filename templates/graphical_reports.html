@@ -7,9 +7,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Ensures the chart canvas takes up full width */
+        #rankingChart {
+            width: 100% !important;
+            height: 400px; /* Adjust the height as needed */
+            max-width: 100%;
+            margin: 20px auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="container_4">
+    <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
         <h1>TEAM RANKING - GRAPHICAL REPORT</h1>
@@ -28,7 +37,7 @@
 
         <!-- Chart Container -->
         <div>
-            <canvas id="rankingChart" style="max-width: 800px; margin: 20px auto;"></canvas>
+            <canvas id="rankingChart"></canvas>
         </div>
 
         <script>
@@ -85,7 +94,16 @@
                                 legend: { position: 'top' },
                                 title: { display: true, text: 'Team Ranking Scores' }
                             },
-                            scales: { y: { beginAtZero: true } }
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false, // Prevents skipping of x-axis labels
+                                        maxRotation: 90, // Rotates x-axis labels if they are too long
+                                        minRotation: 45  // Rotates x-axis labels to make them readable
+                                    }
+                                }
+                            }
                         }
                     });
                 } catch (error) {
