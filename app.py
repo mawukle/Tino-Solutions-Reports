@@ -229,9 +229,15 @@ def team_ranking():
         team_rankings = []
 
         if request.method == 'POST':
-            # Get the date range from the form
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
+            # Check if the request is JSON (AJAX request)
+            if request.is_json:
+                data = request.get_json()
+                start_date = data.get('start_date')
+                end_date = data.get('end_date')
+            else:
+                # Handle traditional form submission
+                start_date = request.form['start_date']
+                end_date = request.form['end_date']
 
             # CTE for unique days each client was visited by any team member
             client_unique_days_query = db.session.query(
@@ -302,8 +308,22 @@ def team_ranking():
             # Fetch the rankings
             team_rankings = ranking_query.all()
 
+            if request.is_json:
+                # Return JSON response for AJAX requests
+                return jsonify([
+                    {
+                        "Team_Member_Name": row.Team_Member_Name,
+                        "days_worked": row.days_worked,
+                        "clients_visited": row.clients_visited,
+                        "total_days_at_clients": row.total_days_at_clients,
+                        "ranking_score": row.ranking_score
+                    } for row in team_rankings
+                ])
+
+            # Render the team ranking page for form submissions
             return render_template('team_ranking.html', team_rankings=team_rankings, start_date=start_date, end_date=end_date)
 
+        # Render the team ranking page for GET requests
         return render_template('team_ranking.html', start_date=start_date, end_date=end_date)
 
     except Exception as e:

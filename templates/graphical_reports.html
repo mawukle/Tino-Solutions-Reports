@@ -15,37 +15,16 @@
         <h1>TEAM RANKING - GRAPHICAL REPORT</h1>
 
         <!-- Form to input start and end dates -->
-        <form method="POST" action="/team_ranking">
+        <form id="graphicalReportsForm">
             <div id="date_filter">
                 <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+                <input type="date" id="start_date" name="start_date" required>
 
                 <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+                <input type="date" id="end_date" name="end_date" required>
             </div>
             <button type="submit">Get Rankings</button>
         </form>
-
-        <!-- Display team rankings table -->
-        {% if team_rankings %}
-        <table>
-            <tr>
-                <th>Team Member</th>
-                <th>Days Worked</th>
-                <th>Clients Visited</th>
-                <th>Total Days at Clients</th>
-                <th>Ranking Score</th>
-            </tr>
-            {% for row in team_rankings %}
-            <tr>
-                <td>{{ row.Team_Member_Name }}</td>
-                <td>{{ row.days_worked }}</td>
-                <td>{{ row.clients_visited }}</td>
-                <td>{{ row.total_days_at_clients }}</td>
-                <td>{{ row.ranking_score }}</td>
-            </tr>
-            {% endfor %}
-        </table>
 
         <!-- Chart Container -->
         <div>
@@ -53,72 +32,64 @@
         </div>
 
         <script>
-            // Prepare data for the chart
-            const teamMembers = {{ team_rankings | tojson | map(attribute='Team_Member_Name') }};
-            const daysWorked = {{ team_rankings | tojson | map(attribute='days_worked') }};
-            const clientsVisited = {{ team_rankings | tojson | map(attribute='clients_visited') }};
-            const totalDaysAtClients = {{ team_rankings | tojson | map(attribute='total_days_at_clients') }};
-            const rankingScores = {{ team_rankings | tojson | map(attribute='ranking_score') }};
-
-            // Create a bar chart
+            const form = document.getElementById('graphicalReportsForm');
             const ctx = document.getElementById('rankingChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: teamMembers, // Team member names
-                    datasets: [
-                        {
-                            label: 'Days Worked',
-                            data: daysWorked,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
+            let chart; // To store the chart instance
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                // Get form data
+                const formData = new FormData(form);
+                const startDate = formData.get('start_date');
+                const endDate = formData.get('end_date');
+
+                try {
+                    // Fetch data via AJAX
+                    const response = await fetch('/team_ranking', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ start_date: startDate, end_date: endDate })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch rankings');
+
+                    const data = await response.json();
+
+                    // Update chart with new data
+                    const teamMembers = data.map(item => item.Team_Member_Name);
+                    const rankingScores = data.map(item => item.ranking_score);
+
+                    if (chart) chart.destroy(); // Destroy previous chart instance
+
+                    chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: teamMembers,
+                            datasets: [{
+                                label: 'Ranking Score',
+                                data: rankingScores,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
                         },
-                        {
-                            label: 'Clients Visited',
-                            data: clientsVisited,
-                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                            borderColor: 'rgba(153, 102, 255, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Total Days at Clients',
-                            data: totalDaysAtClients,
-                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                            borderColor: 'rgba(255, 159, 64, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Ranking Score',
-                            data: rankingScores,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Team Ranking Scores' }
+                            },
+                            scales: { y: { beginAtZero: true } }
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Team Performance Metrics'
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true
-                        },
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
+                    });
+                } catch (error) {
+                    console.error(error);
+                    alert('Error fetching data for graphical report');
                 }
             });
         </script>
+
         {% else %}
         <p>No rankings available for the selected period.</p>
         {% endif %}
