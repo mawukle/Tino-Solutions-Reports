@@ -215,6 +215,10 @@ def download_excel():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/graphical_reports', methods=['GET'])
+def graphical_reports():
+    """Render the graphical reports page."""
+    return render_template('graphical_reports.html')
 
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
