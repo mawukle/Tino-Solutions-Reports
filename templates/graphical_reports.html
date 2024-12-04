@@ -8,8 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Ensures the chart canvas takes up full width */
-        #rankingChart {
+        #rankingChart, #clientDaysChart {
             width: 100% !important;
             height: 400px; /* Adjust the height as needed */
             max-width: 100%;
@@ -35,15 +34,19 @@
             <button type="submit">Get Rankings</button>
         </form>
 
-        <!-- Chart Container -->
+        <!-- Chart Containers -->
         <div>
             <canvas id="rankingChart"></canvas>
+        </div>
+        <div>
+            <canvas id="clientDaysChart"></canvas>
         </div>
 
         <script>
             const form = document.getElementById('graphicalReportsForm');
-            const ctx = document.getElementById('rankingChart').getContext('2d');
-            let chart; // To store the chart instance
+            const rankingCtx = document.getElementById('rankingChart').getContext('2d');
+            const clientDaysCtx = document.getElementById('clientDaysChart').getContext('2d');
+            let rankingChart, clientDaysChart; // To store the chart instances
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -61,22 +64,16 @@
                         body: JSON.stringify({ start_date: startDate, end_date: endDate })
                     });
 
-                    if (!response.ok) throw new Error('Failed to fetch rankings');
+                    if (!response.ok) throw new Error('Failed to fetch data');
 
-                    const data = await response.json();
+                    const { team_rankings, client_days_data } = await response.json();
 
-                    if (data.length === 0) {
-                        alert('No rankings available for the selected period.');
-                        return;
-                    }
+                    // Update Team Rankings Chart
+                    const teamMembers = team_rankings.map(item => item.Team_Member_Name);
+                    const rankingScores = team_rankings.map(item => item.ranking_score);
 
-                    // Update chart with new data
-                    const teamMembers = data.map(item => item.Team_Member_Name);
-                    const rankingScores = data.map(item => item.ranking_score);
-
-                    if (chart) chart.destroy(); // Destroy previous chart instance
-
-                    chart = new Chart(ctx, {
+                    if (rankingChart) rankingChart.destroy();
+                    rankingChart = new Chart(rankingCtx, {
                         type: 'bar',
                         data: {
                             labels: teamMembers,
@@ -98,9 +95,46 @@
                                 y: { beginAtZero: true },
                                 x: {
                                     ticks: {
-                                        autoSkip: false, // Prevents skipping of x-axis labels
-                                        maxRotation: 90, // Rotates x-axis labels if they are too long
-                                        minRotation: 45  // Rotates x-axis labels to make them readable
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Client Visit Days Chart
+                    const clientNames = client_days_data.map(item => item.Client_Name);
+                    const uniqueDaysVisited = client_days_data.map(item => item.unique_days_at_client);
+
+                    if (clientDaysChart) clientDaysChart.destroy();
+                    clientDaysChart = new Chart(clientDaysCtx, {
+                        type: 'line',
+                        data: {
+                            labels: clientNames,
+                            datasets: [{
+                                label: 'Unique Days Visited',
+                                data: uniqueDaysVisited,
+                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 2,
+                                tension: 0.4 // Smooth curves
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Client Visit Days' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
                                     }
                                 }
                             }
