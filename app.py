@@ -250,11 +250,11 @@ def team_ranking():
                 Job_Tracking.Client_Name
             ).cte("client_unique_days")
 
-            # Fetch client days data
+            # Fetch client days data, sorted by highest unique days first
             client_days_data_query = db.session.query(
                 client_unique_days_query.c.Client_Name,
                 client_unique_days_query.c.unique_days_at_client
-            ).order_by(client_unique_days_query.c.Client_Name.asc())
+            ).order_by(client_unique_days_query.c.unique_days_at_client.desc())  # Sort descending
 
             client_days_data = client_days_data_query.all()
 
