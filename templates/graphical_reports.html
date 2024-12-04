@@ -80,8 +80,15 @@
                     const teamMembers = data.map(item => item.Team_Member_Name);
                     const rankingScores = data.map(item => item.ranking_score);
 
-                    const clientNames = data.map(item => item.Client_Name); // Assuming Client_Name exists
-                    const totalDaysAtClients = data.map(item => item.total_days_at_clients);
+                    const clientNames = [...new Set(data.flatMap(item => item.client_names || []))]; // Flatten array of client names
+                    const totalDaysAtClients = clientNames.map(client => {
+                        return data.reduce((sum, item) => {
+                            if (item.client_names && item.client_names.includes(client)) {
+                                return sum + item.total_days_at_clients;
+                            }
+                            return sum;
+                        }, 0);
+                    });
 
                     // Update Ranking Chart
                     if (rankingChart) rankingChart.destroy();

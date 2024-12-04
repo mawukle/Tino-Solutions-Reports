@@ -292,19 +292,20 @@ def team_ranking():
              .filter(Job_Tracking.Date.between(start_date, end_date)) \
              .group_by(Team_Members.Team_Member_Name).cte("clients_visited")
 
-            # Final ranking query with calculation
+            # Final ranking query with Client_Name and total_days_at_clients
             ranking_query = db.session.query(
                 Team_Members.Team_Member_Name,
                 days_worked_query.c.days_worked,
                 clients_visited_query.c.clients_visited,
                 team_member_total_days_query.c.total_days_at_clients,
+                func.array_agg(distinct(client_unique_days_query.c.Client_Name)).label('client_names'),  # Aggregate client names
                 (days_worked_query.c.days_worked +
                  func.coalesce(clients_visited_query.c.clients_visited, 0) /
                  func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)
                 ).label('ranking_score')
-            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
-             .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
+            ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
+             .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
+             .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
              .order_by(desc('ranking_score'))
 
             # Fetch the rankings
