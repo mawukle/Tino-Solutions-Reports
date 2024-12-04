@@ -227,8 +227,6 @@ def team_ranking():
         start_date = None
         end_date = None
         team_rankings = []
-#        client_graph_data = []
-
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -310,8 +308,8 @@ def team_ranking():
              .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name) \
              .outerjoin(client_unique_days_query, client_unique_days_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID) \
+             .join(Job_Tracking, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID) \
              .order_by(desc('ranking_score'))
-
 
             # Fetch the rankings
             team_rankings = ranking_query.all()
