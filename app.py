@@ -241,14 +241,17 @@ def team_ranking():
                 start_date = request.form['start_date']
                 end_date = request.form['end_date']
 
-            # CTE for unique days each client was visited by any team member
+            # Modify the client_unique_days_query to include Client_Name
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
+                Client_List.Client_Name,  # Add Client_Name
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
+            ).join(
+                Client_List, Job_Tracking.Client_Unique_ID == Client_List.Client_Unique_ID  # Join with Client_List
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(
-                Job_Tracking.Client_Unique_ID
+                Job_Tracking.Client_Unique_ID, Client_List.Client_Name  # Group by Client_Unique_ID and Client_Name
             ).cte("client_unique_days")
 
             # CTE to get the unique clients visited by each team member
@@ -306,7 +309,9 @@ def team_ranking():
             ).join(days_worked_query, days_worked_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
              .join(clients_visited_query, clients_visited_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
              .outerjoin(team_member_total_days_query, team_member_total_days_query.c.Team_Member_Name == Team_Members.Team_Member_Name)\
+             .outerjoin(client_unique_days_query, client_unique_days_query.c.Client_Unique_ID == Job_Tracking.Client_Unique_ID)\
              .order_by(desc('ranking_score'))
+
 
             # Fetch the rankings
             team_rankings = ranking_query.all()
