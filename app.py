@@ -241,34 +241,6 @@ def team_ranking():
                 start_date = request.form['start_date']
                 end_date = request.form['end_date']
 
-            # CTE to calculate the number of employees (employee-days) visiting each client
-            client_employee_days_query = db.session.query(
-                Job_Tracking.Client_Name,
-                func.count(func.distinct(job_team_members.Team_Member_ID)).label('employee_days')
-            ).join(
-                job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID
-            ).filter(
-                Job_Tracking.Date.between(start_date, end_date)  # Filter by the selected date range
-            ).group_by(
-                Job_Tracking.Client_Name  # Group by Client_Name to calculate employee-days per client
-            ).cte("client_employee_days")
-
-            # Query to sum employee-days for each client
-            total_employee_days_query = db.session.query(
-                client_employee_days_query.c.Client_Name,
-                func.sum(client_employee_days_query.c.employee_days).label('total_employee_days')
-            ).group_by(
-                client_employee_days_query.c.Client_Name
-            ).cte("total_employee_days")
-
-            # Fetch the total employee-days data
-            client_employee_days_data_query = db.session.query(
-                total_employee_days_query.c.Client_Name,
-                total_employee_days_query.c.total_employee_days
-            ).order_by(total_employee_days_query.c.total_employee_days.desc())  # Sort descending
-
-            client_employee_days_data = client_employee_days_data_query.all()
-
             # CTE for unique days each client was visited
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Name,
@@ -286,6 +258,26 @@ def team_ranking():
             ).order_by(client_unique_days_query.c.unique_days_at_client.desc())  # Sort descending
 
             client_days_data = client_days_data_query.all()
+
+            # CTE for counting employee-days (distinct employees visiting each client)
+            employee_days_query = db.session.query(
+                Job_Tracking.Client_Name,
+                func.count(func.distinct(job_team_members.Team_Member_ID)).label('total_employee_days')
+            ).join(
+                job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(
+                Job_Tracking.Client_Name
+            ).cte("employee_days")
+
+            # Fetch client employee-days data
+            client_employee_days_data_query = db.session.query(
+                employee_days_query.c.Client_Name,
+                employee_days_query.c.total_employee_days
+            ).order_by(employee_days_query.c.total_employee_days.desc())  # Sort descending
+
+            client_employee_days_data = client_employee_days_data_query.all()
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
@@ -367,7 +359,6 @@ def team_ranking():
                         for row in client_employee_days_data
                     ]
                 })
-
             # Render the team ranking page for form submissions
             return render_template(
                 'team_ranking.html',
@@ -388,6 +379,7 @@ def team_ranking():
 
     finally:
         db.session.close()
+
 
 
 
