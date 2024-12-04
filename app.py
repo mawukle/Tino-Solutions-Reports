@@ -244,14 +244,13 @@ def team_ranking():
             # CTE to calculate the number of employees (employee-days) visiting each client
             client_employee_days_query = db.session.query(
                 Job_Tracking.Client_Name,
-                Job_Tracking.Date,
                 func.count(func.distinct(job_team_members.Team_Member_ID)).label('employee_days')
             ).join(
                 job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID
             ).filter(
-                Job_Tracking.Date.between(start_date, end_date)
+                Job_Tracking.Date.between(start_date, end_date)  # Filter by the selected date range
             ).group_by(
-                Job_Tracking.Client_Name, Job_Tracking.Date
+                Job_Tracking.Client_Name  # Group by Client_Name to calculate employee-days per client
             ).cte("client_employee_days")
 
             # Query to sum employee-days for each client
