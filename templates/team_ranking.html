@@ -38,7 +38,7 @@
                 <th>Days Worked</th>
                 <th>Clients Visited</th>
                 <th>Total Days at Clients</th>
-                <th>Ranking Score</th> <!-- New column for ranking -->
+                <th>Ranking Score</th>
             </tr>
             {% for row in team_rankings %}
             <tr>
@@ -46,13 +46,33 @@
                 <td>{{ row.days_worked }}</td>
                 <td>{{ row.clients_visited }}</td>
                 <td>{{ row.total_days_at_clients }}</td>
-                <td>{{ row.ranking_score }}</td> <!-- New data for ranking -->
+                <td>{{ row.ranking_score }}</td>
             </tr>
             {% endfor %}
         </table>
         {% else %}
         <p>No rankings available for the selected period.</p>
         {% endif %}
+
+        <!-- Display client visits if available -->
+        {% if client_visits %}
+        <h2>Client Visits</h2>
+        <table>
+            <tr>
+                <th>Client Name</th>
+                <th>Unique Days Visited</th>
+            </tr>
+            {% for client in client_visits %}
+            <tr>
+                <td>{{ client.Client_Name }}</td>
+                <td>{{ client.unique_days_at_client }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No client visit data available for the selected period.</p>
+        {% endif %}
+
     </div>
 </body>
 </html>

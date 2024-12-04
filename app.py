@@ -242,12 +242,17 @@ def team_ranking():
             # CTE for unique days each client was visited by any team member
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Unique_ID,
+                Job_Tracking.Client_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(
-                Job_Tracking.Client_Unique_ID
-            ).cte("client_unique_days")
+                Job_Tracking.Client_Unique_ID, Job_Tracking.Client_Name
+            )
+
+            # Fetch client visits
+            client_visits = client_unique_days_query.all()
+
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
@@ -321,7 +326,7 @@ def team_ranking():
                 ])
 
             # Render the team ranking page for form submissions
-            return render_template('team_ranking.html', team_rankings=team_rankings, start_date=start_date, end_date=end_date)
+            return render_template('team_ranking.html', team_rankings=team_rankings, client_visits=client_visits, start_date=start_date, end_date=end_date)
 
         # Render the team ranking page for GET requests
         return render_template('team_ranking.html', start_date=start_date, end_date=end_date)
