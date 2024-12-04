@@ -228,6 +228,7 @@ def team_ranking():
         end_date = None
         team_rankings = []
         client_days_data = []
+        client_employee_days_data = []
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -361,6 +362,10 @@ def team_ranking():
                     "client_days_data": [
                         {"Client_Name": row.Client_Name, "unique_days_at_client": row.unique_days_at_client}
                         for row in client_days_data
+                    ],
+                    "client_employee_days_data": [
+                        {"Client_Name": row.Client_Name, "total_employee_days": row.total_employee_days}
+                        for row in client_employee_days_data
                     ]
                 })
 
