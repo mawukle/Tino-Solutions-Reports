@@ -132,9 +132,16 @@
                                 y: { beginAtZero: true },
                                 x: {
                                     ticks: {
-                                        autoSkip: false,
-                                        maxRotation: 90,
-                                        minRotation: 45
+                                        font: {
+                                            size: 10 // Reduced font size
+                                        },
+                                        callback: function(value) {
+                                            // Rotate the labels vertically
+                                            return this.getLabelForValue(value).split(' ').join('\n');
+                                        }
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false // Only draw grid lines
                                     }
                                 }
                             }
