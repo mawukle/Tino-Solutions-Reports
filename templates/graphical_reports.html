@@ -8,7 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #rankingChart, #clientDaysChart {
+        #rankingChart, #clientDaysChart, #employeeDaysChart {
             width: 100% !important;
             height: 400px; /* Adjust the height as needed */
             max-width: 100%;
@@ -41,12 +41,16 @@
         <div>
             <canvas id="clientDaysChart"></canvas>
         </div>
+        <div>
+            <canvas id="employeeDaysChart"></canvas>
+        </div>
 
         <script>
             const form = document.getElementById('graphicalReportsForm');
             const rankingCtx = document.getElementById('rankingChart').getContext('2d');
             const clientDaysCtx = document.getElementById('clientDaysChart').getContext('2d');
-            let rankingChart, clientDaysChart; // To store the chart instances
+            const employeeDaysCtx = document.getElementById('employeeDaysChart').getContext('2d');
+            let rankingChart, clientDaysChart, employeeDaysChart; // To store the chart instances
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -66,7 +70,7 @@
 
                     if (!response.ok) throw new Error('Failed to fetch data');
 
-                    const { team_rankings, client_days_data } = await response.json();
+                    const { team_rankings, client_days_data, client_employee_days_data } = await response.json();
 
                     // Update Team Rankings Chart
                     const teamMembers = team_rankings.map(item => item.Team_Member_Name);
@@ -141,6 +145,42 @@
                                     },
                                     grid: {
                                         drawOnChartArea: false // Avoid cluttering grid lines
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Client Employee-Days Chart
+                    const employeeDaysClients = client_employee_days_data.map(item => item.Client_Name);
+                    const employeeDaysValues = client_employee_days_data.map(item => item.total_employee_days);
+
+                    if (employeeDaysChart) employeeDaysChart.destroy();
+                    employeeDaysChart = new Chart(employeeDaysCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: employeeDaysClients,
+                            datasets: [{
+                                label: 'Employee-Days',
+                                data: employeeDaysValues,
+                                backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Client Employee-Days' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
                                     }
                                 }
                             }
