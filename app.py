@@ -227,6 +227,8 @@ def team_ranking():
         start_date = None
         end_date = None
         team_rankings = []
+#        client_graph_data = []
+
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)

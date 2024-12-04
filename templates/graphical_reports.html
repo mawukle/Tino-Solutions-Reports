@@ -8,12 +8,14 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Ensures the chart canvas takes up full width */
-        #rankingChart {
+        /* Ensure charts are visually distinct */
+        .chart-container {
             width: 100% !important;
-            height: 400px; /* Adjust the height as needed */
             max-width: 100%;
             margin: 20px auto;
+        }
+        canvas {
+            height: 400px;
         }
     </style>
 </head>
@@ -35,15 +37,19 @@
             <button type="submit">Get Rankings</button>
         </form>
 
-        <!-- Chart Container -->
-        <div>
+        <!-- Chart Containers -->
+        <div class="chart-container">
             <canvas id="rankingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="clientDaysChart"></canvas>
         </div>
 
         <script>
             const form = document.getElementById('graphicalReportsForm');
-            const ctx = document.getElementById('rankingChart').getContext('2d');
-            let chart; // To store the chart instance
+            const rankingCtx = document.getElementById('rankingChart').getContext('2d');
+            const clientDaysCtx = document.getElementById('clientDaysChart').getContext('2d');
+            let rankingChart, clientDaysChart;
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -66,17 +72,20 @@
                     const data = await response.json();
 
                     if (data.length === 0) {
-                        alert('No rankings available for the selected period.');
+                        alert('No data available for the selected period.');
                         return;
                     }
 
-                    // Update chart with new data
+                    // Process data for both charts
                     const teamMembers = data.map(item => item.Team_Member_Name);
                     const rankingScores = data.map(item => item.ranking_score);
 
-                    if (chart) chart.destroy(); // Destroy previous chart instance
+                    const clientNames = data.map(item => item.Client_Name); // Assuming Client_Name exists
+                    const totalDaysAtClients = data.map(item => item.total_days_at_clients);
 
-                    chart = new Chart(ctx, {
+                    // Update Ranking Chart
+                    if (rankingChart) rankingChart.destroy();
+                    rankingChart = new Chart(rankingCtx, {
                         type: 'bar',
                         data: {
                             labels: teamMembers,
@@ -98,9 +107,42 @@
                                 y: { beginAtZero: true },
                                 x: {
                                     ticks: {
-                                        autoSkip: false, // Prevents skipping of x-axis labels
-                                        maxRotation: 90, // Rotates x-axis labels if they are too long
-                                        minRotation: 45  // Rotates x-axis labels to make them readable
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Client Days Chart
+                    if (clientDaysChart) clientDaysChart.destroy();
+                    clientDaysChart = new Chart(clientDaysCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: clientNames,
+                            datasets: [{
+                                label: 'Total Days at Clients',
+                                data: totalDaysAtClients,
+                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Total Days at Clients' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
                                     }
                                 }
                             }
