@@ -227,6 +227,7 @@ def team_ranking():
         start_date = None
         end_date = None
         team_rankings = []
+        client_days_data = []
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -239,32 +240,35 @@ def team_ranking():
                 start_date = request.form['start_date']
                 end_date = request.form['end_date']
 
-            # CTE for unique days each client was visited by any team member
+            # CTE for unique days each client was visited
             client_unique_days_query = db.session.query(
-                Job_Tracking.Client_Unique_ID,
                 Job_Tracking.Client_Name,
                 func.count(func.distinct(Job_Tracking.Date)).label('unique_days_at_client')
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(
-                Job_Tracking.Client_Unique_ID, Job_Tracking.Client_Name
-            )
+                Job_Tracking.Client_Name
+            ).cte("client_unique_days")
 
-            # Fetch client visits
-            client_visits = client_unique_days_query.all()
+            # Fetch client days data
+            client_days_data_query = db.session.query(
+                client_unique_days_query.c.Client_Name,
+                client_unique_days_query.c.unique_days_at_client
+            ).order_by(client_unique_days_query.c.Client_Name.asc())
 
+            client_days_data = client_days_data_query.all()
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                client_unique_days_query.c.Client_Unique_ID,
+                client_unique_days_query.c.Client_Name,
                 client_unique_days_query.c.unique_days_at_client
             ).join(
                 job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
             ).join(
                 Job_Tracking, Job_Tracking.Job_ID == job_team_members.Job_ID
             ).join(
-                client_unique_days_query, Job_Tracking.Client_Unique_ID == client_unique_days_query.c.Client_Unique_ID
+                client_unique_days_query, Job_Tracking.Client_Name == client_unique_days_query.c.Client_Name
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).distinct().cte("team_member_clients")
@@ -315,18 +319,30 @@ def team_ranking():
 
             if request.is_json:
                 # Return JSON response for AJAX requests
-                return jsonify([
-                    {
-                        "Team_Member_Name": row.Team_Member_Name,
-                        "days_worked": row.days_worked,
-                        "clients_visited": row.clients_visited,
-                        "total_days_at_clients": row.total_days_at_clients,
-                        "ranking_score": row.ranking_score
-                    } for row in team_rankings
-                ])
+                return jsonify({
+                    "team_rankings": [
+                        {
+                            "Team_Member_Name": row.Team_Member_Name,
+                            "days_worked": row.days_worked,
+                            "clients_visited": row.clients_visited,
+                            "total_days_at_clients": row.total_days_at_clients,
+                            "ranking_score": row.ranking_score
+                        } for row in team_rankings
+                    ],
+                    "client_days_data": [
+                        {"Client_Name": row.Client_Name, "unique_days_at_client": row.unique_days_at_client}
+                        for row in client_days_data
+                    ]
+                })
 
             # Render the team ranking page for form submissions
-            return render_template('team_ranking.html', team_rankings=team_rankings, client_visits=client_visits, start_date=start_date, end_date=end_date)
+            return render_template(
+                'team_ranking.html',
+                team_rankings=team_rankings,
+                client_days_data=client_days_data,
+                start_date=start_date,
+                end_date=end_date
+            )
 
         # Render the team ranking page for GET requests
         return render_template('team_ranking.html', start_date=start_date, end_date=end_date)

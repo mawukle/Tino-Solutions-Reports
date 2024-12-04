@@ -18,61 +18,67 @@
 
         <!-- Form to input start and end dates -->
         <form method="POST" action="/team_ranking">
+            <div id="date_filter">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
 
-          <div id="date_filter">
-            <label for="start_date">Start Date:</label>
-            <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
-
-            <label for="end_date">End Date:</label>
-            <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
-          </div>
-
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+            </div>
             <button type="submit">Get Rankings</button>
         </form>
 
         <!-- Display team rankings if available -->
         {% if team_rankings %}
+        <h2>Team Rankings</h2>
         <table>
-            <tr>
-                <th>Team Member</th>
-                <th>Days Worked</th>
-                <th>Clients Visited</th>
-                <th>Total Days at Clients</th>
-                <th>Ranking Score</th>
-            </tr>
-            {% for row in team_rankings %}
-            <tr>
-                <td>{{ row.Team_Member_Name }}</td>
-                <td>{{ row.days_worked }}</td>
-                <td>{{ row.clients_visited }}</td>
-                <td>{{ row.total_days_at_clients }}</td>
-                <td>{{ row.ranking_score }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Team Member</th>
+                    <th>Days Worked</th>
+                    <th>Clients Visited</th>
+                    <th>Total Days at Clients</th>
+                    <th>Ranking Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in team_rankings %}
+                <tr>
+                    <td>{{ row.Team_Member_Name }}</td>
+                    <td>{{ row.days_worked }}</td>
+                    <td>{{ row.clients_visited }}</td>
+                    <td>{{ row.total_days_at_clients }}</td>
+                    <td>{{ "%.2f" % row.ranking_score }}</td> <!-- Format ranking score to 2 decimal places -->
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
         {% else %}
         <p>No rankings available for the selected period.</p>
         {% endif %}
 
-        <!-- Display client visits if available -->
-        {% if client_visits %}
-        <h2>Client Visits</h2>
+        <!-- Display client visit days if available -->
+        {% if client_days_data %}
+        <h2>Client Visit Days</h2>
         <table>
-            <tr>
-                <th>Client Name</th>
-                <th>Unique Days Visited</th>
-            </tr>
-            {% for client in client_visits %}
-            <tr>
-                <td>{{ client.Client_Name }}</td>
-                <td>{{ client.unique_days_at_client }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Unique Days Visited</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in client_days_data %}
+                <tr>
+                    <td>{{ client.Client_Name }}</td>
+                    <td>{{ client.unique_days_at_client }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
         {% else %}
-        <p>No client visit data available for the selected period.</p>
+        <p>No client data available for the selected period.</p>
         {% endif %}
-
     </div>
 </body>
 </html>
