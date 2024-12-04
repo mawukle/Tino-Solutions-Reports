@@ -240,6 +240,35 @@ def team_ranking():
                 start_date = request.form['start_date']
                 end_date = request.form['end_date']
 
+            # CTE to calculate the number of employees (employee-days) visiting each client
+            client_employee_days_query = db.session.query(
+                Job_Tracking.Client_Name,
+                Job_Tracking.Date,
+                func.count(distinct(job_team_members.Team_Member_ID)).label('employee_days')
+            ).join(
+                job_team_members, job_team_members.Job_ID == Job_Tracking.Job_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(
+                Job_Tracking.Client_Name, Job_Tracking.Date
+            ).cte("client_employee_days")
+
+            # Query to sum employee-days for each client
+            total_employee_days_query = db.session.query(
+                client_employee_days_query.c.Client_Name,
+                func.sum(client_employee_days_query.c.employee_days).label('total_employee_days')
+            ).group_by(
+                client_employee_days_query.c.Client_Name
+            ).cte("total_employee_days")
+
+            # Fetch the total employee-days data
+            client_employee_days_data_query = db.session.query(
+                total_employee_days_query.c.Client_Name,
+                total_employee_days_query.c.total_employee_days
+            ).order_by(total_employee_days_query.c.total_employee_days.desc())  # Sort descending
+
+            client_employee_days_data = client_employee_days_data_query.all()
+
             # CTE for unique days each client was visited
             client_unique_days_query = db.session.query(
                 Job_Tracking.Client_Name,
@@ -340,6 +369,7 @@ def team_ranking():
                 'team_ranking.html',
                 team_rankings=team_rankings,
                 client_days_data=client_days_data,
+                client_employee_days_data=client_employee_days_data,  # Pass the new data
                 start_date=start_date,
                 end_date=end_date
             )

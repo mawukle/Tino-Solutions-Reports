@@ -79,6 +79,35 @@
         {% else %}
         <p>No client data available for the selected period.</p>
         {% endif %}
+
+        <!-- Display client employee-days if available -->
+        {% if client_days_data %}
+        <h2>Client Employee-Days</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Employee-Days</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in client_days_data %}
+                <tr>
+                    <td>{{ client.Client_Name }}</td>
+                    <td>
+                        {% set employee_days = 0 %}
+                        {% for row in client_days_data %}
+                            {% set employee_days = employee_days + row.unique_days_at_client %}
+                        {% endfor %}
+                        {{ employee_days }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No client employee-days data available for the selected period.</p>
+        {% endif %}
     </div>
 </body>
 </html>
