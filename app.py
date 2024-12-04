@@ -299,7 +299,7 @@ def team_ranking():
                 days_worked_query.c.days_worked,
                 clients_visited_query.c.clients_visited,
                 team_member_total_days_query.c.total_days_at_clients,
-                func.group_concat(distinct(client_unique_days_query.c.Client_Name)).label('client_names'),  # Use GROUP_CONCAT here
+                func.group_concat(client_unique_days_query.c.Client_Name.distinct()).label('client_names'),  # Use GROUP_CONCAT correctly here
                 (days_worked_query.c.days_worked +
                  func.coalesce(clients_visited_query.c.clients_visited, 0) /
                  func.coalesce(team_member_total_days_query.c.total_days_at_clients, 1)
