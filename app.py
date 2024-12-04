@@ -255,7 +255,7 @@ def team_ranking():
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
-                client_unique_days_query.c.Client_Unique_ID,
+                client_unique_days_query.c.Client_Unique_ID,  # Ensure this column exists
                 client_unique_days_query.c.unique_days_at_client
             ).join(
                 job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
