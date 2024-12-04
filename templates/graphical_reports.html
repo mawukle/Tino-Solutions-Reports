@@ -133,20 +133,20 @@
                                 x: {
                                     ticks: {
                                         font: {
-                                            size: 10 // Reduced font size
+                                            size: 10
                                         },
-                                        callback: function(value) {
-                                            // Rotate the labels vertically
-                                            return this.getLabelForValue(value).split(' ').join('\n');
-                                        }
+                                        rotation: 90, // Rotate labels vertically
+                                        align: 'center', // Center-align labels
+                                        padding: 5
                                     },
                                     grid: {
-                                        drawOnChartArea: false // Only draw grid lines
+                                        drawOnChartArea: false // Avoid cluttering grid lines
                                     }
                                 }
                             }
                         }
                     });
+
                 } catch (error) {
                     console.error(error);
                     alert('Error fetching data for graphical report');
