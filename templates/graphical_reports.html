@@ -128,7 +128,6 @@
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false, // Allow chart to grow in width
                             plugins: {
                                 legend: { position: 'top' },
                                 title: { display: true, text: 'Client Visit Days' }
@@ -138,28 +137,19 @@
                                 x: {
                                     ticks: {
                                         font: {
-                                            size: 8
+                                            size: 10
                                         },
-                                        autoSkip: false, // Ensure all labels are shown
-                                        maxRotation: 90, // Rotate labels for better fit
-                                        minRotation: 45
+                                        rotation: 90, // Rotate labels vertically
+                                        align: 'center', // Center-align labels
+                                        padding: 5
                                     },
                                     grid: {
-                                        drawOnChartArea: false // Reduce grid clutter
+                                        drawOnChartArea: false // Avoid cluttering grid lines
                                     }
-                                }
-                            },
-                            layout: {
-                                padding: {
-                                    left: 10,
-                                    right: 10,
-                                    top: 10,
-                                    bottom: 10
                                 }
                             }
                         }
                     });
-
 
                     // Update Client Employee-Days Chart
                     const employeeDaysClients = client_employee_days_data.map(item => item.Client_Name);
