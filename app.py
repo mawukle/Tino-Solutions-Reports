@@ -2532,18 +2532,30 @@ def upload_sales():
                         "qty_sold": qty_sold
                     })
 
-            # Convert to DataFrame and insert into MySQL
+            # Convert to DataFrame
             sales_df = pd.DataFrame(data)
+
+            # Deduplicate against the database
             try:
-                # Save to MySQL
                 engine = db.engine
-                sales_df.to_sql('sales_by_item', con=engine, if_exists='append', index=False)
+                existing_data = pd.read_sql('SELECT * FROM sales_by_item', con=engine)
+
+                # Deduplicate: Keep only new rows
+                new_data = sales_df.merge(existing_data,
+                                          on=['item_description', 'date', 'document_no', 'customer', 'qty_sold'],
+                                          how='left',
+                                          indicator=True)
+                new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])
+
+                # Insert new rows into the database
+                new_data.to_sql('sales_by_item', con=engine, if_exists='append', index=False)
                 flash("Sales data uploaded successfully!", "success")
             except SQLAlchemyError as e:
                 flash(f"Error saving to database: {str(e)}", "danger")
             return redirect(url_for('index'))
 
     return render_template('upload_sales.html')
+
 
 
 
