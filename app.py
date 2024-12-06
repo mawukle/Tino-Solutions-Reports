@@ -2544,7 +2544,7 @@ def upload_sales():
                 flash("Sales data uploaded successfully!", "success")
             except SQLAlchemyError as e:
                 flash(f"Error saving to database: {str(e)}", "danger")
-            return redirect(url_for('index'))
+            return redirect(url_for('upload_sales'))
 
     return render_template('upload_sales.html')
 
