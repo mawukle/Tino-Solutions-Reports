@@ -8,7 +8,7 @@ import pymysql
 from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case
+from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy import text
@@ -2497,53 +2497,61 @@ def autocomplete_item_description():
 
 
 
-from sqlalchemy.sql import text
 
 @app.route('/upload_sales', methods=['GET', 'POST'])
 def upload_sales():
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            # Load the Excel file
-            df = pd.read_excel(file, header=11)  # Read from row 12 (0-indexed)
-            data = []
-            current_item_description = None
-
-            # Process rows to extract Item Description and other fields
-            for _, row in df.iterrows():
-                date_value = row['Date']
-                document_no = row['Document No.']
-                customer = row['Customer']
-                qty_sold = row['Qty Sold']
-
-                # Determine if the row is an item description
-                if pd.notnull(date_value) and pd.isnull(document_no) and pd.isnull(customer) and pd.isnull(qty_sold):
-                    current_item_description = str(date_value)  # Treat 'Date' column as item description
-                    continue
-
-                # Skip rows with 'Total for' or 'Grand Total'
-                if isinstance(date_value, str) and (date_value.startswith("Total for") or date_value.startswith("Grand Total")):
-                    continue
-
-                # Add regular sales rows
-                if pd.notnull(date_value):
-                    data.append({
-                        "item_description": current_item_description,
-                        "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
-                        "document_no": document_no,
-                        "customer": customer,
-                        "qty_sold": qty_sold
-                    })
-
-            # Convert to DataFrame and insert into MySQL
-            sales_df = pd.DataFrame(data)
             try:
-                # Save to MySQL
-                engine = db.engine
-                sales_df.to_sql('sales_by_item', con=engine, if_exists='append', index=False)
+                # Load the Excel file
+                df = pd.read_excel(file, header=11)  # Read from row 12 (0-indexed)
+                data = []
+                current_item_description = None
+
+                # Process rows to extract Item Description and other fields
+                for _, row in df.iterrows():
+                    date_value = row['Date']
+                    document_no = row['Document No.']
+                    customer = row['Customer']
+                    qty_sold = row['Qty Sold']
+
+                    # Determine if the row is an item description
+                    if pd.notnull(date_value) and pd.isnull(document_no) and pd.isnull(customer) and pd.isnull(qty_sold):
+                        current_item_description = str(date_value)  # Treat 'Date' column as item description
+                        continue
+
+                    # Skip rows with 'Total for' or 'Grand Total'
+                    if isinstance(date_value, str) and (date_value.startswith("Total for") or date_value.startswith("Grand Total")):
+                        continue
+
+                    # Add regular sales rows
+                    if pd.notnull(date_value):
+                        data.append({
+                            "item_description": current_item_description,
+                            "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
+                            "document_no": document_no,
+                            "customer": customer,
+                            "qty_sold": qty_sold
+                        })
+
+                # Insert into MySQL with ON DUPLICATE KEY UPDATE
+                if data:
+                    engine = db.engine
+                    with engine.begin() as conn:
+                        insert_query = """
+                        INSERT INTO sales_by_item (item_description, date, document_no, customer, qty_sold)
+                        VALUES (:item_description, :date, :document_no, :customer, :qty_sold)
+                        ON DUPLICATE KEY UPDATE
+                            qty_sold = VALUES(qty_sold);  -- Update logic if needed
+                        """
+                        conn.execute(text(insert_query), data)
+
                 flash("Sales data uploaded successfully!", "success")
             except SQLAlchemyError as e:
                 flash(f"Error saving to database: {str(e)}", "danger")
+            except Exception as e:
+                flash(f"Error processing file: {str(e)}", "danger")
             return redirect(url_for('upload_sales'))
 
     return render_template('upload_sales.html')
