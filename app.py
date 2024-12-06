@@ -2502,25 +2502,29 @@ def upload_sales():
         file = request.files['file']
         if file:
             # Load the Excel file
-            df = pd.read_excel(file, header=11)  # Read from row 12 (0-indexed)
+            df = pd.read_excel(file, header=11)  # Start reading from row 12 (0-indexed)
             data = []
             current_item_description = None
 
-            # Process rows to extract Item Description and other fields
+            # Process rows to extract Item Descriptions and other fields
             for _, row in df.iterrows():
                 date_value = row['Date']
+                document_no = row['Document No.']
+                customer = row['Customer']
+                qty_sold = row['Qty Sold']
 
-                # Check if this row represents an Item Description
-                if pd.isnull(date_value) and pd.notnull(row['Document No.']):
-                    current_item_description = row['Document No.']  # Assume 'Document No.' contains the item description
+                # Check if the row is an Item Description (only first column filled)
+                if pd.notnull(row['Date']) and all(pd.isnull([document_no, customer, qty_sold])):
+                    current_item_description = str(row['Date']).strip()  # Store as the current item description
+
+                # Check if the row has valid sales data
                 elif pd.notnull(date_value) and not str(date_value).startswith("Total for"):
-                    # Regular row with sales data
                     data.append({
                         "item_description": current_item_description,
                         "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
-                        "document_no": row['Document No.'],
-                        "customer": row['Customer'],
-                        "qty_sold": row['Qty Sold']
+                        "document_no": document_no,
+                        "customer": customer,
+                        "qty_sold": qty_sold
                     })
 
             # Convert to DataFrame and insert into MySQL
