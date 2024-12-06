@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
+
+        <h1>UPLOAD SALES DATA</h1>
+
+        <!-- Navigation -->
+        <nav>
+            <a href="#" onclick="showForm('uploadForm')">Upload Sales Excel File</a>
+            <a href="{{ url_for('view_sales_data') }}">View Sales Data</a>
+        </nav>
+
+        <!-- Flash Messages for Feedback -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+              {% for message in messages %}
+                  <p>{{ message }}</p>
+              {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Excel File Upload Form -->
+        <form id="uploadForm" method="POST" action="{{ url_for('upload_sales_data') }}" enctype="multipart/form-data">
+            <label for="file">Upload Sales Report Excel File:</label>
+            <input type="file" id="file" name="file" required>
+
+            <div class="form-row">
+                <button type="submit">Upload Sales Report</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function showForm(formId) {
+            document.getElementById('uploadForm').style.display = 'block';
+        }
+        // Default view is the upload form
+        showForm('uploadForm');
+    </script>
+</body>
+</html>

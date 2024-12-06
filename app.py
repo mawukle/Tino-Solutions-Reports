@@ -198,6 +198,7 @@ def invoice_generation():
     """Render the invoice generation page."""
     return render_template('invoice_generation.html')
 
+
 @app.route('/download_excel', methods=['GET'])
 def download_excel():
     """Provide the sample Excel file for download with a dynamic filename."""
@@ -2494,6 +2495,46 @@ def autocomplete_item_description():
     # Return JSON response with matching descriptions
     return jsonify([item.Item_Description for item in matches])
 
+
+@app.route('/upload_sales', methods=['GET', 'POST'])
+def upload_sales():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            # Load the Excel file
+            df = pd.read_excel(file, header=11)  # Read from row 12 (0-indexed)
+            data = []
+            current_item_description = None
+
+            # Process rows to extract Item Description and other fields
+            for _, row in df.iterrows():
+                date_value = row['Date']
+
+                # Check if this row represents an Item Description
+                if pd.isnull(date_value) and pd.notnull(row['Document No.']):
+                    current_item_description = row['Document No.']  # Assume 'Document No.' contains the item description
+                elif pd.notnull(date_value) and not str(date_value).startswith("Total for"):
+                    # Regular row with sales data
+                    data.append({
+                        "item_description": current_item_description,
+                        "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
+                        "document_no": row['Document No.'],
+                        "customer": row['Customer'],
+                        "qty_sold": row['Qty Sold']
+                    })
+
+            # Convert to DataFrame and insert into MySQL
+            sales_df = pd.DataFrame(data)
+            try:
+                # Save to MySQL
+                engine = db.engine
+                sales_df.to_sql('sales_by_item', con=engine, if_exists='append', index=False)
+                flash("Sales data uploaded successfully!", "success")
+            except SQLAlchemyError as e:
+                flash(f"Error saving to database: {str(e)}", "danger")
+            return redirect(url_for('index'))
+
+    return render_template('upload_sales.html')
 
 
 
