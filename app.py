@@ -2497,6 +2497,8 @@ def autocomplete_item_description():
 
 
 
+from sqlalchemy.sql import text
+
 @app.route('/upload_sales', methods=['GET', 'POST'])
 def upload_sales():
     if request.method == 'POST':
@@ -2540,7 +2542,8 @@ def upload_sales():
             try:
                 engine = db.engine
                 with engine.connect() as connection:
-                    existing_data = pd.read_sql('SELECT * FROM sales_by_item', con=connection)
+                    # Use a raw SQL string with text() for compatibility
+                    existing_data = pd.read_sql(text('SELECT * FROM sales_by_item'), con=connection)
 
                     # Deduplicate: Keep only new rows
                     new_data = sales_df.merge(existing_data,
@@ -2558,6 +2561,7 @@ def upload_sales():
             return redirect(url_for('upload_sales'))
 
     return render_template('upload_sales.html')
+
 
 
 
