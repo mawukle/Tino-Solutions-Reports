@@ -18,7 +18,7 @@
         <!-- Navigation -->
         <nav>
             <a href="#" onclick="showForm('uploadForm')">Upload Sales Excel File</a>
-            <a href="{{ url_for('view_sales_data') }}">View Sales Data</a>
+            <a href="{{ url_for('upload_sales') }}">View Sales Data</a>
         </nav>
 
         <!-- Flash Messages for Feedback -->
@@ -31,7 +31,7 @@
         {% endwith %}
 
         <!-- Excel File Upload Form -->
-        <form id="uploadForm" method="POST" action="{{ url_for('upload_sales_data') }}" enctype="multipart/form-data">
+        <form id="uploadForm" method="POST" action="{{ url_for('upload_sales') }}" enctype="multipart/form-data">
             <label for="file">Upload Sales Report Excel File:</label>
             <input type="file" id="file" name="file" required>
 
