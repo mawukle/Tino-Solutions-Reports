@@ -2502,23 +2502,28 @@ def upload_sales():
         file = request.files['file']
         if file:
             # Load the Excel file
-            df = pd.read_excel(file, header=11)  # Start reading from row 12 (0-indexed)
+            df = pd.read_excel(file, header=11)  # Read from row 12 (0-indexed)
             data = []
             current_item_description = None
 
-            # Process rows to extract Item Descriptions and other fields
+            # Process rows to extract Item Description and other fields
             for _, row in df.iterrows():
                 date_value = row['Date']
                 document_no = row['Document No.']
                 customer = row['Customer']
                 qty_sold = row['Qty Sold']
 
-                # Check if the row is an Item Description (only first column filled)
-                if pd.notnull(row['Date']) and all(pd.isnull([document_no, customer, qty_sold])):
-                    current_item_description = str(row['Date']).strip()  # Store as the current item description
+                # Determine if the row is an item description
+                if pd.notnull(date_value) and pd.isnull(document_no) and pd.isnull(customer) and pd.isnull(qty_sold):
+                    current_item_description = str(date_value)  # Treat 'Date' column as item description
+                    continue
 
-                # Check if the row has valid sales data
-                elif pd.notnull(date_value) and not str(date_value).startswith("Total for"):
+                # Skip rows with 'Total for' or 'Grand Total'
+                if isinstance(date_value, str) and (date_value.startswith("Total for") or date_value.startswith("Grand Total")):
+                    continue
+
+                # Add regular sales rows
+                if pd.notnull(date_value):
                     data.append({
                         "item_description": current_item_description,
                         "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
