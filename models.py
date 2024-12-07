@@ -15,8 +15,10 @@ class Client_List(db.Model):
     Client_Code = db.Column(db.String(50), nullable=True)
     Contact_Person = db.Column(db.String(100), nullable=True)
     email_address = db.Column(db.String(100), nullable=True)
+    Alias_Name = db.Column(db.String(100), nullable=False, default='')  # New column
 
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
+
 
 # Define the updated Items model to map to the Items_List table
 class Items_List(db.Model):

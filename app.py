@@ -2349,19 +2349,29 @@ def stock_summary():
 
             group_column = group_column_map.get(group_by, client_items.item_description)
 
-            # Query to get the client-item details
+            # Query to get the client-item details with Alias_Name consideration
             jobs_query = db.session.query(
                 client_items.client_item_id,
                 func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(Client_List.Alias_Name).label('Alias_Name'),
                 client_items.date,
                 func.max(client_items.component).label('Component'),
                 func.max(client_items.item_description).label('Item_Description'),
                 func.max(client_items.quantity).label('Quantity'),
                 func.max(client_items.installed_by).label('Installed_By'),
-            ).join(Client_List, client_items.client_name == Client_List.Client_Name
-            ).filter(and_(*conditions)
-            ).group_by(client_items.client_item_id, group_column
-            ).order_by(client_items.date.desc())
+            ).join(
+                Client_List,
+                or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(
+                and_(*conditions)
+            ).group_by(
+                client_items.client_item_id, group_column
+            ).order_by(
+                client_items.date.desc()
+            )
 
             jobs = jobs_query.all()
 
