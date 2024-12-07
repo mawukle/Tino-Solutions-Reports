@@ -8,7 +8,7 @@ import pymysql
 from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text
+from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text, or_
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy import text
