@@ -33,6 +33,7 @@ class Items_List(db.Model):
     kWh = db.Column(db.Float, nullable=True)  # Newly added column
     Ah = db.Column(db.Float, nullable=True)  # Newly added column
     Component = db.Column(db.String(255), nullable=True)  # Newly added column
+    Alias_Description = db.Column(db.String(255), nullable=False)
 
 # Define the Team Members model
 class Team_Members(db.Model):
