@@ -2353,7 +2353,7 @@ def stock_summary():
             jobs_query = db.session.query(
                 client_items.client_item_id,
                 func.max(Client_List.Client_Name).label('Client_Name'),
-                func.max(Client_List.Alias_Name).label('Alias_Name'),
+#                func.max(Client_List.Alias_Name).label('Alias_Name'),
                 client_items.date,
                 func.max(client_items.component).label('Component'),
                 func.max(client_items.item_description).label('Item_Description'),
