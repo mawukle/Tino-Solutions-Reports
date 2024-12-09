@@ -62,7 +62,7 @@
 
             <button type="submit" class="filter-button">Submit</button>
 
-            <!-- Add this section above the Job Details table -->
+            <!-- Summary Section -->
             <div class="summary-section">
                 <h2>Summary:</h2>
                 <p><strong>Panel Capacity (kWp):</strong> {{ panel_capacity }}</p>
@@ -79,13 +79,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Client-Item ID</th>
-                        <th>Client Name</th>
-                        <th>Date</th>
-                        <th>Component</th>
-                        <th>Item Description</th>
-                        <th>Quantity</th>
-                        <th>Installed By</th>
+                        <th>Client-Item ID <br><input type="text" class="column-filter" data-column="0" placeholder="Search"></th>
+                        <th>Client Name <br><input type="text" class="column-filter" data-column="1" placeholder="Search"></th>
+                        <th>Date <br><input type="text" class="column-filter" data-column="2" placeholder="Search"></th>
+                        <th>Component <br><input type="text" class="column-filter" data-column="3" placeholder="Search"></th>
+                        <th>Item Description <br><input type="text" class="column-filter" data-column="4" placeholder="Search"></th>
+                        <th>Quantity <br><input type="text" class="column-filter" data-column="5" placeholder="Search"></th>
+                        <th>Installed By <br><input type="text" class="column-filter" data-column="6" placeholder="Search"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,10 +115,9 @@
     </div>
 
     <script>
-        // Enable autocomplete for Item Description field
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Toggle input fields based on selected filter type
-            $('input[name="filter_type"]').change(function() {
+            $('input[name="filter_type"]').change(function () {
                 if (this.value === 'item_description') {
                     $('#member_filter').show();
                     $('#date_filter').hide();
@@ -131,30 +130,37 @@
                 }
             });
 
-            // Enable autocomplete for Item Description names when filtering by Item Description
+            // Enable autocomplete for Item Description names
             $("#item_description").autocomplete({
                 source: function(request, response) {
                     $.ajax({
                         url: "{{ url_for('autocomplete_item_description') }}",
-                        data: {
-                            query: request.term  // Sends the search term to the server
-                        },
+                        data: { query: request.term },
                         success: function(data) {
-                            response(data);  // Populate the autocomplete suggestions
+                            response(data);
                         }
                     });
                 },
-                minLength: 2,  // Minimum characters before triggering autocomplete
-                select: function(event, ui) {
-                    // Optionally handle the selected item (e.g., prefill other fields, etc.)
-                    console.log("Selected: " + ui.item.value);
-                }
+                minLength: 2,
             });
 
-            // Initialize the filter visibility based on selected filter type
+            // Initialize filter visibility
             $('input[name="filter_type"]:checked').trigger('change');
+
+            // Filter table rows
+            $('.column-filter').on('input', function () {
+                const columnIndex = $(this).data('column');
+                const filterValue = $(this).val().toLowerCase();
+                $('tbody tr').each(function () {
+                    const cellValue = $(this).find('td').eq(columnIndex).text().toLowerCase();
+                    if (cellValue.indexOf(filterValue) > -1 || $(this).hasClass('grouped-key')) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
         });
     </script>
-
 </body>
 </html>
