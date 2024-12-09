@@ -2350,6 +2350,9 @@ def stock_summary():
             if filter_type in ['date', 'both'] and start_date and end_date:
                 conditions.append(client_items.date.between(start_date, end_date))
 
+            # Avoid empty `and_()` warning
+            condition_clause = and_(*conditions) if conditions else true()
+
             # Handle grouping
             group_column_map = {
                 "Client_Name": Client_List.Client_Name,
@@ -2381,7 +2384,7 @@ def stock_summary():
                     client_items.client_name == Client_List.Alias_Name
                 )
             ).filter(
-                and_(*conditions)
+                condition_clause
             ).group_by(
                 client_items.client_item_id, group_column
             ).order_by(
@@ -2418,7 +2421,7 @@ def stock_summary():
                     client_items.client_name == Client_List.Alias_Name
                 )
             ).filter(
-                and_(*conditions)
+                condition_clause
             ).all()
 
             # Initialize capacities
@@ -2426,14 +2429,21 @@ def stock_summary():
             inverter_capacity = 0
             battery_capacity = 0
 
-            # Calculate capacities
+            # Calculate capacities with type conversion
             for item in job_items:
-                if item.Component == "Solar Panels":
-                    panel_capacity += (item.kVA_kW or 0) * (item.quantity or 0)
-                elif item.Component == "Inverter":
-                    inverter_capacity += (item.kVA_kW or 0) * (item.quantity or 0)
-                elif item.Component == "Batteries":
-                    battery_capacity += (item.kWh or 0) * (item.quantity or 0)
+                try:
+                    quantity = int(item.quantity or 0)
+                    kVA_kW = float(item.kVA_kW or 0)
+                    kWh = float(item.kWh or 0)
+
+                    if item.Component == "Solar Panels":
+                        panel_capacity += kVA_kW * quantity
+                    elif item.Component == "Inverter":
+                        inverter_capacity += kVA_kW * quantity
+                    elif item.Component == "Batteries":
+                        battery_capacity += kWh * quantity
+                except ValueError as ve:
+                    logging.warning(f"Skipping item due to type error: {ve}")
 
         # Render the template
         return render_template(
