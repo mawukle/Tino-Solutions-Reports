@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items  # Import db only once from models
+from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items, sales_by_item  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text, or_
@@ -2494,6 +2494,13 @@ def upload_sales():
                 data = []
                 current_item_description = None
 
+                # Load mapping of Alias_Description to Item_Description from Items_List table
+                engine = db.engine
+                with engine.begin() as conn:
+                    alias_to_description = dict(conn.execute("""
+                        SELECT Alias_Description, Item_Description FROM Items_List
+                    """).fetchall())
+
                 # Process rows to extract Item Description and other fields
                 for _, row in df.iterrows():
                     date_value = row['Date']
@@ -2510,10 +2517,13 @@ def upload_sales():
                     if isinstance(date_value, str) and (date_value.startswith("Total for") or date_value.startswith("Grand Total")):
                         continue
 
+                    # Map the item description using the Alias_Description mapping
+                    mapped_item_description = alias_to_description.get(current_item_description, current_item_description)
+
                     # Add regular sales rows
                     if pd.notnull(date_value):
                         data.append({
-                            "item_description": current_item_description,
+                            "item_description": mapped_item_description,  # Use the mapped description
                             "date": pd.to_datetime(date_value).date() if not pd.isnull(date_value) else None,
                             "document_no": document_no,
                             "customer": customer,
@@ -2522,7 +2532,6 @@ def upload_sales():
 
                 # Insert into MySQL with ON DUPLICATE KEY UPDATE
                 if data:
-                    engine = db.engine
                     with engine.begin() as conn:
                         insert_query = """
                         INSERT INTO sales_by_item (item_description, date, document_no, customer, qty_sold)

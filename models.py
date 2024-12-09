@@ -113,5 +113,18 @@ class client_items(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     installed_by = db.Column(db.String(50), nullable=False)  # New column
 
-def __repr__(self):
+    def __repr__(self):
     return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"
+
+class sales_by_item(db.Model):
+    __tablename__ = 'sales_by_item'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Primary key
+    item_description = db.Column(db.String(255), nullable=False)  # Maps to Items_List.Item_Description
+    date = db.Column(db.Date, nullable=False)  # Sale date
+    document_no = db.Column(db.String(50), nullable=False)  # Document or invoice number
+    customer = db.Column(db.String(100), nullable=False)  # Customer name
+    qty_sold = db.Column(db.Integer, nullable=False)  # Quantity sold
+
+    def __repr__(self):
+        return f"<sales_by_item {self.id}, {self.item_description}, {self.date}, {self.document_no}, {self.customer}, {self.qty_sold}>"
