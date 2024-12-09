@@ -2310,6 +2310,7 @@ def stock_summary():
         start_date = ''
         end_date = ''
         group_by = 'Item_Description'  # Default grouping by Item Description
+        installed_by = ''  # New filter
 
         # Fetch item descriptions for autocomplete (include Alias_Description)
         item_descriptions = [
@@ -2330,18 +2331,19 @@ def stock_summary():
             start_date = request.form.get('start_date', '')
             end_date = request.form.get('end_date', '')
             group_by = request.form.get('group_by', 'Item_Description')
+            installed_by = request.form.get('installed_by', '')
 
             logging.debug(f"Filter Type: {filter_type}")
             logging.debug(f"Item Description: {item_description}")
             logging.debug(f"Start Date: {start_date}")
             logging.debug(f"End Date: {end_date}")
             logging.debug(f"Group By: {group_by}")
+            logging.debug(f"Installed By: {installed_by}")
 
             conditions = []
 
             # Filtering based on the filter type
             if filter_type in ['item_description', 'both'] and item_description:
-                # Match Item_Description or Alias_Description
                 conditions.append(
                     or_(
                         client_items.item_description == item_description,
@@ -2351,6 +2353,9 @@ def stock_summary():
 
             if filter_type in ['date', 'both'] and start_date and end_date:
                 conditions.append(client_items.date.between(start_date, end_date))
+
+            if installed_by:
+                conditions.append(client_items.installed_by == installed_by)
 
             # Avoid empty `and_()` warning
             condition_clause = and_(*conditions) if conditions else true()
@@ -2369,7 +2374,7 @@ def stock_summary():
                 client_items.client_item_id,
                 func.max(Client_List.Client_Name).label('Client_Name'),
                 client_items.date,
-                func.max(Items_List.Component).label('Component'),  # Map component from Items_List
+                func.max(Items_List.Component).label('Component'),
                 func.max(Items_List.Item_Description).label('Item_Description'),
                 func.max(client_items.quantity).label('Quantity'),
                 func.max(client_items.installed_by).label('Installed_By'),
@@ -2457,6 +2462,7 @@ def stock_summary():
             start_date=start_date,
             end_date=end_date,
             group_by=group_by,
+            installed_by=installed_by,
             panel_capacity=panel_capacity,
             inverter_capacity=inverter_capacity,
             battery_capacity=battery_capacity

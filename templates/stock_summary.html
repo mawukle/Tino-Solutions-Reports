@@ -49,6 +49,16 @@
                     <input type="date" id="end_date" name="end_date"
                            value="{{ request.form.end_date or '' }}">
                 </div>
+
+                <div id="installed_by_filter">
+                    <label for="installed_by">Installed By:</label>
+                    <select id="installed_by" name="installed_by">
+                        <option value="">-- Select --</option>
+                        <option value="Tino Team" {% if request.form.installed_by == 'Tino Team' %} selected {% endif %}>Tino Team</option>
+                        <option value="Client" {% if request.form.installed_by == 'Client' %} selected {% endif %}>Client</option>
+                    </select>
+                </div>
+
             </div>
 
             <div id="group_filter">
