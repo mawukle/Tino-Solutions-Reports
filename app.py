@@ -2359,12 +2359,12 @@ def stock_summary():
 
             group_column = group_column_map.get(group_by, client_items.item_description)
 
-            # Query to get the client-item details with Alias_Description consideration
+            # Query to get the client-item details with proper component mapping from Items_List
             jobs_query = db.session.query(
                 client_items.client_item_id,
                 func.max(Client_List.Client_Name).label('Client_Name'),
                 client_items.date,
-                func.max(client_items.component).label('Component'),
+                func.max(Items_List.Component).label('Component'),  # Map component from Items_List
                 func.max(Items_List.Item_Description).label('Item_Description'),
                 func.max(client_items.quantity).label('Quantity'),
                 func.max(client_items.installed_by).label('Installed_By'),
@@ -2422,7 +2422,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Solar Panels").scalar() or 0
+                )).filter(Items_List.Component == "Solar Panels").scalar() or 0
 
                 # Calculate inverter capacity
                 inverter_capacity = db.session.query(
@@ -2430,7 +2430,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Inverter").scalar() or 0
+                )).filter(Items_List.Component == "Inverter").scalar() or 0
 
                 # Calculate battery capacity
                 battery_capacity = db.session.query(
@@ -2438,7 +2438,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Batteries").scalar() or 0
+                )).filter(Items_List.Component == "Batteries").scalar() or 0
 
         # Render the template
         return render_template(
