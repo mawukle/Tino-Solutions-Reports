@@ -2422,7 +2422,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(Items_List.Component == "Solar Panels").scalar() or 0
+                )).filter(filtered_items.c.component == "Solar Panels").scalar() or 0
 
                 # Calculate inverter capacity
                 inverter_capacity = db.session.query(
@@ -2430,7 +2430,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(Items_List.Component == "Inverter").scalar() or 0
+                )).filter(filtered_items.c.component == "Inverter").scalar() or 0
 
                 # Calculate battery capacity
                 battery_capacity = db.session.query(
@@ -2438,7 +2438,7 @@ def stock_summary():
                 ).join(filtered_items, or_(
                     Items_List.Item_Description == filtered_items.c.item_description,
                     Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(Items_List.Component == "Batteries").scalar() or 0
+                )).filter(filtered_items.c.component == "Batteries").scalar() or 0
 
         # Render the template
         return render_template(
