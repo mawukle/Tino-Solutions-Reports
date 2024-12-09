@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text, or_
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy.sql import text
 from datetime import datetime, timedelta
 import openpyxl
 from openpyxl import load_workbook
@@ -2483,6 +2483,8 @@ def autocomplete_item_description():
 
 
 
+from sqlalchemy.sql import text  # Ensure this import is included
+
 @app.route('/upload_sales', methods=['GET', 'POST'])
 def upload_sales():
     if request.method == 'POST':
@@ -2497,9 +2499,9 @@ def upload_sales():
                 # Load mapping of Alias_Description to Item_Description from Items_List table
                 engine = db.engine
                 with engine.begin() as conn:
-                    alias_to_description = dict(conn.execute("""
+                    alias_to_description = dict(conn.execute(text("""
                         SELECT Alias_Description, Item_Description FROM Items_List
-                    """).fetchall())
+                    """)).fetchall())
 
                 # Process rows to extract Item Description and other fields
                 for _, row in df.iterrows():
