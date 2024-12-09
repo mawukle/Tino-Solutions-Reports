@@ -2400,45 +2400,40 @@ def stock_summary():
                 }.get(group_by, job.Item_Description)
                 grouped_jobs.setdefault(group_key, []).append(job)
 
-            # Calculate capacities based on filter type
-            filtered_items = None
-            if filter_type in ['both', 'date', 'item_description']:
-                # Common query for filtered items
-                filtered_items = db.session.query(
-                    client_items.item_description,
-                    client_items.component,
-                    client_items.quantity
-                ).filter(
-                    client_items.date.between(start_date, end_date) if start_date and end_date else True,
-                    or_(
-                        client_items.item_description == item_description,
-                        client_items.item_description == Items_List.Alias_Description
-                    ) if item_description else True
-                ).subquery()
+            # Calculate capacities based on the filtered data from jobs_query
+            job_items = db.session.query(
+                Items_List.Item_Description,
+                Items_List.Component,
+                client_items.quantity,
+                Items_List.kVA_kW,
+                Items_List.kWh
+            ).join(
+                client_items, or_(
+                    Items_List.Item_Description == client_items.item_description,
+                    Items_List.Alias_Description == client_items.item_description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(
+                and_(*conditions)
+            ).all()
 
-                # Calculate panel capacity
-                panel_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW * filtered_items.c.quantity)
-                ).join(filtered_items, or_(
-                    Items_List.Item_Description == filtered_items.c.item_description,
-                    Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Solar Panels").scalar() or 0
+            # Initialize capacities
+            panel_capacity = 0
+            inverter_capacity = 0
+            battery_capacity = 0
 
-                # Calculate inverter capacity
-                inverter_capacity = db.session.query(
-                    func.sum(Items_List.kVA_kW * filtered_items.c.quantity)
-                ).join(filtered_items, or_(
-                    Items_List.Item_Description == filtered_items.c.item_description,
-                    Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Inverter").scalar() or 0
-
-                # Calculate battery capacity
-                battery_capacity = db.session.query(
-                    func.sum(Items_List.kWh * filtered_items.c.quantity)
-                ).join(filtered_items, or_(
-                    Items_List.Item_Description == filtered_items.c.item_description,
-                    Items_List.Alias_Description == filtered_items.c.item_description
-                )).filter(filtered_items.c.component == "Batteries").scalar() or 0
+            # Calculate capacities
+            for item in job_items:
+                if item.Component == "Solar Panels":
+                    panel_capacity += (item.kVA_kW or 0) * (item.quantity or 0)
+                elif item.Component == "Inverter":
+                    inverter_capacity += (item.kVA_kW or 0) * (item.quantity or 0)
+                elif item.Component == "Batteries":
+                    battery_capacity += (item.kWh or 0) * (item.quantity or 0)
 
         # Render the template
         return render_template(
