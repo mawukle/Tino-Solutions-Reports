@@ -114,7 +114,7 @@ class client_items(db.Model):
     installed_by = db.Column(db.String(50), nullable=False)  # New column
 
     def __repr__(self):
-    return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"
+        return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"
 
 class sales_by_item(db.Model):
     __tablename__ = 'sales_by_item'
