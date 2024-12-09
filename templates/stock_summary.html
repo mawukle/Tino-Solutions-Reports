@@ -51,12 +51,17 @@
                 </div>
 
                 <div id="installed_by_filter">
-                    <label for="installed_by">Installed By:</label>
-                    <select id="installed_by" name="installed_by">
-                        <option value="">-- Select --</option>
-                        <option value="Tino Team" {% if request.form.installed_by == 'Tino Team' %} selected {% endif %}>Tino Team</option>
-                        <option value="Client" {% if request.form.installed_by == 'Client' %} selected {% endif %}>Client</option>
-                    </select>
+                    <label>Installed By:</label>
+                    <div>
+                        <input type="checkbox" id="installed_by_tino" name="installed_by" value="Tino Team"
+                            {% if 'Tino Team' in request.form.getlist('installed_by') %} checked {% endif %}>
+                        <label for="installed_by_tino">Tino Team</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="installed_by_client" name="installed_by" value="Client"
+                            {% if 'Client' in request.form.getlist('installed_by') %} checked {% endif %}>
+                        <label for="installed_by_client">Client</label>
+                    </div>
                 </div>
 
             </div>

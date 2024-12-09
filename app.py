@@ -2310,7 +2310,7 @@ def stock_summary():
         start_date = ''
         end_date = ''
         group_by = 'Item_Description'  # Default grouping by Item Description
-        installed_by = ''  # New filter
+        installed_by_values = []  # New filter for multiple Installed By values
 
         # Fetch item descriptions for autocomplete (include Alias_Description)
         item_descriptions = [
@@ -2331,14 +2331,14 @@ def stock_summary():
             start_date = request.form.get('start_date', '')
             end_date = request.form.get('end_date', '')
             group_by = request.form.get('group_by', 'Item_Description')
-            installed_by = request.form.get('installed_by', '')
+            installed_by_values = request.form.getlist('installed_by')  # Fetch multiple values
 
             logging.debug(f"Filter Type: {filter_type}")
             logging.debug(f"Item Description: {item_description}")
             logging.debug(f"Start Date: {start_date}")
             logging.debug(f"End Date: {end_date}")
             logging.debug(f"Group By: {group_by}")
-            logging.debug(f"Installed By: {installed_by}")
+            logging.debug(f"Installed By: {installed_by_values}")
 
             conditions = []
 
@@ -2354,8 +2354,8 @@ def stock_summary():
             if filter_type in ['date', 'both'] and start_date and end_date:
                 conditions.append(client_items.date.between(start_date, end_date))
 
-            if installed_by:
-                conditions.append(client_items.installed_by == installed_by)
+            if installed_by_values:  # Multiple values for Installed By
+                conditions.append(client_items.installed_by.in_(installed_by_values))
 
             # Avoid empty `and_()` warning
             condition_clause = and_(*conditions) if conditions else true()
@@ -2462,7 +2462,7 @@ def stock_summary():
             start_date=start_date,
             end_date=end_date,
             group_by=group_by,
-            installed_by=installed_by,
+            installed_by_values=installed_by_values,
             panel_capacity=panel_capacity,
             inverter_capacity=inverter_capacity,
             battery_capacity=battery_capacity
