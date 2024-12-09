@@ -704,3 +704,9 @@ textarea {
     border: 1px solid #ccc; /* Add border to input */
     border-radius: 4px; /* Slight rounding of input edges */
 }
+
+#installed_by_filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
