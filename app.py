@@ -19,6 +19,8 @@ from fpdf import FPDF
 import tempfile
 from xhtml2pdf import pisa
 import io
+from sqlalchemy.sql.expression import true
+
 
 
 pymysql.install_as_MySQLdb()
