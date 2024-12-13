@@ -2452,6 +2452,12 @@ def stock_summary():
                 except ValueError as ve:
                     logging.warning(f"Skipping item due to type error: {ve}")
 
+            # Round off the capacities to 2 decimal places
+            panel_capacity = round(panel_capacity, 2)
+            inverter_capacity = round(inverter_capacity, 2)
+            battery_capacity = round(battery_capacity, 2)
+
+
         # Render the template
         return render_template(
             'stock_summary.html',
