@@ -285,33 +285,30 @@ def team_ranking():
 
             client_employee_days_data = client_employee_days_data_query.all()
 
-            # Queries for inverter, battery, and solar panel capacities
+            # Query total capacities from client_items for each component
             inverter_data = db.session.query(
-                Job_Tracking.Client_Name,
-                func.sum(Inverter.capacity).label('total_inverter_capacity')
-            ).join(
-                Inverter, Inverter.Job_ID == Job_Tracking.Job_ID
+                client_items.client_name,
+                func.sum(client_items.quantity).label('total_inverter_quantity')
             ).filter(
-                Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Job_Tracking.Client_Name).all()
+                client_items.component == 'Inverter',
+                client_items.date.between(start_date, end_date)
+            ).group_by(client_items.client_name).all()
 
             battery_data = db.session.query(
-                Job_Tracking.Client_Name,
-                func.sum(Batteries.capacity).label('total_battery_capacity')
-            ).join(
-                Batteries, Batteries.Job_ID == Job_Tracking.Job_ID
+                client_items.client_name,
+                func.sum(client_items.quantity).label('total_battery_quantity')
             ).filter(
-                Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Job_Tracking.Client_Name).all()
+                client_items.component == 'Batteries',
+                client_items.date.between(start_date, end_date)
+            ).group_by(client_items.client_name).all()
 
             solar_panel_data = db.session.query(
-                Job_Tracking.Client_Name,
-                func.sum(Solar_Panels.capacity).label('total_solar_panel_capacity')
-            ).join(
-                Solar_Panels, Solar_Panels.Job_ID == Job_Tracking.Job_ID
+                client_items.client_name,
+                func.sum(client_items.quantity).label('total_solar_panel_quantity')
             ).filter(
-                Job_Tracking.Date.between(start_date, end_date)
-            ).group_by(Job_Tracking.Client_Name).all()
+                client_items.component == 'Solar Panels',
+                client_items.date.between(start_date, end_date)
+            ).group_by(client_items.client_name).all()
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
