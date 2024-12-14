@@ -232,6 +232,9 @@ def team_ranking():
         team_rankings = []
         client_days_data = []
         client_employee_days_data = []
+        inverter_data = []
+        battery_data = []
+        solar_panel_data = []
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -258,7 +261,7 @@ def team_ranking():
             client_days_data_query = db.session.query(
                 client_unique_days_query.c.Client_Name,
                 client_unique_days_query.c.unique_days_at_client
-            ).order_by(client_unique_days_query.c.unique_days_at_client.desc())  # Sort descending
+            ).order_by(client_unique_days_query.c.unique_days_at_client.desc())
 
             client_days_data = client_days_data_query.all()
 
@@ -278,9 +281,37 @@ def team_ranking():
             client_employee_days_data_query = db.session.query(
                 employee_days_query.c.Client_Name,
                 employee_days_query.c.total_employee_days
-            ).order_by(employee_days_query.c.total_employee_days.desc())  # Sort descending
+            ).order_by(employee_days_query.c.total_employee_days.desc())
 
             client_employee_days_data = client_employee_days_data_query.all()
+
+            # Queries for inverter, battery, and solar panel capacities
+            inverter_data = db.session.query(
+                Job_Tracking.Client_Name,
+                func.sum(Inverters.capacity).label('total_inverter_capacity')
+            ).join(
+                Inverters, Inverters.Job_ID == Job_Tracking.Job_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(Job_Tracking.Client_Name).all()
+
+            battery_data = db.session.query(
+                Job_Tracking.Client_Name,
+                func.sum(Batteries.capacity).label('total_battery_capacity')
+            ).join(
+                Batteries, Batteries.Job_ID == Job_Tracking.Job_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(Job_Tracking.Client_Name).all()
+
+            solar_panel_data = db.session.query(
+                Job_Tracking.Client_Name,
+                func.sum(Solar_Panels.capacity).label('total_solar_panel_capacity')
+            ).join(
+                Solar_Panels, Solar_Panels.Job_ID == Job_Tracking.Job_ID
+            ).filter(
+                Job_Tracking.Date.between(start_date, end_date)
+            ).group_by(Job_Tracking.Client_Name).all()
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
@@ -360,6 +391,18 @@ def team_ranking():
                     "client_employee_days_data": [
                         {"Client_Name": row.Client_Name, "total_employee_days": row.total_employee_days}
                         for row in client_employee_days_data
+                    ],
+                    "inverter_data": [
+                        {"Client_Name": row.Client_Name, "total_inverter_capacity": row.total_inverter_capacity}
+                        for row in inverter_data
+                    ],
+                    "battery_data": [
+                        {"Client_Name": row.Client_Name, "total_battery_capacity": row.total_battery_capacity}
+                        for row in battery_data
+                    ],
+                    "solar_panel_data": [
+                        {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
+                        for row in solar_panel_data
                     ]
                 })
             # Render the team ranking page for form submissions
@@ -368,6 +411,9 @@ def team_ranking():
                 team_rankings=team_rankings,
                 client_days_data=client_days_data,
                 client_employee_days_data=client_employee_days_data,  # Pass the new data
+                inverter_data=inverter_data,
+                battery_data=battery_data,
+                solar_panel_data=solar_panel_data,
                 start_date=start_date,
                 end_date=end_date
             )
