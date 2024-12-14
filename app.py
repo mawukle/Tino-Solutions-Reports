@@ -288,9 +288,9 @@ def team_ranking():
             # Queries for inverter, battery, and solar panel capacities
             inverter_data = db.session.query(
                 Job_Tracking.Client_Name,
-                func.sum(Inverters.capacity).label('total_inverter_capacity')
+                func.sum(Inverter.capacity).label('total_inverter_capacity')
             ).join(
-                Inverters, Inverters.Job_ID == Job_Tracking.Job_ID
+                Inverter, Inverter.Job_ID == Job_Tracking.Job_ID
             ).filter(
                 Job_Tracking.Date.between(start_date, end_date)
             ).group_by(Job_Tracking.Client_Name).all()
