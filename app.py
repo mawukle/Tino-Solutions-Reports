@@ -390,15 +390,15 @@ def team_ranking():
                         for row in client_employee_days_data
                     ],
                     "inverter_data": [
-                        {"Client_Name": row.Client_Name, "total_inverter_capacity": row.total_inverter_capacity}
+                        {"Client_Name": row.client_name, "total_inverter_capacity": row.total_inverter_capacity}
                         for row in inverter_data
                     ],
                     "battery_data": [
-                        {"Client_Name": row.Client_Name, "total_battery_capacity": row.total_battery_capacity}
+                        {"Client_Name": row.client_name, "total_battery_capacity": row.total_battery_capacity}
                         for row in battery_data
                     ],
                     "solar_panel_data": [
-                        {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
+                        {"Client_Name": row.client_name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
                     ]
                 })
