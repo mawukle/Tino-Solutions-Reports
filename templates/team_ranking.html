@@ -104,7 +104,7 @@
         {% endif %}
 
         <!-- Display inverter capacities if available -->
-        {% if inverter_capacities %}
+        {% if inverter_data %}
         <h2>Inverter Capacities</h2>
         <table>
             <thead>
@@ -114,7 +114,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for inverter in inverter_capacities %}
+                {% for inverter in inverter_data %}
                 <tr>
                     <td>{{ inverter.Client_Name }}</td>
                     <td>{{ inverter.total_inverter_capacity }}</td>
@@ -127,7 +127,7 @@
         {% endif %}
 
         <!-- Display battery capacities if available -->
-        {% if battery_capacities %}
+        {% if battery_data %}
         <h2>Battery Capacities</h2>
         <table>
             <thead>
@@ -137,7 +137,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for battery in battery_capacities %}
+                {% for battery in battery_data %}
                 <tr>
                     <td>{{ battery.Client_Name }}</td>
                     <td>{{ battery.total_battery_capacity }}</td>
@@ -150,7 +150,7 @@
         {% endif %}
 
         <!-- Display solar panel capacities if available -->
-        {% if solar_panel_capacities %}
+        {% if solar_panel_data %}
         <h2>Solar Panel Capacities</h2>
         <table>
             <thead>
@@ -160,7 +160,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for solar_panel in solar_panel_capacities %}
+                {% for solar_panel in solar_panel_data %}
                 <tr>
                     <td>{{ solar_panel.Client_Name }}</td>
                     <td>{{ solar_panel.total_solar_panel_capacity }}</td>

@@ -288,7 +288,7 @@ def team_ranking():
             # Query total capacities from client_items for each component
             inverter_data = db.session.query(
                 client_items.client_name,
-                func.sum(client_items.quantity).label('total_inverter_quantity')
+                func.sum(client_items.quantity).label('total_inverter_capacity')
             ).filter(
                 client_items.component == 'Inverter',
                 client_items.date.between(start_date, end_date)
@@ -296,7 +296,7 @@ def team_ranking():
 
             battery_data = db.session.query(
                 client_items.client_name,
-                func.sum(client_items.quantity).label('total_battery_quantity')
+                func.sum(client_items.quantity).label('total_battery_capacity')
             ).filter(
                 client_items.component == 'Batteries',
                 client_items.date.between(start_date, end_date)
@@ -304,7 +304,7 @@ def team_ranking():
 
             solar_panel_data = db.session.query(
                 client_items.client_name,
-                func.sum(client_items.quantity).label('total_solar_panel_quantity')
+                func.sum(client_items.quantity).label('total_solar_panel_capacity')
             ).filter(
                 client_items.component == 'Solar Panels',
                 client_items.date.between(start_date, end_date)
