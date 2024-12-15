@@ -217,6 +217,23 @@ def download_excel():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def fetch_team_rankings(start_date, end_date):
+    # Example logic to fetch team rankings
+    rankings = db.session.query(
+        Team_Members.Team_Member_Name,
+        func.count(distinct(Job_Tracking.Job_ID)).label('total_jobs')
+    ).join(
+        job_team_members, job_team_members.Team_Member_ID == Team_Members.Team_Member_ID
+    ).join(
+        Job_Tracking, job_team_members.Job_ID == Job_Tracking.Job_ID
+    ).filter(
+        Job_Tracking.Date.between(start_date, end_date)
+    ).group_by(
+        Team_Members.Team_Member_Name
+    ).all()
+
+    return rankings
+
 
 @app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
@@ -224,8 +241,13 @@ def graphical_reports():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
-        # Fetch data based on the provided dates
-        team_rankings = fetch_team_rankings(start_date, end_date)  # Ensure this function is correctly defined
+        # Ensure functions are correctly defined and retrieve the necessary data
+        try:
+            team_rankings = fetch_team_rankings(start_date, end_date)
+        except Exception as e:
+            print(f"Error fetching team rankings: {e}")
+            team_rankings = []
+
         client_days_data = fetch_client_days_data(start_date, end_date)
         client_employee_days_data = fetch_client_employee_days_data(start_date, end_date)
         inverter_data = fetch_inverter_data(start_date, end_date)
