@@ -218,10 +218,34 @@ def download_excel():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/graphical_reports', methods=['GET'])
+@app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
-    """Render the graphical reports page."""
-    return render_template('graphical_reports.html')
+    if request.method == 'POST':
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+
+        # Fetch data based on the provided dates
+        team_rankings = fetch_team_rankings(start_date, end_date)
+        client_days_data = fetch_client_days_data(start_date, end_date)
+        client_employee_days_data = fetch_client_employee_days_data(start_date, end_date)
+        inverter_data = fetch_inverter_data(start_date, end_date)
+        battery_data = fetch_battery_data(start_date, end_date)
+        solar_panel_data = fetch_solar_panel_data(start_date, end_date)
+
+        return render_template(
+            'graphical_reports.html',
+            start_date=start_date,
+            end_date=end_date,
+            team_rankings=team_rankings,
+            client_days_data=client_days_data,
+            client_employee_days_data=client_employee_days_data,
+            inverter_data=inverter_data,
+            battery_data=battery_data,
+            solar_panel_data=solar_panel_data
+        )
+
+    # Default GET behavior
+    return render_template('graphical_reports.html', start_date=None, end_date=None)
 
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
