@@ -340,7 +340,28 @@ def team_ranking():
                 client_items.date.between(start_date, end_date)
             ).group_by(Client_List.Client_Name).all()
 
-            
+            # Convert capacities to desired decimal places
+            formatted_inverter_data = [
+                {
+                    'Client_Name': item.Client_Name,
+                    'total_inverter_capacity': round(item.total_inverter_capacity, 2) if item.total_inverter_capacity else 0
+                } for item in inverter_data
+            ]
+
+            formatted_battery_data = [
+                {
+                    'Client_Name': item.Client_Name,
+                    'total_battery_capacity': round(item.total_battery_capacity, 2) if item.total_battery_capacity else 0
+                } for item in battery_data
+            ]
+
+            formatted_solar_panel_data = [
+                {
+                    'Client_Name': item.Client_Name,
+                    'total_solar_panel_capacity': round(item.total_solar_panel_capacity, 3) if item.total_solar_panel_capacity else 0
+                } for item in solar_panel_data
+            ]
+
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
