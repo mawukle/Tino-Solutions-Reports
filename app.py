@@ -265,6 +265,14 @@ def team_ranking():
 
             client_days_data = client_days_data_query.all()
 
+            # Ensure that Client_Name is not None
+            client_days_data = [
+                {"Client_Name": row.Client_Name, "unique_days_at_client": row.unique_days_at_client}
+                for row in client_days_data
+                if row.Client_Name is not None
+            ]
+
+
             # CTE for counting employee-days (distinct employees visiting each client)
             employee_days_query = db.session.query(
                 Job_Tracking.Client_Name,
