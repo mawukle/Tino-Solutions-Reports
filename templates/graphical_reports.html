@@ -70,7 +70,15 @@
 
                     if (!response.ok) throw new Error('Failed to fetch data');
 
-                    const { team_rankings, client_days_data, client_employee_days_data } = await response.json();
+                    const data = await response.json();
+                    console.log(data); // Inspect the structure of the response
+                    const { team_rankings, client_days_data, client_employee_days_data } = data;
+
+                    // Debugging step: Log individual arrays
+                    console.log('Team Rankings:', team_rankings);
+                    console.log('Client Days Data:', client_days_data);
+                    console.log('Client Employee Days Data:', client_employee_days_data);
+
 
                     // Update Team Rankings Chart
                     const teamMembers = team_rankings.map(item => item.Team_Member_Name);
@@ -189,7 +197,7 @@
                     });
 
                 } catch (error) {
-                    console.log(team_rankings, client_days_data, client_employee_days_data);
+                    console.error(error);
                     alert('Error fetching data for graphical report');
                 }
             });
