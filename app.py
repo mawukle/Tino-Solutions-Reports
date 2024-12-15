@@ -285,16 +285,18 @@ def team_ranking():
 
             client_employee_days_data = client_employee_days_data_query.all()
 
-            # Query total capacities from client_items for each component
-            # Process inverter data
+
+            # Query for Inverter data with 'Installed By'
             inverter_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_inverter_capacity": round(row.total_inverter_capacity or 0, 2)
+                    "total_inverter_capacity": round(row.total_inverter_capacity or 0, 2),
+                    "installed_by": row.installed_by
                 }
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity')
+                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity'),
+                    func.max(client_items.installed_by).label('installed_by')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
@@ -311,15 +313,17 @@ def team_ranking():
                 ).group_by(Client_List.Client_Name).all()
             ]
 
-            # Process battery data
+            # Query for Battery data with 'Installed By'
             battery_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_battery_capacity": round(row.total_battery_capacity or 0, 2)
+                    "total_battery_capacity": round(row.total_battery_capacity or 0, 2),
+                    "installed_by": row.installed_by
                 }
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity')
+                    func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity'),
+                    func.max(client_items.installed_by).label('installed_by')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
@@ -336,15 +340,17 @@ def team_ranking():
                 ).group_by(Client_List.Client_Name).all()
             ]
 
-            # Process solar panel data
+            # Query for Solar Panel data with 'Installed By'
             solar_panel_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3)
+                    "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3),
+                    "installed_by": row.installed_by
                 }
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity')
+                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
+                    func.max(client_items.installed_by).label('installed_by')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
@@ -360,6 +366,8 @@ def team_ranking():
                     client_items.date.between(start_date, end_date)
                 ).group_by(Client_List.Client_Name).all()
             ]
+
+
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
