@@ -223,18 +223,18 @@ def graphical_reports():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
-        # Ensure functions are correctly defined and retrieve the necessary data
+        # Using try-except blocks for each data fetch function
         try:
             team_rankings = team_rankings(start_date, end_date)
         except Exception as e:
             print(f"Error fetching team rankings: {e}")
             team_rankings = []
 
-        client_days_data = client_days_data(start_date, end_date)
-        client_employee_days_data = client_employee_days_data(start_date, end_date)
-        inverter_data = inverter_data(start_date, end_date)
-        battery_data = battery_data(start_date, end_date)
-        solar_panel_data = solar_panel_data(start_date, end_date)
+        client_days_data = client_days_data(start_date, end_date) or []
+        client_employee_days_data = client_employee_days_data(start_date, end_date) or []
+        inverter_data = inverter_data(start_date, end_date) or []
+        battery_data = battery_data(start_date, end_date) or []
+        solar_panel_data = solar_panel_data(start_date, end_date) or []
 
         return render_template(
             'graphical_reports.html',
