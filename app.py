@@ -219,36 +219,6 @@ def download_excel():
 
 @app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
-    if request.method == 'POST':
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-
-        # Using try-except blocks for each data fetch function
-        try:
-            team_rankings = team_rankings(start_date, end_date)
-        except Exception as e:
-            print(f"Error fetching team rankings: {e}")
-            team_rankings = []
-
-        client_days_data = client_days_data(start_date, end_date) or []
-        client_employee_days_data = client_employee_days_data(start_date, end_date) or []
-        inverter_data = inverter_data(start_date, end_date) or []
-        battery_data = battery_data(start_date, end_date) or []
-        solar_panel_data = solar_panel_data(start_date, end_date) or []
-
-        return render_template(
-            'graphical_reports.html',
-            start_date=start_date,
-            end_date=end_date,
-            team_rankings=team_rankings,
-            client_days_data=client_days_data,
-            client_employee_days_data=client_employee_days_data,
-            inverter_data=inverter_data,
-            battery_data=battery_data,
-            solar_panel_data=solar_panel_data
-        )
-
-    # Default GET behavior
     return render_template('graphical_reports.html', start_date=None, end_date=None)
 
 
