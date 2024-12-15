@@ -361,6 +361,31 @@ def team_ranking():
                 ).group_by(Client_List.Client_Name).all()
             ]
 
+            # Query for 'installed_by' data
+            installed_by_data_query = db.session.query(
+                client_items.client_name,
+                client_items.component,
+                client_items.item_description,
+                client_items.quantity,
+                client_items.installed_by
+            ).filter(
+                client_items.date.between(start_date, end_date)
+            ).order_by(
+                client_items.client_name, client_items.component
+            )
+
+            installed_by_data = [
+                {
+                    "Client_Name": row.client_name,
+                    "Component": row.component,
+                    "Item_Description": row.item_description,
+                    "Quantity": row.quantity,
+                    "Installed_By": row.installed_by
+                }
+                for row in installed_by_data_query.all()
+            ]
+
+
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
@@ -451,7 +476,8 @@ def team_ranking():
                     "solar_panel_data": [
                         {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
-                    ]
+                    ],
+                    "installed_by_data": installed_by_data
                 })
             # Render the team ranking page for form submissions
             return render_template(
@@ -462,6 +488,7 @@ def team_ranking():
                 inverter_data=inverter_data,
                 battery_data=battery_data,
                 solar_panel_data=solar_panel_data,
+                installed_by_data=installed_by_data,  # Pass installed_by data to the template
                 start_date=start_date,
                 end_date=end_date
             )
