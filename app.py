@@ -287,7 +287,7 @@ def team_ranking():
 
             # Query total capacities from client_items for each component
             inverter_data = db.session.query(
-                client_items.client_name,
+                sales_by_item.customer,
                 func.sum(client_items.quantity).label('total_inverter_capacity')
             ).filter(
                 client_items.component == 'Inverter',
