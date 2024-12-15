@@ -109,7 +109,7 @@
                     });
 
                     // Update Client Visit Days Chart
-                    const clientNames = client_days_data.map(item => item.Client_Name);
+                    const clientNames = client_days_data.map(item => item.client_name);
                     const uniqueDaysVisited = client_days_data.map(item => item.unique_days_at_client);
 
                     if (clientDaysChart) clientDaysChart.destroy();
@@ -153,7 +153,7 @@
                     });
 
                     // Update Client Employee-Days Chart
-                    const employeeDaysClients = client_employee_days_data.map(item => item.Client_Name);
+                    const employeeDaysClients = client_employee_days_data.map(item => item.client_name);
                     const employeeDaysValues = client_employee_days_data.map(item => item.total_employee_days);
 
                     if (employeeDaysChart) employeeDaysChart.destroy();
