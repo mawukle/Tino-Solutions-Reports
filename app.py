@@ -286,105 +286,59 @@ def team_ranking():
             client_employee_days_data = client_employee_days_data_query.all()
 
             # Query total capacities from client_items for each component
-            # Process inverter data
-            inverter_data = [
-                {
-                    "Client_Name": row.Client_Name,
-                    "total_inverter_capacity": round(row.total_inverter_capacity or 0, 2)
-                }
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity')
-                ).join(
-                    Items_List, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(
-                    client_items.component == 'Inverter',
-                    client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
-            ]
-
-            # Process battery data
-            battery_data = [
-                {
-                    "Client_Name": row.Client_Name,
-                    "total_battery_capacity": round(row.total_battery_capacity or 0, 2)
-                }
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity')
-                ).join(
-                    Items_List, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(
-                    client_items.component == 'Batteries',
-                    client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
-            ]
-
-            # Process solar panel data
-            solar_panel_data = [
-                {
-                    "Client_Name": row.Client_Name,
-                    "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3)
-                }
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity')
-                ).join(
-                    Items_List, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(
-                    client_items.component == 'Solar Panels',
-                    client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
-            ]
-
-            # Query for 'installed_by' data
-            installed_by_data_query = db.session.query(
-                client_items.client_name,
-                client_items.component,
-                client_items.item_description,
-                client_items.quantity,
-                client_items.installed_by
+            inverter_data = db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
             ).filter(
+                client_items.component == 'Inverter',
                 client_items.date.between(start_date, end_date)
-            ).order_by(
-                client_items.client_name, client_items.component
-            )
+            ).group_by(Client_List.Client_Name).all()
 
-            installed_by_data = [
-                {
-                    "Client_Name": row.client_name,
-                    "Component": row.component,
-                    "Item_Description": row.item_description,
-                    "Quantity": row.quantity,
-                    "Installed_By": row.installed_by
-                }
-                for row in installed_by_data_query.all()
-            ]
+            battery_data = db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(
+                client_items.component == 'Batteries',
+                client_items.date.between(start_date, end_date)
+            ).group_by(Client_List.Client_Name).all()
 
+            solar_panel_data = db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(
+                client_items.component == 'Solar Panels',
+                client_items.date.between(start_date, end_date)
+            ).group_by(Client_List.Client_Name).all()
 
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
@@ -476,8 +430,7 @@ def team_ranking():
                     "solar_panel_data": [
                         {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
-                    ],
-                    "installed_by_data": installed_by_data
+                    ]
                 })
             # Render the team ranking page for form submissions
             return render_template(
@@ -488,7 +441,6 @@ def team_ranking():
                 inverter_data=inverter_data,
                 battery_data=battery_data,
                 solar_panel_data=solar_panel_data,
-                installed_by_data=installed_by_data,  # Pass installed_by data to the template
                 start_date=start_date,
                 end_date=end_date
             )

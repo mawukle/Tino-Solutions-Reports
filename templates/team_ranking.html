@@ -104,30 +104,73 @@
         {% endif %}
 
         <!-- Display inverter capacities if available -->
-        {% for data, component in [(inverter_data, "Inverter"), (battery_data, "Battery"), (solar_panel_data, "Solar Panel")] %}
-        {% if data %}
-        <h2>{{ component }} Capacities</h2>
+        {% if inverter_data %}
+        <h2>Inverter Capacities</h2>
         <table>
             <thead>
                 <tr>
                     <th>Client Name</th>
-                    <th>Total {{ component }} Capacity</th>
-                    <th>Installed By</th>
+                    <th>Total Inverter Capacity</th>
                 </tr>
             </thead>
             <tbody>
-                {% for row in data %}
+                {% for inverter in inverter_data %}
                 <tr>
-                    <td>{{ row.Client_Name }}</td>
-                    <td>{{ row.total_{{ component.lower().replace(' ', '_') }}_capacity }}</td>
-                    <td>{{ row.installed_by }}</td>
+                    <td>{{ inverter.Client_Name }}</td>
+                    <td>{{ inverter.total_inverter_capacity }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p>No inverter capacity data available for the selected period.</p>
         {% endif %}
-        {% endfor %}
 
+        <!-- Display battery capacities if available -->
+        {% if battery_data %}
+        <h2>Battery Capacities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Total Battery Capacity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for battery in battery_data %}
+                <tr>
+                    <td>{{ battery.Client_Name }}</td>
+                    <td>{{ battery.total_battery_capacity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No battery capacity data available for the selected period.</p>
+        {% endif %}
+
+        <!-- Display solar panel capacities if available -->
+        {% if solar_panel_data %}
+        <h2>Solar Panel Capacities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Total Solar Panel Capacity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solar_panel in solar_panel_data %}
+                <tr>
+                    <td>{{ solar_panel.Client_Name }}</td>
+                    <td>{{ solar_panel.total_solar_panel_capacity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No solar panel capacity data available for the selected period.</p>
+        {% endif %}
 
     </div>
 </body>
