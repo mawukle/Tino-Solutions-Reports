@@ -261,7 +261,7 @@ def team_ranking():
             client_days_data_query = db.session.query(
                 client_unique_days_query.c.Client_Name,
                 client_unique_days_query.c.unique_days_at_client
-            ).order_by(client_unique_days_query.c.unique_days_at_client.desc())
+            ).filter(client_unique_days_query.c.Client_Name != None).order_by(client_unique_days_query.c.unique_days_at_client.desc())
 
             client_days_data = client_days_data_query.all()
 
@@ -281,7 +281,7 @@ def team_ranking():
             client_employee_days_data_query = db.session.query(
                 employee_days_query.c.Client_Name,
                 employee_days_query.c.total_employee_days
-            ).order_by(employee_days_query.c.total_employee_days.desc())
+            ).filter(employee_days_query.c.Client_Name != None).order_by(employee_days_query.c.total_employee_days.desc())
 
             client_employee_days_data = client_employee_days_data_query.all()
 
