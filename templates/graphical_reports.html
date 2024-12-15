@@ -3,157 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graphical Reports</title>
+    <title>Team Ranking - Graphical Report</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #rankingChart, #clientDaysChart, #employeeDaysChart {
+            width: 100% !important;
+            height: 400px; /* Adjust the height as needed */
+            max-width: 100%;
+            margin: 20px auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container_4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
-        <h1>Graphical Reports</h1>
+        <h1>TEAM RANKING - GRAPHICAL REPORT</h1>
 
         <!-- Form to input start and end dates -->
-        <form method="POST" action="/graphical_reports">
+        <form id="graphicalReportsForm">
             <div id="date_filter">
                 <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+                <input type="date" id="start_date" name="start_date" required>
 
                 <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+                <input type="date" id="end_date" name="end_date" required>
             </div>
-            <button type="submit">Generate Graphs</button>
+            <button type="submit">Get Rankings</button>
         </form>
 
-        <!-- Display graphs based on data -->
-        {% if team_rankings %}
-        <h2>Team Rankings</h2>
-        <canvas id="teamRankingsGraph"></canvas>
+        <!-- Chart Containers -->
+        <div>
+            <canvas id="rankingChart"></canvas>
+        </div>
+        <div>
+            <canvas id="clientDaysChart"></canvas>
+        </div>
+        <div>
+            <canvas id="employeeDaysChart"></canvas>
+        </div>
+
         <script>
-            const ctx1 = document.getElementById('teamRankingsGraph').getContext('2d');
-            new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: {{ team_rankings_labels }},
-                    datasets: [{
-                        label: 'Days Worked',
-                        data: {{ team_rankings_days_worked }},
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
+            const form = document.getElementById('graphicalReportsForm');
+            const rankingCtx = document.getElementById('rankingChart').getContext('2d');
+            const clientDaysCtx = document.getElementById('clientDaysChart').getContext('2d');
+            const employeeDaysCtx = document.getElementById('employeeDaysChart').getContext('2d');
+            let rankingChart, clientDaysChart, employeeDaysChart; // To store the chart instances
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                // Get form data
+                const formData = new FormData(form);
+                const startDate = formData.get('start_date');
+                const endDate = formData.get('end_date');
+
+                try {
+                    // Fetch data via AJAX
+                    const response = await fetch('/team_ranking', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ start_date: startDate, end_date: endDate })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch data');
+
+                    const { team_rankings, client_days_data, client_employee_days_data } = await response.json();
+
+                    // Update Team Rankings Chart
+                    const teamMembers = team_rankings.map(item => item.Team_Member_Name);
+                    const rankingScores = team_rankings.map(item => item.ranking_score);
+
+                    if (rankingChart) rankingChart.destroy();
+                    rankingChart = new Chart(rankingCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: teamMembers,
+                            datasets: [{
+                                label: 'Ranking Score',
+                                data: rankingScores,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Team Ranking Scores' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Client Visit Days Chart
+                    const clientNames = client_days_data.map(item => item.Client_Name);
+                    const uniqueDaysVisited = client_days_data.map(item => item.unique_days_at_client);
+
+                    if (clientDaysChart) clientDaysChart.destroy();
+                    clientDaysChart = new Chart(clientDaysCtx, {
+                        type: 'line',
+                        data: {
+                            labels: clientNames,
+                            datasets: [{
+                                label: 'Unique Days Visited',
+                                data: uniqueDaysVisited,
+                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 2,
+                                tension: 0.4 // Smooth curves
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Client Visit Days' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 10
+                                        },
+                                        autoSkip: false,
+                                        rotation: 90, // Rotate labels vertically
+                                        align: 'center', // Center-align labels
+                                        padding: 5
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false // Avoid cluttering grid lines
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Client Employee-Days Chart
+                    const employeeDaysClients = client_employee_days_data.map(item => item.Client_Name);
+                    const employeeDaysValues = client_employee_days_data.map(item => item.total_employee_days);
+
+                    if (employeeDaysChart) employeeDaysChart.destroy();
+                    employeeDaysChart = new Chart(employeeDaysCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: employeeDaysClients,
+                            datasets: [{
+                                label: 'Employee-Days',
+                                data: employeeDaysValues,
+                                backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: true, text: 'Client Employee-Days' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true },
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 90,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error(error);
+                    alert('Error fetching data for graphical report');
                 }
             });
         </script>
-        {% endif %}
-
-        {% if client_days_data %}
-        <h2>Client Visit Days</h2>
-        <canvas id="clientDaysGraph"></canvas>
-        <script>
-            const ctx2 = document.getElementById('clientDaysGraph').getContext('2d');
-            new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: {{ client_days_labels }},
-                    datasets: [{
-                        label: 'Unique Days Visited',
-                        data: {{ client_days_unique }},
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }]
-                }
-            });
-        </script>
-        {% endif %}
-
-        {% if client_employee_days_data %}
-        <h2>Client Employee-Days</h2>
-        <canvas id="employeeDaysGraph"></canvas>
-        <script>
-            const ctx3 = document.getElementById('employeeDaysGraph').getContext('2d');
-            new Chart(ctx3, {
-                type: 'doughnut',
-                data: {
-                    labels: {{ employee_days_labels }},
-                    datasets: [{
-                        label: 'Employee-Days',
-                        data: {{ employee_days_total }},
-                        backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
-                        borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-                        borderWidth: 1
-                    }]
-                }
-            });
-        </script>
-        {% endif %}
-
-        {% if inverter_data %}
-        <h2>Inverter Capacities</h2>
-        <canvas id="inverterGraph"></canvas>
-        <script>
-            const ctx4 = document.getElementById('inverterGraph').getContext('2d');
-            new Chart(ctx4, {
-                type: 'horizontalBar',
-                data: {
-                    labels: {{ inverter_labels }},
-                    datasets: [{
-                        label: 'Total Inverter Capacity',
-                        data: {{ inverter_total_capacity }},
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                }
-            });
-        </script>
-        {% endif %}
-
-        {% if battery_data %}
-        <h2>Battery Capacities</h2>
-        <canvas id="batteryGraph"></canvas>
-        <script>
-            const ctx5 = document.getElementById('batteryGraph').getContext('2d');
-            new Chart(ctx5, {
-                type: 'line',
-                data: {
-                    labels: {{ battery_labels }},
-                    datasets: [{
-                        label: 'Total Battery Capacity',
-                        data: {{ battery_total_capacity }},
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }]
-                }
-            });
-        </script>
-        {% endif %}
-
-        {% if solar_panel_data %}
-        <h2>Solar Panel Capacities</h2>
-        <canvas id="solarPanelGraph"></canvas>
-        <script>
-            const ctx6 = document.getElementById('solarPanelGraph').getContext('2d');
-            new Chart(ctx6, {
-                type: 'bar',
-                data: {
-                    labels: {{ solar_panel_labels }},
-                    datasets: [{
-                        label: 'Total Solar Panel Capacity',
-                        data: {{ solar_panel_total_capacity }},
-                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                        borderColor: 'rgba(255, 159, 64, 1)',
-                        borderWidth: 1
-                    }]
-                }
-            });
-        </script>
-        {% endif %}
-
     </div>
 </body>
 </html>
