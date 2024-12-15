@@ -287,12 +287,22 @@ def team_ranking():
 
             # Query total capacities from client_items for each component
             inverter_data = db.session.query(
-                sales_by_item.customer,
-                func.sum(sales_by_item.qty_sold).label('total_inverter_capacity')
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
             ).filter(
                 client_items.component == 'Inverter',
                 client_items.date.between(start_date, end_date)
-            ).group_by(sales_by_item.customer).all()
+            ).group_by(Client_List.Client_Name).all()
 
             battery_data = db.session.query(
                 client_items.client_name,
