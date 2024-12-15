@@ -305,21 +305,42 @@ def team_ranking():
             ).group_by(Client_List.Client_Name).all()
 
             battery_data = db.session.query(
-                client_items.client_name,
-                func.sum(client_items.quantity).label('total_battery_capacity')
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
             ).filter(
                 client_items.component == 'Batteries',
                 client_items.date.between(start_date, end_date)
-            ).group_by(client_items.client_name).all()
+            ).group_by(Client_List.Client_Name).all()
 
             solar_panel_data = db.session.query(
-                client_items.client_name,
-                func.sum(client_items.quantity).label('total_solar_panel_capacity')
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
             ).filter(
                 client_items.component == 'Solar Panels',
                 client_items.date.between(start_date, end_date)
-            ).group_by(client_items.client_name).all()
+            ).group_by(Client_List.Client_Name).all()
 
+            
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
