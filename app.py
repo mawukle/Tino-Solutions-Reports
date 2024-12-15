@@ -310,7 +310,7 @@ def team_ranking():
                 ).filter(
                     client_items.component == 'Inverter',
                     client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
+                ).group_by(Client_List.Client_Name).order_by(desc('total_inverter_capacity')).all()
             ]
 
             # Query for Battery data with 'Installed By'
@@ -337,7 +337,7 @@ def team_ranking():
                 ).filter(
                     client_items.component == 'Batteries',
                     client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
+                ).group_by(Client_List.Client_Name).order_by(desc('total_battery_capacity')).all()
             ]
 
             # Query for Solar Panel data with 'Installed By'
@@ -364,7 +364,7 @@ def team_ranking():
                 ).filter(
                     client_items.component == 'Solar Panels',
                     client_items.date.between(start_date, end_date)
-                ).group_by(Client_List.Client_Name).all()
+                ).group_by(Client_List.Client_Name).order_by(desc('total_solar_panel_capacity')).all()
             ]
 
 
