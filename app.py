@@ -225,7 +225,7 @@ def graphical_reports():
         end_date = request.form.get('end_date')
 
         # Fetch data based on the provided dates
-        team_rankings = fetch_team_rankings(start_date, end_date)
+        team_rankings = fetch_team_rankings(start_date, end_date)  # Ensure this function is correctly defined
         client_days_data = fetch_client_days_data(start_date, end_date)
         client_employee_days_data = fetch_client_employee_days_data(start_date, end_date)
         inverter_data = fetch_inverter_data(start_date, end_date)
