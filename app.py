@@ -292,7 +292,7 @@ def team_ranking():
             ).filter(
                 client_items.component == 'Inverter',
                 client_items.date.between(start_date, end_date)
-            ).group_by(Client_List.Client_Name).all()
+            ).group_by(client_items.Client_Name).all()
 
             battery_data = db.session.query(
                 client_items.client_name,
