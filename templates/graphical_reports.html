@@ -3,205 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Ranking - Graphical Report</title>
+    <title>Graphical Reports</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        #rankingChart, #clientDaysChart, #employeeDaysChart {
-            width: 100% !important;
-            height: 400px; /* Adjust the height as needed */
-            max-width: 100%;
-            margin: 20px auto;
-        }
-    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div class="container_4">
+    <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
-        <h1>TEAM RANKING - GRAPHICAL REPORT</h1>
+        <h1>Graphical Reports</h1>
 
         <!-- Form to input start and end dates -->
-        <form id="graphicalReportsForm">
+        <form method="POST" action="/graphical_reports">
             <div id="date_filter">
                 <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" required>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
 
                 <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" required>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
             </div>
-            <button type="submit">Get Rankings</button>
+            <button type="submit">Generate Graphs</button>
         </form>
 
-        <!-- Chart Containers -->
-        <div>
-            <canvas id="rankingChart"></canvas>
+        <!-- Graphs container -->
+        <div id="graphs">
+            <h2>Team Rankings</h2>
+            <canvas id="teamRankingsChart"></canvas>
+
+            <h2>Client Visit Days</h2>
+            <canvas id="clientVisitDaysChart"></canvas>
+
+            <h2>Client Employee-Days</h2>
+            <canvas id="clientEmployeeDaysChart"></canvas>
+
+            <h2>Inverter Capacities</h2>
+            <canvas id="inverterCapacitiesChart"></canvas>
+
+            <h2>Battery Capacities</h2>
+            <canvas id="batteryCapacitiesChart"></canvas>
+
+            <h2>Solar Panel Capacities</h2>
+            <canvas id="solarPanelCapacitiesChart"></canvas>
         </div>
-        <div>
-            <canvas id="clientDaysChart"></canvas>
-        </div>
-        <div>
-            <canvas id="employeeDaysChart"></canvas>
-        </div>
-
-        <script>
-            const form = document.getElementById('graphicalReportsForm');
-            const rankingCtx = document.getElementById('rankingChart').getContext('2d');
-            const clientDaysCtx = document.getElementById('clientDaysChart').getContext('2d');
-            const employeeDaysCtx = document.getElementById('employeeDaysChart').getContext('2d');
-            let rankingChart, clientDaysChart, employeeDaysChart; // To store the chart instances
-
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-
-                // Get form data
-                const formData = new FormData(form);
-                const startDate = formData.get('start_date');
-                const endDate = formData.get('end_date');
-
-                try {
-                    // Fetch data via AJAX
-                    const response = await fetch('/team_ranking', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ start_date: startDate, end_date: endDate })
-                    });
-
-                    if (!response.ok) throw new Error('Failed to fetch data');
-
-                    const data = await response.json();
-                    console.log(data); // Inspect the structure of the response
-                    const { team_rankings, client_days_data, client_employee_days_data } = data;
-
-                    // Debugging step: Log individual arrays
-                    console.log('Team Rankings:', team_rankings);
-                    console.log('Client Days Data:', client_days_data);
-                    console.log('Client Employee Days Data:', client_employee_days_data);
-
-
-                    // Update Team Rankings Chart
-                    const teamMembers = team_rankings.map(item => item.Team_Member_Name);
-                    const rankingScores = team_rankings.map(item => item.ranking_score);
-
-                    if (rankingChart) rankingChart.destroy();
-                    rankingChart = new Chart(rankingCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: teamMembers,
-                            datasets: [{
-                                label: 'Ranking Score',
-                                data: rankingScores,
-                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                title: { display: true, text: 'Team Ranking Scores' }
-                            },
-                            scales: {
-                                y: { beginAtZero: true },
-                                x: {
-                                    ticks: {
-                                        autoSkip: false,
-                                        maxRotation: 90,
-                                        minRotation: 45
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    // Update Client Visit Days Chart
-                    const clientNames = client_days_data.map(item => item.client_name);
-                    const uniqueDaysVisited = client_days_data.map(item => item.unique_days_at_client);
-
-                    if (clientDaysChart) clientDaysChart.destroy();
-                    clientDaysChart = new Chart(clientDaysCtx, {
-                        type: 'line',
-                        data: {
-                            labels: clientNames,
-                            datasets: [{
-                                label: 'Unique Days Visited',
-                                data: uniqueDaysVisited,
-                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                                borderColor: 'rgba(153, 102, 255, 1)',
-                                borderWidth: 2,
-                                tension: 0.4 // Smooth curves
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                title: { display: true, text: 'Client Visit Days' }
-                            },
-                            scales: {
-                                y: { beginAtZero: true },
-                                x: {
-                                    ticks: {
-                                        font: {
-                                            size: 10
-                                        },
-                                        autoSkip: false,
-                                        rotation: 90, // Rotate labels vertically
-                                        align: 'center', // Center-align labels
-                                        padding: 5
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false // Avoid cluttering grid lines
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    // Update Client Employee-Days Chart
-                    const employeeDaysClients = client_employee_days_data.map(item => item.client_name);
-                    const employeeDaysValues = client_employee_days_data.map(item => item.total_employee_days);
-
-                    if (employeeDaysChart) employeeDaysChart.destroy();
-                    employeeDaysChart = new Chart(employeeDaysCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: employeeDaysClients,
-                            datasets: [{
-                                label: 'Employee-Days',
-                                data: employeeDaysValues,
-                                backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                                borderColor: 'rgba(255, 159, 64, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                title: { display: true, text: 'Client Employee-Days' }
-                            },
-                            scales: {
-                                y: { beginAtZero: true },
-                                x: {
-                                    ticks: {
-                                        autoSkip: false,
-                                        maxRotation: 90,
-                                        minRotation: 45
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                } catch (error) {
-                    console.error(error);
-                    alert('Error fetching data for graphical report');
-                }
-            });
-        </script>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data fetched from the backend via Jinja2 templating
+            const teamRankings = {{ team_rankings | safe }};
+            const clientDaysData = {{ client_days_data | safe }};
+            const clientEmployeeDaysData = {{ client_employee_days_data | safe }};
+            const inverterData = {{ inverter_data | safe }};
+            const batteryData = {{ battery_data | safe }};
+            const solarPanelData = {{ solar_panel_data | safe }};
+
+            // Utility function to generate chart
+            function createChart(ctx, labels, data, label, backgroundColor, borderColor) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            backgroundColor: backgroundColor,
+                            borderColor: borderColor,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Team Rankings Chart
+            const teamRankingLabels = teamRankings.map(row => row.Team_Member_Name);
+            const daysWorked = teamRankings.map(row => row.days_worked);
+            const clientsVisited = teamRankings.map(row => row.clients_visited);
+            createChart(
+                document.getElementById('teamRankingsChart').getContext('2d'),
+                teamRankingLabels,
+                daysWorked,
+                'Days Worked',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(75, 192, 192, 1)'
+            );
+
+            // Client Visit Days Chart
+            const clientVisitLabels = clientDaysData.map(client => client.Client_Name);
+            const uniqueDaysVisited = clientDaysData.map(client => client.unique_days_at_client);
+            createChart(
+                document.getElementById('clientVisitDaysChart').getContext('2d'),
+                clientVisitLabels,
+                uniqueDaysVisited,
+                'Unique Days Visited',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(255, 206, 86, 1)'
+            );
+
+            // Client Employee-Days Chart
+            const employeeDaysLabels = clientEmployeeDaysData.map(client => client.Client_Name);
+            const employeeDays = clientEmployeeDaysData.map(client => client.total_employee_days);
+            createChart(
+                document.getElementById('clientEmployeeDaysChart').getContext('2d'),
+                employeeDaysLabels,
+                employeeDays,
+                'Employee-Days',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(153, 102, 255, 1)'
+            );
+
+            // Inverter Capacities Chart
+            const inverterLabels = inverterData.map(inverter => inverter.Client_Name);
+            const inverterCapacities = inverterData.map(inverter => inverter.total_inverter_capacity);
+            createChart(
+                document.getElementById('inverterCapacitiesChart').getContext('2d'),
+                inverterLabels,
+                inverterCapacities,
+                'Inverter Capacities',
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(255, 99, 132, 1)'
+            );
+
+            // Battery Capacities Chart
+            const batteryLabels = batteryData.map(battery => battery.Client_Name);
+            const batteryCapacities = batteryData.map(battery => battery.total_battery_capacity);
+            createChart(
+                document.getElementById('batteryCapacitiesChart').getContext('2d'),
+                batteryLabels,
+                batteryCapacities,
+                'Battery Capacities',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(54, 162, 235, 1)'
+            );
+
+            // Solar Panel Capacities Chart
+            const solarPanelLabels = solarPanelData.map(panel => panel.Client_Name);
+            const solarPanelCapacities = solarPanelData.map(panel => panel.total_solar_panel_capacity);
+            createChart(
+                document.getElementById('solarPanelCapacitiesChart').getContext('2d'),
+                solarPanelLabels,
+                solarPanelCapacities,
+                'Solar Panel Capacities',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(75, 192, 192, 1)'
+            );
+        });
+    </script>
 </body>
 </html>
