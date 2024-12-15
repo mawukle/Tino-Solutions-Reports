@@ -296,7 +296,7 @@ def team_ranking():
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity'),
-                    func.max(client_items.installed_by).label('installed_by')
+                    func.max(client_items.installed_by).label('Installed_By')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
@@ -323,7 +323,7 @@ def team_ranking():
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity'),
-                    func.max(client_items.installed_by).label('installed_by')
+                    func.max(client_items.installed_by).label('Installed_By')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
@@ -350,7 +350,7 @@ def team_ranking():
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
-                    func.max(client_items.installed_by).label('installed_by')
+                    func.max(client_items.installed_by).label('Installed_By')
                 ).join(
                     Items_List, or_(
                         client_items.item_description == Items_List.Item_Description,
