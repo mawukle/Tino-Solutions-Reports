@@ -287,12 +287,12 @@ def team_ranking():
 
             # Query total capacities from client_items for each component
             inverter_data = db.session.query(
-                client_items.client_name,
+                Client_List.Client_Name,
                 func.sum(client_items.quantity).label('total_inverter_capacity')
             ).filter(
                 client_items.component == 'Inverter',
                 client_items.date.between(start_date, end_date)
-            ).group_by(client_items.client_name).all()
+            ).group_by(Client_List.Client_Name).all()
 
             battery_data = db.session.query(
                 client_items.client_name,
@@ -390,15 +390,15 @@ def team_ranking():
                         for row in client_employee_days_data
                     ],
                     "inverter_data": [
-                        {"Client_Name": row.client_name, "total_inverter_capacity": row.total_inverter_capacity}
+                        {"Client_Name": row.Client_Name, "total_inverter_capacity": row.total_inverter_capacity}
                         for row in inverter_data
                     ],
                     "battery_data": [
-                        {"Client_Name": row.client_name, "total_battery_capacity": row.total_battery_capacity}
+                        {"Client_Name": row.Client_Name, "total_battery_capacity": row.total_battery_capacity}
                         for row in battery_data
                     ],
                     "solar_panel_data": [
-                        {"Client_Name": row.client_name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
+                        {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
                     ]
                 })
