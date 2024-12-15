@@ -263,10 +263,7 @@ def team_ranking():
                 client_unique_days_query.columns.unique_days_at_client
             ).filter(client_unique_days_query.columns.Client_Name != None).order_by(client_unique_days_query.columns.unique_days_at_client.desc())
 
-            client_days_data = [
-                {"Client_Name": row['Client_Name'], "unique_days_at_client": row['unique_days_at_client']}
-                for row in client_days_data_query.all()
-            ]
+            client_days_data = client_days_data_query.all()
 
             # Ensure that Client_Name is not None
             client_days_data = [
@@ -294,17 +291,14 @@ def team_ranking():
                 employee_days_query.columns.total_employee_days
             ).filter(employee_days_query.columns.Client_Name != None).order_by(employee_days_query.columns.total_employee_days.desc())
 
-            client_employee_days_data = [
-                {"Client_Name": row['Client_Name'], "total_employee_days": row['total_employee_days']}
-                for row in client_employee_days_data_query.all()
-            ]
+            client_employee_days_data = client_employee_days_data_query.all()
 
 
             # Query for Inverter data with 'Installed By'
             inverter_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_inverter_capacity": round(row['total_inverter_capacity'] or 0, 2),
+                    "total_inverter_capacity": round(row.total_inverter_capacity or 0, 2),
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
@@ -331,7 +325,7 @@ def team_ranking():
             battery_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_battery_capacity": round(row['total_battery_capacity'] or 0, 2),
+                    "total_battery_capacity": round(row.total_battery_capacity or 0, 2),
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
@@ -358,7 +352,7 @@ def team_ranking():
             solar_panel_data = [
                 {
                     "Client_Name": row.Client_Name,
-                    "total_solar_panel_capacity": round(row['total_solar_panel_capacity'] or 0, 3),
+                    "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3),
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
@@ -447,31 +441,31 @@ def team_ranking():
                 return jsonify({
                     "team_rankings": [
                         {
-                            "Team_Member_Name": row['Team_Member_Name'],
-                            "days_worked": row['days_worked'],
-                            "clients_visited": row['clients_visited'],
-                            "total_days_at_clients": row['total_days_at_clients'],
-                            "ranking_score": row['ranking_score']
+                            "Team_Member_Name": row.Team_Member_Name,
+                            "days_worked": row.days_worked,
+                            "clients_visited": row.clients_visited,
+                            "total_days_at_clients": row.total_days_at_clients,
+                            "ranking_score": row.ranking_score
                         } for row in team_rankings
                     ],
                     "client_days_data": [
-                        {"Client_Name": row['Client_Name'], "unique_days_at_client": row['unique_days_at_client']}
+                        {"Client_Name": row.Client_Name, "unique_days_at_client": row.unique_days_at_client}
                         for row in client_days_data
                     ],
                     "client_employee_days_data": [
-                        {"Client_Name": row['Client_Name'], "total_employee_days": row['total_employee_days']}
+                        {"Client_Name": row.Client_Name, "total_employee_days": row.total_employee_days}
                         for row in client_employee_days_data
                     ],
                     "inverter_data": [
-                        {"Client_Name": row['Client_Name'], "total_inverter_capacity": row['total_inverter_capacity']}
+                        {"Client_Name": row.Client_Name, "total_inverter_capacity": row.total_inverter_capacity}
                         for row in inverter_data
                     ],
                     "battery_data": [
-                        {"Client_Name": row['Client_Name'], "total_battery_capacity": row['total_battery_capacity']}
+                        {"Client_Name": row.Client_Name, "total_battery_capacity": row.total_battery_capacity}
                         for row in battery_data
                     ],
                     "solar_panel_data": [
-                        {"Client_Name": row['Client_Name'], "total_solar_panel_capacity": row['total_solar_panel_capacity']}
+                        {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
                     ]
                 })
