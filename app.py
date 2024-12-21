@@ -286,12 +286,19 @@ def graphical_reports():
 
             battery_data = db.session.execute(
                 text("""
-                SELECT ci.Client_Name,
-                       SUM(ci.quantity) AS total_battery_capacity,
+                SELECT cl.Client_Name,
+                       ROUND(SUM(ci.quantity * il.kWh), 2) AS total_battery_capacity,
                        ci.installed_by
                 FROM client_items ci
-                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
-                GROUP BY ci.Client_Name, ci.installed_by
+                JOIN Items_List il
+                  ON ci.item_description = il.Item_Description
+                     OR ci.item_description = il.Alias_Description
+                JOIN Client_List cl
+                  ON ci.client_name = cl.Client_Name
+                     OR ci.client_name = cl.Alias_Name
+                WHERE ci.component = 'Batteries'
+                  AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY cl.Client_Name, ci.installed_by
                 ORDER BY total_battery_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
