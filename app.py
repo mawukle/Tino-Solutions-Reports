@@ -306,12 +306,14 @@ def graphical_reports():
 
             solar_panel_data = db.session.execute(
                 text("""
-                SELECT ci.Client_Name,
-                       SUM(ci.quantity) AS total_solar_panel_capacity,
+                SELECT cl.Client_Name,
+                       ROUND(SUM(ci.quantity * il.kVA_kW), 3) AS total_solar_panel_capacity,
                        ci.installed_by
                 FROM client_items ci
-                WHERE ci.component = 'Solar Panel' AND ci.date BETWEEN :start_date AND :end_date
-                GROUP BY ci.Client_Name, ci.installed_by
+                JOIN Items_List il ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
+                JOIN Client_List cl ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
+                WHERE ci.component = 'Solar Panels' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY cl.Client_Name, ci.installed_by
                 ORDER BY total_solar_panel_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
@@ -453,21 +455,31 @@ def team_ranking():
             ]
 
             # Query for Solar Panel data with 'Installed By'
-            solar_panel_data = db.session.execute(
-                text("""
-                SELECT cl.Client_Name,
-                       ROUND(SUM(ci.quantity * il.kVA_kW), 3) AS total_solar_panel_capacity,
-                       ci.installed_by
-                FROM client_items ci
-                JOIN Items_List il ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
-                JOIN Client_List cl ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
-                WHERE ci.component = 'Solar Panels' AND ci.date BETWEEN :start_date AND :end_date
-                GROUP BY cl.Client_Name, ci.installed_by
-                ORDER BY total_solar_panel_capacity DESC
-                """),
-                {'start_date': start_date, 'end_date': end_date}
-            ).fetchall()
-
+            solar_panel_data = [
+                {
+                    "Client_Name": row.Client_Name,
+                    "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3),
+                    "installed_by": row.installed_by
+                }
+                for row in db.session.query(
+                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
+                    func.max(client_items.installed_by).label('installed_by')
+                ).join(
+                    Items_List, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).join(
+                    Client_List, or_(
+                        client_items.client_name == Client_List.Client_Name,
+                        client_items.client_name == Client_List.Alias_Name
+                    )
+                ).filter(
+                    client_items.component == 'Solar Panels',
+                    client_items.date.between(start_date, end_date)
+                ).group_by(Client_List.Client_Name).order_by(desc('total_solar_panel_capacity')).all()
+            ]
 
 
 
