@@ -255,6 +255,10 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
+            # Convert query results into a JSON-serializable format
+            team_rankings = [dict(row) for row in team_rankings]
+
+
             client_days_data = db.session.execute(
                 text("""
                 SELECT jt.Client_Name,
@@ -266,6 +270,10 @@ def graphical_reports():
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
+
+                        # Convert query results into a JSON-serializable format
+            client_days_data = [dict(row) for row in client_days_data]
+
 
             inverter_data = db.session.execute(
                 text("""
