@@ -24,6 +24,36 @@
             max-width: 100%;
             margin: 20px auto;
         }
+
+        /* Ensure legends span full width */
+        .chart-legend {
+            width: 100%;
+            text-align: center;
+        }
+
+        .chart-legend ul {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chart-legend li {
+            margin: 5px 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-legend li span {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+
     </style>
 
 </head>
