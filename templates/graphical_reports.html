@@ -116,7 +116,7 @@
             // Create labels that include both the client name and the unique days visited
             const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
                 const uniqueDays = clientVisitDaysData.datasets[0].data[index];
-                return `${label} (${uniqueDays} days)`;
+                return `${uniqueDays} - ${label}`;
             });
 
             const clientVisitDaysConfig = {
