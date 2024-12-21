@@ -8,26 +8,32 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Ensures the chart canvas takes up full width */
-        #rankingChart {
+        /* General Styles */
+        .chart-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 20px 0;
+        }
+
+        .chart-canvas {
+            flex: 1;
+            max-width: 400px;
+            max-height: 400px;
+        }
+
+        .chart-legend {
+            flex: 1;
+            margin-left: 20px;
+            overflow: auto;
+        }
+
+        #teamRankingChart {
             width: 100% !important;
-            height: auto; /* Adjust the height as needed */
-            max-width: 100%;
+            height: auto;
             margin: 20px auto;
         }
-/*    </style>
-    <style>
-        /* Adjust the size of pie and doughnut charts */
-        #clientVisitDaysChart, #inverterChart {
-            width: 100% !important; /* Reduce width by 50% */
-            height: 50% !important; /* Reduce height by 50% */
-            max-height: 400px;
-            max-width: 100%;
-            margin: 5px auto;
-        }
-
     </style>
-
 </head>
 <body>
     <div class="container_4">
@@ -47,7 +53,7 @@
             <button type="submit">Generate Graphs</button>
         </form>
 
-        <!-- Graph for Team Rankings -->
+        <!-- Team Rankings Graph -->
         {% if team_rankings %}
         <h2>Team Rankings</h2>
         <canvas id="teamRankingChart"></canvas>
@@ -72,166 +78,96 @@
                 ]
             };
 
-            const teamRankingConfig = {
+            new Chart(document.getElementById('teamRankingChart'), {
                 type: 'bar',
                 data: teamRankingData,
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        }
+                        legend: { position: 'top' }
                     }
                 }
-            };
-
-            new Chart(
-                document.getElementById('teamRankingChart'),
-                teamRankingConfig
-            );
+            });
         </script>
         {% endif %}
 
-        <!-- Graph for Client Visit Days -->
+        <!-- Client Visit Days Graph -->
         {% if client_days_data %}
         <h2>Client Visit Days</h2>
-        <canvas id="clientVisitDaysChart"></canvas>
+        <div class="chart-container">
+            <canvas id="clientVisitDaysChart" class="chart-canvas"></canvas>
+            <div class="chart-legend">
+                <ul id="clientVisitDaysLegend"></ul>
+            </div>
+        </div>
         <script>
             const clientVisitDaysData = {
                 labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
-                datasets: [
-                    {
-                        label: 'Unique Days Visited',
-                        data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
-                        backgroundColor: [], // Will be populated dynamically
-                        borderColor: 'rgba(255, 159, 64, 1)',
-                        borderWidth: 1
-                    }
-                ]
+                datasets: [{
+                    label: 'Unique Days Visited',
+                    data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
+                    backgroundColor: generateColors({{ client_days_data | length }}),
+                    borderWidth: 1
+                }]
             };
 
-            // Generate up to 60 distinct colors
-            const generateColors = (n) => {
-                let colors = [];
-                for (let i = 0; i < n; i++) {
-                    const hue = (i * 360 / n); // Spread hues evenly
-                    colors.push(`hsl(${hue}, 70%, 70%)`);
-                }
-                return colors;
-            };
-
-            const colors = generateColors(80);
-            let counter = 0;
-            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
-
-            // Create labels that include both the client name and the unique days visited
-            const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
-                const uniqueDays = clientVisitDaysData.datasets[0].data[index];
-                return `${uniqueDays}: ${label}`;
-            });
-
-            const clientVisitDaysConfig = {
+            new Chart(document.getElementById('clientVisitDaysChart'), {
                 type: 'pie',
-                data: {
-                    labels: modifiedLabels,
-                    datasets: clientVisitDaysData.datasets
-                },
+                data: clientVisitDaysData,
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
                             position: 'right',
                             labels: {
-                                usePointStyle: true, // Makes the legend markers circular
-                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
                             }
-
                         }
                     }
                 }
-            };
-
-            new Chart(
-                document.getElementById('clientVisitDaysChart'),
-                clientVisitDaysConfig
-            );
+            });
         </script>
-
         {% endif %}
 
-
-
-        <!-- Graph for Inverter Capacities -->
+        <!-- Inverter Capacities Graph -->
         {% if inverter_data %}
         <h2>Inverter Capacities</h2>
-        <canvas id="inverterChart"></canvas>
+        <div class="chart-container">
+            <canvas id="inverterChart" class="chart-canvas"></canvas>
+            <div class="chart-legend">
+                <ul id="inverterLegend"></ul>
+            </div>
+        </div>
         <script>
             const inverterData = {
                 labels: {{ inverter_data | map(attribute='Client_Name') | list | tojson }},
-                datasets: [
-                    {
-                        label: 'Total Inverter Capacity',
-                        data: {{ inverter_data | map(attribute='total_inverter_capacity') | list | tojson }},
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }
-                ]
+                datasets: [{
+                    label: 'Total Inverter Capacity',
+                    data: {{ inverter_data | map(attribute='total_inverter_capacity') | list | tojson }},
+                    backgroundColor: generateColors({{ inverter_data | length }}),
+                    borderWidth: 1
+                }]
             };
 
-            // Generate up to 60 distinct colours
-            const generateColor = (n) => {
-                let colour = [];
-                for (let i = 0; i < n; i++) {
-                    const hue = (i * 360 / n); // Spread hues evenly
-                    colour.push(`hsl(${hue}, 70%, 70%)`);
-                }
-                return colour;
-            };
-
-            const colour = generateColor(80);
-            let count = 0;
-            //inverterData.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
-
-            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colour[count++ % colour.length]);
-
-            // Create labels that include both the client name and the Inverter Capacities
-            const modifiedLabel = inverterData.labels.map((label, index) => {
-                const inverterCapacity = inverterData.datasets[0].data[index];
-                return `${inverterCapacity}: ${label}`;
-            });
-
-            const inverterConfig = {
+            new Chart(document.getElementById('inverterChart'), {
                 type: 'doughnut',
-                data: {
-                    labels: modifiedLabel,
-                    datasets: inverterData.datasets
-                },
+                data: inverterData,
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
                             position: 'right',
                             labels: {
-                                usePointStyle: true, // Makes the legend markers circular
-                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
                             }
-
                         }
                     }
                 }
-            };
-
-            new Chart(
-                document.getElementById('inverterChart'),
-                inverterConfig
-            );
+            });
         </script>
-
         {% endif %}
-
-        <!-- Add similar graph sections for battery_data and solar_panel_data -->
-
     </div>
 </body>
 </html>
