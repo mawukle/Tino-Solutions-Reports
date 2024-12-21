@@ -161,12 +161,26 @@
                     {
                         label: 'Total Inverter Capacity',
                         data: {{ inverter_data | map(attribute='total_inverter_capacity') | list | tojson }},
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        backgroundColor: [], // Will be populated dynamically
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }
                 ]
             };
+
+            // Generate up to 80 distinct colors
+            const generateColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
+            const colors = generateColors(80);
+            let counter = 0;
+            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colors[counter++ % colors.length]);
 
             const inverterConfig = {
                 type: 'doughnut',
@@ -175,7 +189,11 @@
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                            }
                         }
                     }
                 }
@@ -187,6 +205,7 @@
             );
         </script>
         {% endif %}
+
 
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
 
