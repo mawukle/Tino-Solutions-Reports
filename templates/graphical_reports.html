@@ -7,9 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Ensures the chart canvas takes up full width */
+        #rankingChart {
+            width: 100% !important;
+            height: 400px; /* Adjust the height as needed */
+            max-width: 100%;
+            margin: 20px auto;
+        }
+    </style>
+
 </head>
 <body>
-    <div class="container">
+    <div class="container_4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
         <a href="{{ url_for('index') }}" class="back-link">The Renewable Energy Experts</a>
         <h1>Graphical Reports</h1>
