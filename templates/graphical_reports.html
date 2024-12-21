@@ -173,11 +173,17 @@
                                 usePointStyle: true, // Makes the legend markers circular
                                 pointStyle: 'rectRounded', // Overrides to make them small rounded squares
                             }
-
-                        }
-                    }
-                }
+                            onClick: null, // Disable legend clicks if needed
+                        },
+                    },
+                    layout: {
+                        padding: {
+                            bottom: 20,
+                        },
+                    },
+                },
             };
+
 
             new Chart(
                 document.getElementById('clientVisitDaysChart'),
