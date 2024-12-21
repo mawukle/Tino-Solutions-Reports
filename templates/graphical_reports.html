@@ -168,14 +168,42 @@
                 ]
             };
 
+            // Generate up to 60 distinct colors
+            const generateColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
+            const colors = generateColors(80);
+            let counter = 0;
+            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colors[counter++ % colors.length]);
+
+            // Create labels that include both the client name and the Inverter Capacities
+            const modifiedLabels = inverterData.labels.map((label, index) => {
+                const inverterCapacity = inverterData.datasets[0].data[index];
+                return `${inverterCapacity}: ${label}`;
+            });
+
             const inverterConfig = {
                 type: 'doughnut',
-                data: inverterData,
+                data: {
+                    labels: modifiedLabels,
+                    datasets: inverterData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
                             position: 'bottom',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                            }
+
                         }
                     }
                 }
@@ -186,6 +214,7 @@
                 inverterConfig
             );
         </script>
+
         {% endif %}
 
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
