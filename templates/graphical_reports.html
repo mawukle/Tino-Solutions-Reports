@@ -230,6 +230,88 @@
 
         {% endif %}
 
+        <!-- Graph for Battery Capacities -->
+        {% if battery_data %}
+        <h2>Battery Capacities</h2>
+        <canvas id="batteryChart"></canvas>
+        <script>
+            const batteryData = {
+                labels: {{ battery_data | map(attribute='Client_Name') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'Total Battery Capacity',
+                        data: {{ battery_data | map(attribute='total_battery_capacity') | list | tojson }},
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const batteryConfig = {
+                type: 'bar',
+                data: batteryData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('batteryChart'),
+                batteryConfig
+            );
+        </script>
+        {% endif %}
+
+        <!-- Graph for Solar Panel Capacities -->
+        {% if solar_panel_data %}
+        <h2>Solar Panel Capacities</h2>
+        <canvas id="solarPanelChart"></canvas>
+        <script>
+            const solarPanelData = {
+                labels: {{ solar_panel_data | map(attribute='Client_Name') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'Total Solar Panel Capacity',
+                        data: {{ solar_panel_data | map(attribute='total_solar_panel_capacity') | list | tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const solarPanelConfig = {
+                type: 'doughnut',
+                data: solarPanelData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('solarPanelChart'),
+                solarPanelConfig
+            );
+        </script>
+        {% endif %}
+
+
+
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
 
     </div>
