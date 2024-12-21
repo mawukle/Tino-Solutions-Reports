@@ -99,9 +99,16 @@
                 ]
             };
 
+            // Counter for unique client numbers
+            let counter = 1;
+            const modifiedLabels = clientVisitDaysData.labels.map(label => `${counter++}. ${label}`);
+
             const clientVisitDaysConfig = {
                 type: 'pie',
-                data: clientVisitDaysData,
+                data: {
+                    labels: modifiedLabels,
+                    datasets: clientVisitDaysData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
@@ -118,6 +125,7 @@
             );
         </script>
         {% endif %}
+
 
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
