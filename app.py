@@ -230,12 +230,10 @@ def graphical_reports():
     solar_panel_data = []
 
     if request.method == 'POST':
-        # Get start and end dates from the form
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
         if start_date and end_date:
-            # Query the database to get data for each table
             team_rankings = db.session.execute(
                 text("""
                 SELECT tm.Team_Member_Name,
@@ -248,6 +246,7 @@ def graphical_reports():
                 LEFT JOIN Job_Tracking jt ON jtm.Job_ID = jt.Job_ID
                 WHERE jt.Date BETWEEN :start_date AND :end_date
                 GROUP BY tm.Team_Member_Name
+                ORDER BY ranking_score DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
@@ -259,6 +258,7 @@ def graphical_reports():
                 FROM Job_Tracking jt
                 WHERE jt.Date BETWEEN :start_date AND :end_date
                 GROUP BY jt.Client_Name
+                ORDER BY unique_days_at_client DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
@@ -271,6 +271,7 @@ def graphical_reports():
                 FROM client_items ci
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
+                ORDER BY total_inverter_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
@@ -283,6 +284,7 @@ def graphical_reports():
                 FROM client_items ci
                 WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
+                ORDER BY total_battery_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
@@ -295,6 +297,7 @@ def graphical_reports():
                 FROM client_items ci
                 WHERE ci.component = 'Solar Panel' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
+                ORDER BY total_solar_panel_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
