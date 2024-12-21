@@ -99,20 +99,13 @@
                 ]
             };
 
-            // Generate up to 60 unique colors
-            const generateColors = (count) => {
-                let colors = [];
-                for (let i = 0; i < count; i++) {
-                    let hue = i * (360 / count);
-                    colors.push(`hsl(${hue}, 70%, 50%)`);
-                }
-                return colors;
-            };
-
-            clientVisitDaysData.datasets[0].backgroundColor = generateColors(clientVisitDaysData.labels.length);
+            // Assign multiple colors to the segments
+            const colors = ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'];
+            let counter = 0;
+            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
 
             // Counter for unique client numbers
-            let counter = 1;
+            counter = 1;
             const modifiedLabels = clientVisitDaysData.labels.map(label => `${counter++}. ${label}`);
 
             const clientVisitDaysConfig = {
