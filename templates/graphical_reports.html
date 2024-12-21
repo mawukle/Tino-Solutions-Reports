@@ -20,10 +20,17 @@
         /* Adjust the size of pie and doughnut charts */
         #clientVisitDaysChart, #inverterChart {
             width: 50% !important; /* Reduce width by 50% */
-            height: 50% !important; /* Reduce height by 50% */
+            height: 200px !important; /* Reduce height by 50% */
             max-width: 100%;
             margin: 20px auto;
         }
+        /* Ensure legends span the default width */
+        .chart-legend {
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
     </style>
 
 </head>
@@ -136,14 +143,16 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, // Allow resizing
                     plugins: {
                         legend: {
                             position: 'bottom',
+                            fullSize: true, // Extend legend width
                             labels: {
-                                usePointStyle: true, // Makes the legend markers circular
-                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                                usePointStyle: true, // Circular legend markers
+                                pointStyle: 'rectRounded', // Rounded squares
+                                padding: 20 // Adjust spacing for better layout
                             }
-
                         }
                     }
                 }
@@ -207,14 +216,16 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, // Allow resizing
                     plugins: {
                         legend: {
                             position: 'bottom',
+                            fullSize: true, // Extend legend width
                             labels: {
-                                usePointStyle: true, // Makes the legend markers circular
-                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                                usePointStyle: true, // Circular legend markers
+                                pointStyle: 'rectRounded', // Rounded squares
+                                padding: 20 // Adjust spacing for better layout
                             }
-
                         }
                     }
                 }
