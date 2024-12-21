@@ -240,7 +240,11 @@ def graphical_reports():
                        COUNT(DISTINCT jt.Date) AS days_worked,
                        COUNT(DISTINCT jt.Client_Unique_ID) AS clients_visited,
                        SUM(jt.Percentage_Completion / 100) AS total_days_at_clients,
-                       SUM(jt.Percentage_Completion / 100) * COUNT(DISTINCT jt.Client_Unique_ID) AS ranking_score
+                       (
+                           COUNT(DISTINCT jt.Date) +
+                           COUNT(DISTINCT jt.Client_Unique_ID) /
+                           COALESCE(SUM(jt.Percentage_Completion / 100), 1)
+                       ) AS ranking_score
                 FROM Team_Members tm
                 LEFT JOIN job_team_members jtm ON tm.Team_Member_ID = jtm.Team_Member_ID
                 LEFT JOIN Job_Tracking jt ON jtm.Job_ID = jt.Job_ID
