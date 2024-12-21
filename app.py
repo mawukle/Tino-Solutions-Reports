@@ -234,8 +234,7 @@ def graphical_reports():
         end_date = request.form.get('end_date')
 
         if start_date and end_date:
-            # Debugging - Inspect SQL Query Results
-            team_rankings_raw = db.session.execute(
+            team_rankings = db.session.execute(
                 text("""
                 SELECT tm.Team_Member_Name,
                        COUNT(DISTINCT jt.Date) AS days_worked,
@@ -256,19 +255,7 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            # Debugging - Print Raw Query Results
-            print(f"Raw team_rankings result: {team_rankings_raw}")
-
-            # Convert query results into a JSON-serializable format
-            team_rankings = [dict(row) for row in team_rankings_raw]
-
-            # Validate the length of each row
-            for row in team_rankings:
-                print(f"Number of columns in row: {len(row)}")
-                if len(row) != 5:  # Ensure the expected number of columns is consistent
-                    print(f"Unexpected row length: {len(row)}")
-
-            client_days_raw = db.session.execute(
+            client_days_data = db.session.execute(
                 text("""
                 SELECT jt.Client_Name,
                        COUNT(DISTINCT jt.Date) AS unique_days_at_client
@@ -280,9 +267,7 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            client_days_data = [dict(row) for row in client_days_raw]
-
-            inverter_data_raw = db.session.execute(
+            inverter_data = db.session.execute(
                 text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_inverter_capacity,
@@ -295,9 +280,7 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            inverter_data = [dict(row) for row in inverter_data_raw]
-
-            battery_data_raw = db.session.execute(
+            battery_data = db.session.execute(
                 text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_battery_capacity,
@@ -310,9 +293,7 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            battery_data = [dict(row) for row in battery_data_raw]
-
-            solar_panel_data_raw = db.session.execute(
+            solar_panel_data = db.session.execute(
                 text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_solar_panel_capacity,
@@ -325,8 +306,6 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            solar_panel_data = [dict(row) for row in solar_panel_data_raw]
-
     return render_template(
         'graphical_reports.html',
         start_date=start_date,
@@ -337,7 +316,6 @@ def graphical_reports():
         battery_data=battery_data,
         solar_panel_data=solar_panel_data
     )
-
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():

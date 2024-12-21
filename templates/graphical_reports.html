@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
     <style>
         /* Ensures the chart canvas takes up full width */
         #rankingChart {
@@ -84,18 +83,15 @@
 
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
-        <h2>Client Visit Days (Top 20)</h2>
+        <h2>Client Visit Days</h2>
         <canvas id="clientVisitDaysChart"></canvas>
         <script>
-            // Sort and Limit Data
-            const sortedClientData = {{ client_days_data | list | tojson }}.sort((a, b) => b.unique_days_at_client - a.unique_days_at_client).slice(0, 20);
-
             const clientVisitDaysData = {
-                labels: sortedClientData.map(item => item.Client_Name),
+                labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
                 datasets: [
                     {
                         label: 'Unique Days Visited',
-                        data: sortedClientData.map(item => item.unique_days_at_client),
+                        data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
                         backgroundColor: 'rgba(255, 159, 64, 0.6)',
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
@@ -104,28 +100,14 @@
             };
 
             const clientVisitDaysConfig = {
-                type: 'bar',
+                type: 'pie',
                 data: clientVisitDaysData,
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { enabled: true },
-                        zoom: {
-                            zoom: {
-                                wheel: { enabled: true },
-                                pinch: { enabled: true },
-                                mode: 'x'
-                            },
-                            pan: {
-                                enabled: true,
-                                mode: 'x'
-                            }
+                        legend: {
+                            position: 'bottom',
                         }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Clients' } },
-                        y: { title: { display: true, text: 'Days Visited' } }
                     }
                 }
             };
@@ -139,18 +121,15 @@
 
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
-        <h2>Inverter Capacities (Top 20)</h2>
+        <h2>Inverter Capacities</h2>
         <canvas id="inverterChart"></canvas>
         <script>
-            // Sort and Limit Data
-            const sortedInverterData = {{ inverter_data | list | tojson }}.sort((a, b) => b.total_inverter_capacity - a.total_inverter_capacity).slice(0, 20);
-
             const inverterData = {
-                labels: sortedInverterData.map(item => item.Client_Name),
+                labels: {{ inverter_data | map(attribute='Client_Name') | list | tojson }},
                 datasets: [
                     {
                         label: 'Total Inverter Capacity',
-                        data: sortedInverterData.map(item => item.total_inverter_capacity),
+                        data: {{ inverter_data | map(attribute='total_inverter_capacity') | list | tojson }},
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -159,28 +138,14 @@
             };
 
             const inverterConfig = {
-                type: 'bar',
+                type: 'doughnut',
                 data: inverterData,
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { enabled: true },
-                        zoom: {
-                            zoom: {
-                                wheel: { enabled: true },
-                                pinch: { enabled: true },
-                                mode: 'x'
-                            },
-                            pan: {
-                                enabled: true,
-                                mode: 'x'
-                            }
+                        legend: {
+                            position: 'right',
                         }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Clients' } },
-                        y: { title: { display: true, text: 'Inverter Capacity (kW)' } }
                     }
                 }
             };
@@ -191,6 +156,9 @@
             );
         </script>
         {% endif %}
+
+        <!-- Add similar graph sections for battery_data and solar_panel_data -->
+
     </div>
 </body>
 </html>
