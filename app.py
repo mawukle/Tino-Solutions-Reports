@@ -273,9 +273,9 @@ def graphical_reports():
                        ROUND(SUM(ci.quantity * il.kVA_kW), 2) AS total_inverter_capacity,
                        ci.installed_by
                 FROM client_items ci
-                JOIN items_list il
+                JOIN Items_List il
                   ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
-                JOIN client_list cl
+                JOIN Client_List cl
                   ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY cl.Client_Name, ci.installed_by
