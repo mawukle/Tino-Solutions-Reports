@@ -18,42 +18,13 @@
 /*    </style>
     <style>
         /* Adjust the size of pie and doughnut charts */
-        #clientVisitDaysChart, #inverterChart {
+/*        #clientVisitDaysChart, #inverterChart {
             width: 50% !important; /* Reduce width by 50% */
-            height: 50% !important; /* Reduce height by 50% */
-            max-width: 100%;
+  /*          height: 50% !important; /* Reduce height by 50% */
+    /*        max-width: 100%;
             margin: 20px auto;
         }
-
-        /* Ensure legends span full width */
-        .chart-legend {
-            width: 100%;
-            text-align: center;
-        }
-
-        .chart-legend ul {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .chart-legend li {
-            margin: 5px 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .chart-legend li span {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-right: 5px;
-            border-radius: 50%;
-        }
-
+  */
     </style>
 
 </head>
@@ -168,22 +139,16 @@
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'right',
                             labels: {
                                 usePointStyle: true, // Makes the legend markers circular
                                 pointStyle: 'rectRounded', // Overrides to make them small rounded squares
                             }
-                            onClick: null, // Disable legend clicks if needed
-                        },
-                    },
-                    layout: {
-                        padding: {
-                            bottom: 20,
-                        },
-                    },
-                },
-            };
 
+                        }
+                    }
+                }
+            };
 
             new Chart(
                 document.getElementById('clientVisitDaysChart'),
@@ -245,7 +210,7 @@
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'right',
                             labels: {
                                 usePointStyle: true, // Makes the legend markers circular
                                 pointStyle: 'rectRounded', // Overrides to make them small rounded squares
