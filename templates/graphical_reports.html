@@ -124,14 +124,34 @@
                 }
             };
 
+            // Custom plugin for displaying numbers inside pie segments
+            Chart.register({
+                id: 'customText',
+                beforeDraw: function(chart) {
+                    const { ctx, data } = chart;
+                    const { customText } = chart.config.options.plugins;
+                    if (customText) {
+                        ctx.save();
+                        const fontSize = (chart.height / 100).toFixed(2);
+                        ctx.font = `${fontSize}em sans-serif`;
+                        ctx.fillStyle = '#000';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        data.labels.forEach((label, i) => {
+                            const model = chart.getDatasetMeta(0).data[i]._model;
+                            ctx.fillText(customText.text[i], model.x, model.y);
+                        });
+                        ctx.restore();
+                    }
+                }
+            });
+
             new Chart(
                 document.getElementById('clientVisitDaysChart'),
                 clientVisitDaysConfig
             );
         </script>
         {% endif %}
-
-
 
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
