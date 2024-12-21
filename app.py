@@ -269,12 +269,16 @@ def graphical_reports():
 
             inverter_data = db.session.execute(
                 text("""
-                SELECT ci.Client_Name,
-                       SUM(ci.quantity) AS total_inverter_capacity,
+                SELECT cl.Client_Name,
+                       ROUND(SUM(ci.quantity * il.kVA_kW), 2) AS total_inverter_capacity,
                        ci.installed_by
                 FROM client_items ci
+                JOIN items_list il
+                  ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
+                JOIN client_list cl
+                  ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
-                GROUP BY ci.Client_Name, ci.installed_by
+                GROUP BY cl.Client_Name, ci.installed_by
                 ORDER BY total_inverter_capacity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
