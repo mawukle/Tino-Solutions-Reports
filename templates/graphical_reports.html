@@ -16,6 +16,7 @@
             margin: 20px auto;
         }
     </style>
+
 </head>
 <body>
     <div class="container_4">
@@ -99,12 +100,18 @@
             };
 
             // Generate 60 distinct colors
-            const colors = Array.from({length: 60}, (_, i) => `rgba(${Math.floor((i * 4) % 256)}, ${Math.floor((i * 7) % 256)}, ${Math.floor((i * 9) % 256)}, 0.6)`);
+            const generateColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n) + 180; // Distinct hue range for each segment
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
 
-            // Ensure the first and last colors are distinct
-            clientVisitDaysData.datasets[0].backgroundColor = colors.map((color, index) => {
-                return index === 0 || index === colors.length - 1 ? `rgba(${Math.floor((index * 4) % 256)}, ${Math.floor((index * 7) % 256)}, ${Math.floor((index * 9) % 256)}, 0.6)` : color;
-            });
+            const colors = generateColors(60);
+            let counter = 0;
+            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
 
             // Counter for unique client numbers
             counter = 1;
@@ -121,13 +128,6 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return tooltipItem.raw + ' days';
-                                }
-                            }
                         }
                     }
                 }
