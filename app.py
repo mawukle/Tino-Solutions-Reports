@@ -219,7 +219,79 @@ def download_excel():
 
 @app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
-    return render_template('graphical_reports.html', start_date=None, end_date=None)
+    start_date = None
+    end_date = None
+    team_rankings = []
+    client_days_data = []
+    inverter_data = []
+    battery_data = []
+    solar_panel_data = []
+
+    if request.method == 'POST':
+        # Get start and end dates from the form
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+
+        if start_date and end_date:
+            # Query the database to get data for each table
+            team_rankings = db.session.execute("""
+                SELECT tm.Team_Member_Name,
+                       COUNT(DISTINCT jt.Date) AS days_worked,
+                       COUNT(DISTINCT jt.Client_Unique_ID) AS clients_visited,
+                       SUM(jt.Percentage_Completion / 100) AS total_days_at_clients,
+                       SUM(jt.Percentage_Completion / 100) * COUNT(DISTINCT jt.Client_Unique_ID) AS ranking_score
+                FROM Team_Members tm
+                LEFT JOIN job_team_members jtm ON tm.Team_Member_ID = jtm.Team_Member_ID
+                LEFT JOIN Job_Tracking jt ON jtm.Job_ID = jt.Job_ID
+                WHERE jt.Date BETWEEN :start_date AND :end_date
+                GROUP BY tm.Team_Member_Name
+            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+
+            client_days_data = db.session.execute("""
+                SELECT jt.Client_Name,
+                       COUNT(DISTINCT jt.Date) AS unique_days_at_client
+                FROM Job_Tracking jt
+                WHERE jt.Date BETWEEN :start_date AND :end_date
+                GROUP BY jt.Client_Name
+            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+
+            inverter_data = db.session.execute("""
+                SELECT ci.Client_Name,
+                       SUM(ci.quantity) AS total_inverter_capacity,
+                       ci.installed_by
+                FROM client_items ci
+                WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Client_Name, ci.installed_by
+            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+
+            battery_data = db.session.execute("""
+                SELECT ci.Client_Name,
+                       SUM(ci.quantity) AS total_battery_capacity,
+                       ci.installed_by
+                FROM client_items ci
+                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Client_Name, ci.installed_by
+            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+
+            solar_panel_data = db.session.execute("""
+                SELECT ci.Client_Name,
+                       SUM(ci.quantity) AS total_solar_panel_capacity,
+                       ci.installed_by
+                FROM client_items ci
+                WHERE ci.component = 'Solar Panel' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Client_Name, ci.installed_by
+            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+
+    return render_template(
+        'graphical_reports.html',
+        start_date=start_date,
+        end_date=end_date,
+        team_rankings=team_rankings,
+        client_days_data=client_days_data,
+        inverter_data=inverter_data,
+        battery_data=battery_data,
+        solar_panel_data=solar_panel_data
+    )
 
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
