@@ -116,7 +116,7 @@
             // Create labels that include both the client name and the unique days visited
             const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
                 const uniqueDays = clientVisitDaysData.datasets[0].data[index];
-                return `${uniqueDays} - ${label}`;
+                return `${uniqueDays}: ${label}`;
             });
 
             const clientVisitDaysConfig = {
@@ -130,6 +130,11 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                            }
+
                         }
                     }
                 }
