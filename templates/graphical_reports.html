@@ -185,7 +185,7 @@
             inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colour[count++ % colour.length]);
 
             // Create labels that include both the client name and the Inverter Capacities
-            const modifiedLabels = inverterData.labels.map((label, index) => {
+            const modifiedLabel = inverterData.labels.map((label, index) => {
                 const inverterCapacity = inverterData.datasets[0].data[index];
                 return `${inverterCapacity}: ${label}`;
             });
@@ -193,7 +193,7 @@
             const inverterConfig = {
                 type: 'doughnut',
                 data: {
-                    labels: modifiedLabels,
+                    labels: modifiedLabel,
                     datasets: inverterData.datasets
                 },
                 options: {
