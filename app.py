@@ -217,6 +217,8 @@ def download_excel():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+#from sqlalchemy.sql import text
+
 @app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
     start_date = None
@@ -234,7 +236,8 @@ def graphical_reports():
 
         if start_date and end_date:
             # Query the database to get data for each table
-            team_rankings = db.session.execute("""
+            team_rankings = db.session.execute(
+                text("""
                 SELECT tm.Team_Member_Name,
                        COUNT(DISTINCT jt.Date) AS days_worked,
                        COUNT(DISTINCT jt.Client_Unique_ID) AS clients_visited,
@@ -245,42 +248,56 @@ def graphical_reports():
                 LEFT JOIN Job_Tracking jt ON jtm.Job_ID = jt.Job_ID
                 WHERE jt.Date BETWEEN :start_date AND :end_date
                 GROUP BY tm.Team_Member_Name
-            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
 
-            client_days_data = db.session.execute("""
+            client_days_data = db.session.execute(
+                text("""
                 SELECT jt.Client_Name,
                        COUNT(DISTINCT jt.Date) AS unique_days_at_client
                 FROM Job_Tracking jt
                 WHERE jt.Date BETWEEN :start_date AND :end_date
                 GROUP BY jt.Client_Name
-            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
 
-            inverter_data = db.session.execute("""
+            inverter_data = db.session.execute(
+                text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_inverter_capacity,
                        ci.installed_by
                 FROM client_items ci
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
-            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
 
-            battery_data = db.session.execute("""
+            battery_data = db.session.execute(
+                text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_battery_capacity,
                        ci.installed_by
                 FROM client_items ci
                 WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
-            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
 
-            solar_panel_data = db.session.execute("""
+            solar_panel_data = db.session.execute(
+                text("""
                 SELECT ci.Client_Name,
                        SUM(ci.quantity) AS total_solar_panel_capacity,
                        ci.installed_by
                 FROM client_items ci
                 WHERE ci.component = 'Solar Panel' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Client_Name, ci.installed_by
-            """, {'start_date': start_date, 'end_date': end_date}).fetchall()
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
 
     return render_template(
         'graphical_reports.html',
