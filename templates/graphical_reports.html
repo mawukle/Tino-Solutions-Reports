@@ -169,7 +169,7 @@
             };
 
             // Generate up to 60 distinct colors
-            const generateColors = (n) => {
+            const generateColor = (n) => {
                 let colors = [];
                 for (let i = 0; i < n; i++) {
                     const hue = (i * 360 / n); // Spread hues evenly
@@ -178,11 +178,11 @@
                 return colors;
             };
 
-            const colors = generateColors(80);
+            const colors = generateColor(80);
             let counter = 0;
-            inverterData.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
+            //inverterData.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
 
-            //inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colors[counter++ % colors.length]);
+            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colors[counter++ % colors.length]);
 
             // Create labels that include both the client name and the Inverter Capacities
             const modifiedLabels = inverterData.labels.map((label, index) => {
