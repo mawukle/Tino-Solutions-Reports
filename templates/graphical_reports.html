@@ -179,10 +179,10 @@
             };
 
             const colour = generateColor(80);
-            let counter = 0;
+            let count = 0;
             //inverterData.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
 
-            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colour[counter++ % colour.length]);
+            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colour[count++ % colour.length]);
 
             // Create labels that include both the client name and the Inverter Capacities
             const modifiedLabels = inverterData.labels.map((label, index) => {
