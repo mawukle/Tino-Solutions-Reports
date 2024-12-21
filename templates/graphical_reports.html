@@ -92,18 +92,18 @@
                     {
                         label: 'Unique Days Visited',
                         data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
-                        backgroundColor: [],  // Multiple colors
+                        backgroundColor: [], // Will be populated dynamically
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
                     }
                 ]
             };
 
-            // Generate 60 distinct colors
+            // Generate up to 60 distinct colors
             const generateColors = (n) => {
                 let colors = [];
                 for (let i = 0; i < n; i++) {
-                    const hue = (i * 360 / n) + 180; // Distinct hue range for each segment
+                    const hue = (i * 360 / n); // Spread hues evenly
                     colors.push(`hsl(${hue}, 70%, 70%)`);
                 }
                 return colors;
@@ -113,9 +113,11 @@
             let counter = 0;
             clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
 
-            // Counter for unique client numbers
-            counter = 1;
-            const modifiedLabels = clientVisitDaysData.labels.map(label => `${counter++}. ${label}`);
+            // Create labels that include both the client name and the unique days visited
+            const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
+                const uniqueDays = clientVisitDaysData.datasets[0].data[index];
+                return `${label} (${uniqueDays} days)`;
+            });
 
             const clientVisitDaysConfig = {
                 type: 'pie',
@@ -138,6 +140,7 @@
                 clientVisitDaysConfig
             );
         </script>
+
         {% endif %}
 
 
