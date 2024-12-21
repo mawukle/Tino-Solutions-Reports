@@ -101,7 +101,7 @@
 
             // Counter for unique client numbers
             let counter = 1;
-            const modifiedLabels = clientVisitDaysData.labels.map(label => `${counter++}. ${label}`);
+            const modifiedLabels = clientVisitDaysData.labels.map(label => `${label} (${counter++})`);
 
             const clientVisitDaysConfig = {
                 type: 'pie',
