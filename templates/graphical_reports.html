@@ -26,6 +26,26 @@
             margin: 5px auto;
         }
 
+/*    </style>
+    <style>
+        /* General styling for charts and their containers */
+        .chart-container {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .chart-container h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        canvas {
+            display: block;
+            margin: auto;
+        }
     </style>
 
 </head>
@@ -49,8 +69,10 @@
 
         <!-- Graph for Team Rankings -->
         {% if team_rankings %}
-        <h2>Team Rankings</h2>
-        <canvas id="teamRankingChart"></canvas>
+        <div class="chart-container">
+            <h2>Team Rankings</h2>
+            <canvas id="teamRankingChart"></canvas>
+        </div>
         <script>
             const teamRankingData = {
                 labels: {{ team_rankings | map(attribute='Team_Member_Name') | list | tojson }},
@@ -91,11 +113,13 @@
             );
         </script>
         {% endif %}
-        <br><br>
+<!--        <br><br>
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
-        <h2>Client Visit Days</h2>
-        <canvas id="clientVisitDaysChart"></canvas>
+        <div class="chart-container">
+            <h2>Client Visit Days</h2>
+            <canvas id="clientVisitDaysChart"></canvas>
+        </div>
         <script>
             const clientVisitDaysData = {
                 labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
@@ -159,13 +183,15 @@
 
         {% endif %}
 
-        <br><br>
+<!--        <br><br>
 
 
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
-        <h2>Inverter Capacities</h2>
-        <canvas id="inverterChart"></canvas>
+        <div class="chart-container">
+            <h2>Inverter Capacities</h2>
+            <canvas id="inverterChart"></canvas>
+        </div>
         <script>
             const inverterData = {
                 labels: {{ inverter_data | map(attribute='Client_Name') | list | tojson }},
@@ -231,12 +257,14 @@
 
         {% endif %}
 
-        <br><br>
+<!--        <br><br>
 
         <!-- Graph for Battery Capacities -->
         {% if battery_data %}
-        <h2>Battery Capacities</h2>
-        <canvas id="batteryChart"></canvas>
+        <div class="chart-container">
+            <h2>Battery Capacities</h2>
+            <canvas id="batteryChart"></canvas>
+        </div>
         <script>
             const batteryData = {
                 labels: {{ battery_data | map(attribute='Client_Name') | list | tojson }},
@@ -297,13 +325,15 @@
         </script>
         {% endif %}
 
-        <br><br>
+<!--        <br><br>
 
 
         <!-- Graph for Solar Panel Capacities -->
         {% if solar_panel_data %}
-        <h2>Solar Panel Capacities</h2>
-        <canvas id="solarPanelChart"></canvas>
+        <div class="chart-container">
+            <h2>Solar Panel Capacities</h2>
+            <canvas id="solarPanelChart"></canvas>
+        </div>
         <script>
             const solarPanelData = {
                 labels: {{ solar_panel_data | map(attribute='Client_Name') | list | tojson }},
@@ -364,7 +394,7 @@
         </script>
         {% endif %}
 
-        <br><br>
+<!--        <br><br>
 
 
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
