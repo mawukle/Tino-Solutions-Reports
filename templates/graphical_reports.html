@@ -8,25 +8,26 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* General styling for charts and their containers */
-        .chart-container {
-            position: relative;
-            width: 90%;
-            max-width: 800px;
+        /* Ensures the chart canvas takes up full width */
+        #rankingChart {
+            width: 100% !important;
+            height: auto; /* Adjust the height as needed */
+            max-width: 100%;
             margin: 20px auto;
-            text-align: center;
+        }
+/*    </style>
+    <style>
+        /* Adjust the size of pie and doughnut charts */
+        #clientVisitDaysChart, #inverterChart, #batteryChart, #solarPanelChart {
+            width: 100% !important; /* Reduce width by 50% */
+            height: auto;
+            max-height: 750px;
+            max-width: 100%;
+            margin: 5px auto;
         }
 
-        .chart-container h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.2em;
-        }
-
-        canvas {
-            display: block;
-            margin: auto;
-        }
     </style>
+
 </head>
 <body>
     <div class="container_4">
@@ -48,10 +49,8 @@
 
         <!-- Graph for Team Rankings -->
         {% if team_rankings %}
-        <div class="chart-container">
-            <h2>Team Rankings</h2>
-            <canvas id="teamRankingChart"></canvas>
-        </div>
+        <h2>Team Rankings</h2>
+        <canvas id="teamRankingChart"></canvas>
         <script>
             const teamRankingData = {
                 labels: {{ team_rankings | map(attribute='Team_Member_Name') | list | tojson }},
@@ -95,10 +94,8 @@
 
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
-        <div class="chart-container">
-            <h2>Client Visit Days</h2>
-            <canvas id="clientVisitDaysChart"></canvas>
-        </div>
+        <h2>Client Visit Days</h2>
+        <canvas id="clientVisitDaysChart"></canvas>
         <script>
             const clientVisitDaysData = {
                 labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
@@ -113,9 +110,21 @@
                 ]
             };
 
-            const colors = Array.from({ length: clientVisitDaysData.labels.length }, (_, i) => `hsl(${i * 360 / clientVisitDaysData.labels.length}, 70%, 70%)`);
-            clientVisitDaysData.datasets[0].backgroundColor = colors;
+            // Generate up to 60 distinct colors
+            const generateColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
 
+            const colors = generateColors(80);
+            let counter = 0;
+            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
+
+            // Create labels that include both the client name and the unique days visited
             const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
                 const uniqueDays = clientVisitDaysData.datasets[0].data[index];
                 return `${uniqueDays}: ${label}`;
@@ -132,6 +141,11 @@
                     plugins: {
                         legend: {
                             position: 'right',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                            }
+
                         }
                     }
                 }
@@ -142,21 +156,22 @@
                 clientVisitDaysConfig
             );
         </script>
+
         {% endif %}
 
+
+
         <!-- Graph for Inverter Capacities -->
-        {% if inverter_capacities %}
-        <div class="chart-container">
-            <h2>Inverter Capacities</h2>
-            <canvas id="inverterCapacitiesChart"></canvas>
-        </div>
+        {% if inverter_data %}
+        <h2>Inverter Capacities</h2>
+        <canvas id="inverterChart"></canvas>
         <script>
-            const inverterCapacitiesData = {
-                labels: {{ inverter_capacities | map(attribute='capacity') | list | tojson }},
+            const inverterData = {
+                labels: {{ inverter_data | map(attribute='Client_Name') | list | tojson }},
                 datasets: [
                     {
-                        label: 'Installed Units',
-                        data: {{ inverter_capacities | map(attribute='units') | list | tojson }},
+                        label: 'Total Inverter Capacity',
+                        data: {{ inverter_data | map(attribute='total_inverter_capacity') | list | tojson }},
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -164,105 +179,191 @@
                 ]
             };
 
-            const inverterCapacitiesConfig = {
-                type: 'bar',
-                data: inverterCapacitiesData,
+            // Generate up to 60 distinct colours
+            const generateColor = (n) => {
+                let colour = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colour.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colour;
+            };
+
+            const colour = generateColor(80);
+            let count = 0;
+            //inverterData.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
+
+            inverterData.datasets[0].backgroundColor = inverterData.labels.map(() => colour[count++ % colour.length]);
+
+            // Create labels that include both the client name and the Inverter Capacities
+            const modifiedLabel = inverterData.labels.map((label, index) => {
+                const inverterCapacity = inverterData.datasets[0].data[index];
+                return `${inverterCapacity}: ${label}`;
+            });
+
+            const inverterConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: modifiedLabel,
+                    datasets: inverterData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                            }
+
                         }
                     }
                 }
             };
 
             new Chart(
-                document.getElementById('inverterCapacitiesChart'),
-                inverterCapacitiesConfig
+                document.getElementById('inverterChart'),
+                inverterConfig
             );
         </script>
+
         {% endif %}
 
         <!-- Graph for Battery Capacities -->
-        {% if battery_capacities %}
-        <div class="chart-container">
-            <h2>Battery Capacities</h2>
-            <canvas id="batteryCapacitiesChart"></canvas>
-        </div>
+        {% if battery_data %}
+        <h2>Battery Capacities</h2>
+        <canvas id="batteryChart"></canvas>
         <script>
-            const batteryCapacitiesData = {
-                labels: {{ battery_capacities | map(attribute='capacity') | list | tojson }},
+            const batteryData = {
+                labels: {{ battery_data | map(attribute='Client_Name') | list | tojson }},
                 datasets: [
                     {
-                        label: 'Installed Units',
-                        data: {{ battery_capacities | map(attribute='units') | list | tojson }},
-                        backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                        borderColor: 'rgba(255, 206, 86, 1)',
+                        label: 'Total Battery Capacity',
+                        data: {{ battery_data | map(attribute='total_battery_capacity') | list | tojson }},
+                        backgroundColor: [], // Will be populated dynamically
+                        borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
                     }
                 ]
             };
 
-            const batteryCapacitiesConfig = {
-                type: 'bar',
-                data: batteryCapacitiesData,
+            // Generate dynamic colors for the pie chart
+            const generateBatteryColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n);
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
+            const batteryColors = generateBatteryColors(batteryData.labels.length);
+            batteryData.datasets[0].backgroundColor = batteryColors;
+
+            // Create labels that include both client name and battery capacities
+            const batteryLabels = batteryData.labels.map((label, index) => {
+                const batteryCapacity = batteryData.datasets[0].data[index];
+                return `${batteryCapacity}: ${label}`;
+            });
+
+            const batteryConfig = {
+                type: 'pie',
+                data: {
+                    labels: batteryLabels,
+                    datasets: batteryData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                            }
                         }
                     }
                 }
             };
 
             new Chart(
-                document.getElementById('batteryCapacitiesChart'),
-                batteryCapacitiesConfig
+                document.getElementById('batteryChart'),
+                batteryConfig
             );
         </script>
         {% endif %}
+
+
 
         <!-- Graph for Solar Panel Capacities -->
-        {% if solar_panel_capacities %}
-        <div class="chart-container">
-            <h2>Solar Panel Capacities</h2>
-            <canvas id="solarPanelCapacitiesChart"></canvas>
-        </div>
+        {% if solar_panel_data %}
+        <h2>Solar Panel Capacities</h2>
+        <canvas id="solarPanelChart"></canvas>
         <script>
-            const solarPanelCapacitiesData = {
-                labels: {{ solar_panel_capacities | map(attribute='capacity') | list | tojson }},
+            const solarPanelData = {
+                labels: {{ solar_panel_data | map(attribute='Client_Name') | list | tojson }},
                 datasets: [
                     {
-                        label: 'Installed Units',
-                        data: {{ solar_panel_capacities | map(attribute='units') | list | tojson }},
-                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
+                        label: 'Total Solar Panel Capacity',
+                        data: {{ solar_panel_data | map(attribute='total_solar_panel_capacity') | list | tojson }},
+                        backgroundColor: [], // Will be populated dynamically
+                        borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
                     }
                 ]
             };
 
-            const solarPanelCapacitiesConfig = {
-                type: 'bar',
-                data: solarPanelCapacitiesData,
+            // Generate dynamic colors for the chart
+            const generateSolarPanelColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
+            const solarPanelColors = generateSolarPanelColors(solarPanelData.labels.length);
+            solarPanelData.datasets[0].backgroundColor = solarPanelColors;
+
+            // Create labels that include both client name and solar panel capacities
+            const modifiedSolarPanelLabels = solarPanelData.labels.map((label, index) => {
+                const solarCapacity = solarPanelData.datasets[0].data[index];
+                return `${solarCapacity}: ${label}`;
+            });
+
+            const solarPanelConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: modifiedSolarPanelLabels,
+                    datasets: solarPanelData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true, // Makes legend markers circular
+                                pointStyle: 'rectRounded' // Small rounded squares
+                            }
                         }
                     }
                 }
             };
 
             new Chart(
-                document.getElementById('solarPanelCapacitiesChart'),
-                solarPanelCapacitiesConfig
+                document.getElementById('solarPanelChart'),
+                solarPanelConfig
             );
         </script>
         {% endif %}
+
+
+
+        <!-- Add similar graph sections for battery_data and solar_panel_data -->
+
     </div>
 </body>
 </html>
