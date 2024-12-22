@@ -230,7 +230,7 @@
 
         {% endif %}
 
-        <!-- Graph for Battery Capacities (Pie Chart) -->
+        <!-- Graph for Battery Capacities -->
         {% if battery_data %}
         <h2>Battery Capacities</h2>
         <canvas id="batteryChart"></canvas>
@@ -261,9 +261,18 @@
             const batteryColors = generateBatteryColors(batteryData.labels.length);
             batteryData.datasets[0].backgroundColor = batteryColors;
 
+            // Create labels that include both client name and battery capacities
+            const batteryLabels = batteryData.labels.map((label, index) => {
+                const batteryCapacity = batteryData.datasets[0].data[index];
+                return `${batteryCapacity}: ${label}`;
+            });
+
             const batteryConfig = {
                 type: 'pie',
-                data: batteryData,
+                data: {
+                    labels: batteryLabels,
+                    datasets: batteryData.datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
@@ -284,6 +293,7 @@
             );
         </script>
         {% endif %}
+
 
 
         <!-- Graph for Solar Panel Capacities -->
