@@ -171,29 +171,9 @@
                                     size: 8 // Set font size to a smaller value (adjust as needed)
                                 }
                             }
-                        },
-                        // Custom plugin to place the title inside the chart
-                        title: {
-                          display: false // Disable default title plugin
-                        },
-                        tooltip: {
-                          enabled: true // Keep tooltips enabled
+
                         }
-                        },
-                        // Use custom plugin for title
-                        plugins: [{
-                        id: 'centerTitle',
-                        afterDraw(chart) {
-                          const { width, height } = chart;
-                          const ctx = chart.ctx;
-                          ctx.save();
-                          ctx.font = '16px Arial';
-                          ctx.textAlign = 'center';
-                          ctx.fillStyle = 'black';
-                          ctx.fillText('Client Visit Days', width / 2, height / 2);
-                          ctx.restore();
-                        }
-                        }]
+                    }
                 }
             };
 
