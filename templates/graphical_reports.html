@@ -11,8 +11,7 @@
         /* Ensures the chart canvas takes up full width */
         #rankingChart, #teamRankingChart {
             width: 100% !important;
-            height: 800px; /* Adjust the height as needed */
-/*            max-height: 1000px;*/
+            height: auto; /* Adjust the height as needed */
             max-width: 100%;
             margin: 0px auto;
         }
@@ -116,7 +115,7 @@
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
         <div class="chart-container">
-            <br><br><br><br><br>
+            <br><br><br><br><br><br><br><br><br>
             <h2>Client Visit Days</h2>
             <canvas id="clientVisitDaysChart"></canvas>
         </div>
