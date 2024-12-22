@@ -31,9 +31,9 @@
         /* General styling for charts and their containers */
         .chart-container {
             position: relative;
-            width: 90%;
-            max-width: 800px;
-            margin: 20px auto;
+            width: 100%;
+            max-width: 100%;
+            margin: 5px auto;
             text-align: center;
         }
 
@@ -69,10 +69,8 @@
 
         <!-- Graph for Team Rankings -->
         {% if team_rankings %}
-        <div class="chart-container">
-            <h2>Team Rankings</h2>
-            <canvas id="teamRankingChart"></canvas>
-        </div>
+        <h2>Team Rankings</h2>
+        <canvas id="teamRankingChart"></canvas>
         <script>
             const teamRankingData = {
                 labels: {{ team_rankings | map(attribute='Team_Member_Name') | list | tojson }},
