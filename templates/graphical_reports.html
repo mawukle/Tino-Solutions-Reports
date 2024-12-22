@@ -20,7 +20,8 @@
         /* Adjust the size of pie and doughnut charts */
         #clientVisitDaysChart, #inverterChart, #batteryChart, #solarPanelChart {
             width: 100% !important; /* Reduce width by 50% */
-            height: auto;
+/*            height: auto;*/
+            height: 720px;
             max-height: 750px;
             max-width: 100%;
             margin: 0px auto;
@@ -115,7 +116,7 @@
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
         <div class="chart-container">
-            <br><br><br><br><br><br><br><br><br>
+            <br><br><br><br><br>
             <h2>Client Visit Days</h2>
             <canvas id="clientVisitDaysChart"></canvas>
         </div>
