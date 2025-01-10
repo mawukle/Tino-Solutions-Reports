@@ -116,11 +116,11 @@
 <!--        <br><br-->
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
-  <!--      <div class="chart-container">
-            <br><br><br><br><br>
-            <h2>Days Spent at Site</h2>
+        <div class="chart-container">
+<!--            <br><br><br><br><br>
+            <h2>Days Spent at Site</h2>-->
             <canvas id="clientVisitDaysChart"></canvas>
-        </div>-->
+        </div>
         <script>
             const clientVisitDaysData = {
                 labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
