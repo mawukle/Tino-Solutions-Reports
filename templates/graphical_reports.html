@@ -19,11 +19,9 @@
     <style>
         /* Adjust the size of pie and doughnut charts */
         #clientVisitDaysChart, #inverterChart, #batteryChart, #solarPanelChart {
-            width: 100% !important; /* Reduce width by 50% */
-/*            height: auto;*/
-            height: 650px;
-            max-height: 650px;
-            max-width: 100%;
+            width: 80% !important; /* Reduce width by 50% */
+            height: auto;
+            max-height: 500px;
             margin: 0px auto;
         }
 
@@ -32,10 +30,9 @@
         /* General styling for charts and their containers */
         .chart-container {
             position: relative;
-            width: 100%;
-            max-width: 100%;
+            width: 90%;
             margin: 5px auto;
-            text-align: center;
+/*            text-align: center;*/
         }
 
         .chart-container h2 {
@@ -162,6 +159,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true, // Maintain aspect ratio for better legend visibility
                     plugins: {
                         legend: {
                             position: 'right',
