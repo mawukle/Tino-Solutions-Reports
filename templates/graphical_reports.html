@@ -194,8 +194,8 @@
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
         <div class="chart-container">
-            <br><br><br><br><br>
-            <h2>Inverter Capacities Sold (kW/kVA)</h2>
+<!--            <br><br><br><br><br>
+            <h2>Inverter Capacities Sold (kW/kVA)</h2>-->
             <canvas id="inverterChart"></canvas>
         </div>
         <script>
@@ -265,14 +265,15 @@
         </script>
 
         {% endif %}
+        <h2>Inverter Capacities Sold (kW/kVA)</h2>
 
 <!--        <br><br-->
 
         <!-- Graph for Battery Capacities -->
         {% if battery_data %}
         <div class="chart-container">
-            <br><br><br><br><br>
-            <h2>Battery Capacities Sold (kWh)</h2>
+<!--            <br><br><br><br><br>
+            <h2>Battery Capacities Sold (kWh)</h2>-->
             <canvas id="batteryChart"></canvas>
         </div>
         <script>
@@ -338,14 +339,16 @@
         </script>
         {% endif %}
 
+        <h2>Battery Capacities Sold (kWh)</h2>
+
 <!--        <br><br-->
 
 
         <!-- Graph for Solar Panel Capacities -->
         {% if solar_panel_data %}
         <div class="chart-container">
-            <br><br><br><br><br>
-            <h2>Solar Panel Capacities Sold (kWp)</h2>
+<!--            <br><br><br><br><br>
+            <h2>Solar Panel Capacities Sold (kWp)</h2>-->
             <canvas id="solarPanelChart"></canvas>
         </div>
         <script>
@@ -410,6 +413,8 @@
             );
         </script>
         {% endif %}
+        
+        <h2>Solar Panel Capacities Sold (kWp)</h2>
 
 <!--        <br><br-->
 
