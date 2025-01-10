@@ -21,7 +21,7 @@
         #clientVisitDaysChart, #inverterChart, #batteryChart, #solarPanelChart {
             width: 100% !important; /* Reduce width by 50% */
 /*            height: auto;*/
-            height: 500px;
+            height: auto;
             max-height: 1000px;
             max-width: 100%;
             margin: 0px auto;
@@ -70,7 +70,7 @@
 
         <!-- Graph for Team Rankings -->
         {% if team_rankings %}
-        <h2>Team Members' Availability</h2>
+<!--        <h2>Team Members' Availability</h2>-->
         <canvas id="teamRankingChart"></canvas>
         <script>
             const teamRankingData = {
@@ -112,14 +112,15 @@
             );
         </script>
         {% endif %}
+        <h2>Team Members' Availability</h2>
 <!--        <br><br-->
         <!-- Graph for Client Visit Days -->
         {% if client_days_data %}
-        <div class="chart-container">
+  <!--      <div class="chart-container">
             <br><br><br><br><br>
             <h2>Days Spent at Site</h2>
             <canvas id="clientVisitDaysChart"></canvas>
-        </div>
+        </div>-->
         <script>
             const clientVisitDaysData = {
                 labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
@@ -185,6 +186,7 @@
         </script>
 
         {% endif %}
+        <h2>Days Spent at Site</h2>
 
 <!--        <br><br-->
 
