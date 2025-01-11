@@ -430,11 +430,21 @@
         </div>
         <script>
             // Extracting data for the Installed By chart
+            // Assuming inverter_data is a list of dictionaries with `installed_by` and `total_inverter_capacity`
+            const rawInverterData = {{ inverter_data | tojson }};
+            const groupedData = rawInverterData.reduce((acc, curr) => {
+                acc[curr.installed_by] = (acc[curr.installed_by] || 0) + curr.total_inverter_capacity;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(groupedData);
+            const dataValues = Object.values(groupedData);
+
             const installedByData = {
-                labels: {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }},
+                labels: labels,
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }},
+                    data: dataValues,
                     backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
                     borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
                     borderWidth: 1
