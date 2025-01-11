@@ -430,10 +430,10 @@
         </div>
         <script>
             const installedByData = {
-                labels: {{ chart_data.labels | tojson }},
+                labels: {{ inverter_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ chart_data.data | tojson }},
+                    data: {{ inverter_chart_data.data | tojson }},
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.6)',
                         'rgba(153, 102, 255, 0.6)'
@@ -462,10 +462,98 @@
 
             new Chart(document.getElementById('installedByChart'), installedByConfig);
         </script>
-
         {% else %}
         <p>No inverter installation data available for the selected period.</p>
         {% endif %}
+
+        <!-- Graph for Installed By (Battery Capacities) -->
+        {% if battery_data %}
+        <div class="chart-container">
+            <h2>Battery Installations by Installer</h2>
+            <canvas id="batteryInstalledByChart"></canvas>
+        </div>
+        <script>
+            const batteryInstalledByData = {
+                labels: {{ battery_chart_data.labels | tojson }},
+                datasets: [{
+                    label: 'Battery Installations',
+                    data: {{ battery_chart_data.data | tojson }},
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const batteryInstalledByConfig = {
+                type: 'pie',
+                data: batteryInstalledByData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { size: 14 } }
+                        }
+                    }
+                }
+            };
+
+            new Chart(document.getElementById('batteryInstalledByChart'), batteryInstalledByConfig);
+        </script>
+        {% else %}
+        <p>No battery installation data available for the selected period.</p>
+        {% endif %}
+
+        <!-- Graph for Installed By (Solar Panel Capacities) -->
+        {% if solar_panel_data %}
+        <div class="chart-container">
+            <h2>Solar Panel Installations by Installer</h2>
+            <canvas id="solarPanelInstalledByChart"></canvas>
+        </div>
+        <script>
+            const solarPanelInstalledByData = {
+                labels: {{ solar_panel_chart_data.labels | tojson }},
+                datasets: [{
+                    label: 'Solar Panel Installations',
+                    data: {{ solar_panel_chart_data.data | tojson }},
+                    backgroundColor: [
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const solarPanelInstalledByConfig = {
+                type: 'pie',
+                data: solarPanelInstalledByData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { size: 14 } }
+                        }
+                    }
+                }
+            };
+
+            new Chart(document.getElementById('solarPanelInstalledByChart'), solarPanelInstalledByConfig);
+        </script>
+        {% else %}
+        <p>No solar panel installation data available for the selected period.</p>
+        {% endif %}
+
 <!--        <pre>{{ inverter_data | map('serialize_row') | list | tojson }}</pre>-->
 
 <!--        <br><br-->

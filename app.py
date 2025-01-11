@@ -231,6 +231,8 @@ def graphical_reports():
     battery_data = []
     solar_panel_data = []
     chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
+    battery_chart_data = {'labels': [], 'data': []}
+    solar_panel_chart_data = {'labels': [], 'data': []}
 
     if request.method == 'POST':
         start_date = request.form.get('start_date')
@@ -293,18 +295,19 @@ def graphical_reports():
                 for row in inverter_data
             ]
 
-            # Example preprocessing
-            aggregated_data = {'Tino Team': 0, 'Client': 0}
+            # Aggregating inverter data
+            aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
             for row in inverter_data:
-                if row['installed_by'] in aggregated_data:
-                    aggregated_data[row['installed_by']] += row['total_inverter_capacity']
+                if row['installed_by'] in aggregated_inverter_data:
+                    aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
 
-            # Preparing data for chart.js
+            # Preparing inverter data for chart.js
             chart_data = {
-                'labels': list(aggregated_data.keys()),
-                'data': list(aggregated_data.values())
+                'labels': list(aggregated_inverter_data.keys()),
+                'data': list(aggregated_inverter_data.values())
             }
 
+            # Battery data
             battery_data = db.session.execute(
                 text("""
                 SELECT cl.Client_Name,
@@ -325,6 +328,25 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
+            # Convert result to dictionaries for easier handling
+            battery_data = [
+                {'Client_Name': row[0], 'total_battery_capacity': row[1], 'installed_by': row[2]}
+                for row in battery_data
+            ]
+
+            # Aggregating battery data
+            aggregated_battery_data = {'Tino Team': 0, 'Client': 0}
+            for row in battery_data:
+                if row['installed_by'] in aggregated_battery_data:
+                    aggregated_battery_data[row['installed_by']] += row['total_battery_capacity']
+
+            # Preparing battery data for chart.js
+            battery_chart_data = {
+                'labels': list(aggregated_battery_data.keys()),
+                'data': list(aggregated_battery_data.values())
+            }
+
+            # Solar panel data
             solar_panel_data = db.session.execute(
                 text("""
                 SELECT cl.Client_Name,
@@ -340,6 +362,24 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
+            # Convert result to dictionaries for easier handling
+            solar_panel_data = [
+                {'Client_Name': row[0], 'total_solar_panel_capacity': row[1], 'installed_by': row[2]}
+                for row in solar_panel_data
+            ]
+
+            # Aggregating solar panel data
+            aggregated_solar_panel_data = {'Tino Team': 0, 'Client': 0}
+            for row in solar_panel_data:
+                if row['installed_by'] in aggregated_solar_panel_data:
+                    aggregated_solar_panel_data[row['installed_by']] += row['total_solar_panel_capacity']
+
+            # Preparing solar panel data for chart.js
+            solar_panel_chart_data = {
+                'labels': list(aggregated_solar_panel_data.keys()),
+                'data': list(aggregated_solar_panel_data.values())
+            }
+
     return render_template(
         'graphical_reports.html',
         start_date=start_date,
@@ -347,10 +387,13 @@ def graphical_reports():
         team_rankings=team_rankings,
         client_days_data=client_days_data,
         inverter_data=inverter_data,  # Raw data
-        chart_data=chart_data,  # Preprocessed data for chart
-        battery_data=battery_data,
-        solar_panel_data=solar_panel_data
+        chart_data=chart_data,  # Preprocessed inverter data for chart
+        battery_data=battery_data,  # Raw battery data
+        battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
+        solar_panel_data=solar_panel_data,  # Raw solar panel data
+        solar_panel_chart_data=solar_panel_chart_data  # Preprocessed solar panel data for chart
     )
+
 
 @app.route('/team_ranking', methods=['GET', 'POST'])
 def team_ranking():
