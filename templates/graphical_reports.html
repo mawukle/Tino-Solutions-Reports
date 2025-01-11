@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         /* Ensures the chart canvas takes up full width */
         #rankingChart, #teamRankingChart {
@@ -455,13 +456,26 @@
                         legend: {
                             position: 'top',
                             labels: { font: { size: 14 } }
+                        },
+                        datalabels: {
+                            display: true,
+                            color: '#000', // Set the text color for the labels
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            formatter: (value, context) => {
+                                return value + ' kW'; // Customize the label format (e.g., add "kW" for inverter capacities)
+                            }
                         }
                     }
-                }
+                },
+                plugins: [ChartDataLabels]
             };
 
             new Chart(document.getElementById('installedByChart'), installedByConfig);
         </script>
+
         {% else %}
         <p>No inverter installation data available for the selected period.</p>
         {% endif %}
