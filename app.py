@@ -287,11 +287,17 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
-            # Preprocessing for chart_data
-            aggregated_data = defaultdict(float)
+            # Convert result to dictionaries for easier handling
+            inverter_data = [
+                {'Client_Name': row[0], 'total_inverter_capacity': row[1], 'installed_by': row[2]}
+                for row in inverter_data
+            ]
+
+            # Example preprocessing
+            aggregated_data = {'Tino Team': 0, 'Client': 0}
             for row in inverter_data:
-                # Assuming `row.installed_by` and `row.total_inverter_capacity` exist
-                aggregated_data[row['installed_by']] += row['total_inverter_capacity']
+                if row['installed_by'] in aggregated_data:
+                    aggregated_data[row['installed_by']] += row['total_inverter_capacity']
 
             # Preparing data for chart.js
             chart_data = {
