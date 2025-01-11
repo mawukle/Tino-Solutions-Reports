@@ -2787,6 +2787,9 @@ def upload_sales():
 
     return render_template('upload_sales.html')
 
+@app.template_filter('serialize_row')
+def serialize_row(row):
+    return dict(row)
 
 
 
