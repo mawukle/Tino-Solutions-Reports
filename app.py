@@ -230,7 +230,7 @@ def graphical_reports():
     inverter_data = []
     battery_data = []
     solar_panel_data = []
-    chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
+    inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
     battery_chart_data = {'labels': [], 'data': []}
     solar_panel_chart_data = {'labels': [], 'data': []}
 
@@ -302,7 +302,7 @@ def graphical_reports():
                     aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
 
             # Preparing inverter data for chart.js
-            chart_data = {
+            inverter_chart_data = {
                 'labels': list(aggregated_inverter_data.keys()),
                 'data': list(aggregated_inverter_data.values())
             }
@@ -387,7 +387,7 @@ def graphical_reports():
         team_rankings=team_rankings,
         client_days_data=client_days_data,
         inverter_data=inverter_data,  # Raw data
-        chart_data=chart_data,  # Preprocessed inverter data for chart
+        inverter_chart_data=inverter_chart_data,  # Preprocessed inverter data for chart
         battery_data=battery_data,  # Raw battery data
         battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
         solar_panel_data=solar_panel_data,  # Raw solar panel data
