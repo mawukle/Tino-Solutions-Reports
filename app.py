@@ -2789,7 +2789,10 @@ def upload_sales():
 
 @app.template_filter('serialize_row')
 def serialize_row(row):
-    return dict(row)
+    try:
+        return row._asdict()  # For SQLAlchemy Row or namedtuples
+    except AttributeError:
+        return dict(row)  # Fallback for other iterable key-value pairs
 
 
 
