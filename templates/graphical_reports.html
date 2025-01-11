@@ -431,7 +431,7 @@
         <script>
             // Extracting data for the Installed By chart
             const installedByData = {
-                labels: {{ inverter_data | map(attribute='installed_by') | list | unique | tojson }},
+                labels: {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
                     data: {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }},
