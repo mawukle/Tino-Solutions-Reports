@@ -219,6 +219,8 @@ def download_excel():
 
 #from sqlalchemy.sql import text
 
+from collections import defaultdict
+
 @app.route('/graphical_reports', methods=['GET', 'POST'])
 def graphical_reports():
     start_date = None
@@ -228,6 +230,7 @@ def graphical_reports():
     inverter_data = []
     battery_data = []
     solar_panel_data = []
+    chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
 
     if request.method == 'POST':
         start_date = request.form.get('start_date')
@@ -284,6 +287,18 @@ def graphical_reports():
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
+            # Preprocessing for chart_data
+            aggregated_data = defaultdict(float)
+            for row in inverter_data:
+                # Assuming `row.installed_by` and `row.total_inverter_capacity` exist
+                aggregated_data[row['installed_by']] += row['total_inverter_capacity']
+
+            # Preparing data for chart.js
+            chart_data = {
+                'labels': list(aggregated_data.keys()),
+                'data': list(aggregated_data.values())
+            }
+
             battery_data = db.session.execute(
                 text("""
                 SELECT cl.Client_Name,
@@ -325,7 +340,8 @@ def graphical_reports():
         end_date=end_date,
         team_rankings=team_rankings,
         client_days_data=client_days_data,
-        inverter_data=inverter_data,
+        inverter_data=inverter_data,  # Raw data
+        chart_data=chart_data,  # Preprocessed data for chart
         battery_data=battery_data,
         solar_panel_data=solar_panel_data
     )

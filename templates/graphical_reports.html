@@ -429,14 +429,19 @@
             <canvas id="installedByChart"></canvas>
         </div>
         <script>
-            // Extracting data for the Installed By chart
             const installedByData = {
-                labels: {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }},
+                labels: {{ chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }},
-                    backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
-                    borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+                    data: {{ chart_data.data | tojson }},
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
                     borderWidth: 1
                 }]
             };
@@ -449,24 +454,15 @@
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14
-                                }
-                            }
+                            labels: { font: { size: 14 } }
                         }
                     }
                 }
             };
 
-            new Chart(
-                document.getElementById('installedByChart'),
-                installedByConfig
-            );
-            console.log('Labels:', {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }});
-            console.log('Data:', {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }});
-
+            new Chart(document.getElementById('installedByChart'), installedByConfig);
         </script>
+
         {% else %}
         <p>No inverter installation data available for the selected period.</p>
         {% endif %}
