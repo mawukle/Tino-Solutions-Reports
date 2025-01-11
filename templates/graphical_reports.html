@@ -463,6 +463,9 @@
                 document.getElementById('installedByChart'),
                 installedByConfig
             );
+            console.log('Labels:', {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }});
+            console.log('Data:', {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }});
+
         </script>
         {% else %}
         <p>No inverter installation data available for the selected period.</p>
