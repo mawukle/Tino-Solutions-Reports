@@ -547,7 +547,7 @@
                 labels: {{ solar_panel_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Solar Panel Installations',
-                    data: {{ solar_panel_chart_data.data | tojson | map(attribute='round(3)') }},
+                    data: {{ solar_panel_chart_data.data | tojson }},
                     backgroundColor: [
                         'rgba(255, 206, 86, 0.6)',
                         'rgba(75, 192, 192, 0.6)'
