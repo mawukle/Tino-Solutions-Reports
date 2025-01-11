@@ -434,7 +434,7 @@
                 labels: {{ inverter_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ inverter_chart_data.data | tojson | map(attribute='round(2)') }},
+                    data: {{ inverter_chart_data.data | tojson }},
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.6)',
                         'rgba(153, 102, 255, 0.6)'
@@ -491,7 +491,7 @@
                 labels: {{ battery_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Battery Installations',
-                    data: {{ battery_chart_data.data | tojson | map(attribute='round(2)') }},
+                    data: {{ battery_chart_data.data | tojson }},
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.6)',
                         'rgba(54, 162, 235, 0.6)'
