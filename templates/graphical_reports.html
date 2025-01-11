@@ -431,10 +431,10 @@
         <script>
             // Extracting data for the Installed By chart
             const installedByData = {
-                labels: {{ inverter_data | map(attribute='installed_by') | unique | tojson }},
+                labels: {{ inverter_data | map(attribute='installed_by') | list | unique | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | tojson }},
+                    data: {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }},
                     backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
                     borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
                     borderWidth: 1
@@ -463,8 +463,9 @@
                 document.getElementById('installedByChart'),
                 installedByConfig
             );
-            console.log('Labels:', {{ inverter_data | map(attribute='installed_by') | unique | tojson }});
-            console.log('Data:', {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | tojson }});
+            console.log('Labels:', {{ inverter_data | map(attribute='installed_by') | list | unique | list | tojson }});
+            console.log('Data:', {{ inverter_data | groupby('installed_by') | map(attribute='values') | map('sum', attribute='total_inverter_capacity') | list | tojson }});
+
         </script>
         {% else %}
         <p>No inverter installation data available for the selected period.</p>
