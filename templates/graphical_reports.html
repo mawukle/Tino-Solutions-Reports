@@ -434,7 +434,7 @@
                 labels: {{ inverter_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Inverter Installations',
-                    data: {{ inverter_chart_data.data | tojson }},
+                    data: {{ inverter_chart_data.data | tojson | map(attribute='round(2)') }},
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.6)',
                         'rgba(153, 102, 255, 0.6)'
@@ -465,7 +465,7 @@
                                 size: 14
                             },
                             formatter: (value, context) => {
-                                return value + ' kW'; // Customize the label format (e.g., add "kW" for inverter capacities)
+                                return value.toFixed(2) + ' kW'; // Customize the label format (e.g., add "kW" for inverter capacities)
                             }
                         }
                     }
@@ -491,7 +491,7 @@
                 labels: {{ battery_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Battery Installations',
-                    data: {{ battery_chart_data.data | tojson }},
+                    data: {{ battery_chart_data.data | tojson | map(attribute='round(2)') }},
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.6)',
                         'rgba(54, 162, 235, 0.6)'
@@ -522,7 +522,7 @@
                                 size: 14
                             },
                             formatter: (value, context) => {
-                                return value + ' kWh'; // Adjust unit for battery capacities
+                                return value.toFixed(2) + ' kWh'; // Adjust unit for battery capacities
                             }
                         }
                     }
@@ -547,7 +547,7 @@
                 labels: {{ solar_panel_chart_data.labels | tojson }},
                 datasets: [{
                     label: 'Solar Panel Installations',
-                    data: {{ solar_panel_chart_data.data | tojson }},
+                    data: {{ solar_panel_chart_data.data | tojson | map(attribute='round(3)') }},
                     backgroundColor: [
                         'rgba(255, 206, 86, 0.6)',
                         'rgba(75, 192, 192, 0.6)'
@@ -578,7 +578,7 @@
                                 size: 14
                             },
                             formatter: (value, context) => {
-                                return value + ' kWp'; // Adjust unit for solar panel capacities
+                                return value.toFixed(3) + ' kWp'; // Adjust unit for solar panel capacities
                             }
                         }
                     }
