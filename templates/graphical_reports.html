@@ -513,9 +513,21 @@
                         legend: {
                             position: 'top',
                             labels: { font: { size: 14 } }
+                        },
+                        datalabels: {
+                            display: true,
+                            color: '#000',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            formatter: (value, context) => {
+                                return value + ' kWh'; // Adjust unit for battery capacities
+                            }
                         }
                     }
-                }
+                },
+                plugins: [ChartDataLabels]
             };
 
             new Chart(document.getElementById('batteryInstalledByChart'), batteryInstalledByConfig);
@@ -557,9 +569,21 @@
                         legend: {
                             position: 'top',
                             labels: { font: { size: 14 } }
+                        },
+                        datalabels: {
+                            display: true,
+                            color: '#000',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            formatter: (value, context) => {
+                                return value + ' kWp'; // Adjust unit for solar panel capacities
+                            }
                         }
                     }
-                }
+                },
+                plugins: [ChartDataLabels]
             };
 
             new Chart(document.getElementById('solarPanelInstalledByChart'), solarPanelInstalledByConfig);
