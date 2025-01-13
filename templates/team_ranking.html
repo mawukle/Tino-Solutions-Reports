@@ -178,6 +178,30 @@
         <p>No solar panel capacity data available for the selected period.</p>
         {% endif %}
 
+        <!-- Inverter Quantities Table -->
+        {% if inverter_quantities %}
+        <h2>Inverter Quantities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Inverter Description</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inverter in inverter_quantities %}
+                <tr>
+                    <td>{{ inverter.item_description }}</td>
+                    <td>{{ inverter.total_quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No inverter quantities available for the selected period.</p>
+        {% endif %}
+
+
     </div>
 </body>
 </html>
