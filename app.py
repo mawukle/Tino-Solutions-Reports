@@ -408,6 +408,7 @@ def team_ranking():
         solar_panel_data = []
         inverter_quantities = []
         battery_quantities = []
+        solar_panel_quantities = []
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -585,6 +586,24 @@ def team_ranking():
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
             ]
 
+            # Query for Solar Panel Quantities
+            solar_panel_quantities = [
+                {
+                    "Item_Description": row.Item_Description,
+                    "total_quantity": row.total_quantity
+                }
+                for row in db.session.query(
+                    func.max(Items_List.Item_Description).label('Item_Description'),
+                    func.sum(sales_by_item.qty_sold).label('total_quantity')
+                ).join(
+                    sales_by_item, Items_List.Item_Description == sales_by_item.item_description
+                ).filter(
+                    Items_List.Component == 'Solar Panels',
+                    sales_by_item.date.between(start_date, end_date)
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            ]
+
+
 
 
             # CTE to get the unique clients visited by each team member
@@ -685,6 +704,10 @@ def team_ranking():
                     "battery_quantities": [
                         {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
                         for row in battery_quantities
+                    ],
+                    "solar_panel_quantities": [
+                        {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
+                        for row in solar_panel_quantities
                     ]
 
 
@@ -700,6 +723,7 @@ def team_ranking():
                 solar_panel_data=solar_panel_data,
                 inverter_quantities=inverter_quantities,
                 battery_quantities=battery_quantities,
+                solar_panel_quantities=solar_panel_quantities,
                 start_date=start_date,
                 end_date=end_date
             )

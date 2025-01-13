@@ -224,6 +224,30 @@
         <p>No battery quantities available for the selected period.</p>
         {% endif %}
 
+        <!-- Solar Panel Quantities Table -->
+        {% if solar_panel_quantities %}
+        <h2>Solar Panel Quantities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Solar Panel Description</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solar_panel in solar_panel_quantities %}
+                <tr>
+                    <td>{{ solar_panel.Item_Description }}</td>
+                    <td>{{ solar_panel.total_quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No solar panel quantities available for the selected period.</p>
+        {% endif %}
+
+
 
 
     </div>
