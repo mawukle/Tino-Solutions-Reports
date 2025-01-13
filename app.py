@@ -675,7 +675,7 @@ def team_ranking():
                 inverter_data=inverter_data,
                 battery_data=battery_data,
                 solar_panel_data=solar_panel_data,
-                inverter_quantities=inverter_quantities
+                inverter_quantities=inverter_quantities,
                 start_date=start_date,
                 end_date=end_date
             )
