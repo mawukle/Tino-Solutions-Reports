@@ -725,7 +725,7 @@ def team_ranking():
                     "solar_panel_quantities": [
                         {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
                         for row in solar_panel_quantities
-                    ]
+                    ],
 
                     "victron_charge_controller_quantities": [
                         {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
