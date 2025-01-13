@@ -548,6 +548,27 @@ def team_ranking():
 
 
 
+
+            # Query for Inverter Quantities
+            inverter_quantities = [
+                {
+                    "Item_Description": row.Item_Description,
+                    "total_quantity": round(row.total_quantity or 0, 2)
+                }
+                for row in db.session.query(
+                    func.max(Items_List.Item_Description).label('Item_Description'),
+                    func.sum(sales_by_item.qty_sold).label('total_quantity')
+                ).join(
+                    sales_by_item, Items_List.Item_Description == sales_by_item.item_description
+                ).filter(
+                    Items_List.Component == 'Inverter',
+                    sales_by_item.date.between(start_date, end_date)
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            ]
+
+
+
+
             # CTE to get the unique clients visited by each team member
             team_member_clients_query = db.session.query(
                 Team_Members.Team_Member_Name,
@@ -638,7 +659,12 @@ def team_ranking():
                     "solar_panel_data": [
                         {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
+                    ],
+                    "inverter_quantities": [
+                        {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
+                        for row in inverter_quantities
                     ]
+
                 })
             # Render the team ranking page for form submissions
             return render_template(
@@ -649,6 +675,7 @@ def team_ranking():
                 inverter_data=inverter_data,
                 battery_data=battery_data,
                 solar_panel_data=solar_panel_data,
+                inverter_quantities=inverter_quantities
                 start_date=start_date,
                 end_date=end_date
             )
