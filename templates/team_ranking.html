@@ -247,6 +247,28 @@
         <p>No solar panel quantities available for the selected period.</p>
         {% endif %}
 
+        <!-- Victron Charge Controller Quantities Table -->
+        {% if victron_charge_controller_quantities %}
+        <h2>Victron Charge Controller Quantities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Victron Charge Controller Description</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for victron_charge_controller in victron_charge_controller_quantities %}
+                <tr>
+                    <td>{{ victron_charge_controller.Item_Description }}</td>
+                    <td>{{ victron_charge_controller.total_quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No victron charge controller quantities available for the selected period.</p>
+        {% endif %}
 
 
 
