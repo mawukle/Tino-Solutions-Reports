@@ -553,7 +553,7 @@ def team_ranking():
             inverter_quantities = [
                 {
                     "Item_Description": row.Item_Description,
-                    "total_quantity": round(row.total_quantity or 0, 2)
+                    "total_quantity": row.total_quantity
                 }
                 for row in db.session.query(
                     func.max(Items_List.Item_Description).label('Item_Description'),
