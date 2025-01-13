@@ -406,6 +406,8 @@ def team_ranking():
         inverter_data = []
         battery_data = []
         solar_panel_data = []
+        inverter_quantities = []
+        battery_quantities = []
 
         if request.method == 'POST':
             # Check if the request is JSON (AJAX request)
@@ -566,6 +568,22 @@ def team_ranking():
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
             ]
 
+            # Query for Battery Quantities
+            battery_quantities = [
+                {
+                    "Item_Description": row.Item_Description,
+                    "total_quantity": row.total_quantity
+                }
+                for row in db.session.query(
+                    func.max(Items_List.Item_Description).label('Item_Description'),
+                    func.sum(sales_by_item.qty_sold).label('total_quantity')
+                ).join(
+                    sales_by_item, Items_List.Item_Description == sales_by_item.item_description
+                ).filter(
+                    Items_List.Component == 'Batteries',
+                    sales_by_item.date.between(start_date, end_date)
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            ]
 
 
 
@@ -663,7 +681,12 @@ def team_ranking():
                     "inverter_quantities": [
                         {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
                         for row in inverter_quantities
+                    ],
+                    "battery_quantities": [
+                        {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
+                        for row in battery_quantities
                     ]
+
 
                 })
             # Render the team ranking page for form submissions
@@ -676,6 +699,7 @@ def team_ranking():
                 battery_data=battery_data,
                 solar_panel_data=solar_panel_data,
                 inverter_quantities=inverter_quantities,
+                battery_quantities=battery_quantities,
                 start_date=start_date,
                 end_date=end_date
             )

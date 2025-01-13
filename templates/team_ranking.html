@@ -201,6 +201,30 @@
         <p>No inverter quantities available for the selected period.</p>
         {% endif %}
 
+        <!-- Battery Quantities Table -->
+        {% if battery_quantities %}
+        <h2>Battery Quantities</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Battery Description</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for battery in battery_quantities %}
+                <tr>
+                    <td>{{ battery.Item_Description }}</td>
+                    <td>{{ battery.total_quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No battery quantities available for the selected period.</p>
+        {% endif %}
+
+
 
     </div>
 </body>
