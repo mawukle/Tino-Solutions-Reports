@@ -231,6 +231,7 @@ def graphical_reports():
     battery_data = []
     solar_panel_data = []
     inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
+    inverter_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the inverter quantity chart
     battery_chart_data = {'labels': [], 'data': []}
     solar_panel_chart_data = {'labels': [], 'data': []}
 
@@ -276,6 +277,7 @@ def graphical_reports():
                 text("""
                 SELECT cl.Client_Name,
                        ROUND(SUM(ci.quantity * il.kVA_kW), 2) AS total_inverter_capacity,
+                       SUM(ci.quantity) AS total_inverter_quantity,
                        ci.installed_by
                 FROM client_items ci
                 JOIN Items_List il
@@ -291,21 +293,30 @@ def graphical_reports():
 
             # Convert result to dictionaries for easier handling
             inverter_data = [
-                {'Client_Name': row[0], 'total_inverter_capacity': row[1], 'installed_by': row[2]}
+                {'Client_Name': row[0], 'total_inverter_capacity': row[1], 'total_inverter_quantity': row[2], 'installed_by': row[3]}
                 for row in inverter_data
             ]
 
             # Aggregating inverter data
-            aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
+            aggregated_inverter_capacity = {'Tino Team': 0, 'Client': 0}
+            aggregated_inverter_quantity = {'Tino Team': 0, 'Client': 0}
             for row in inverter_data:
-                if row['installed_by'] in aggregated_inverter_data:
-                    aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
+                if row['installed_by'] in aggregated_inverter_capacity:
+                    aggregated_inverter_capacity[row['installed_by']] += row['total_inverter_capacity']
+                    aggregated_inverter_quantity[row['installed_by']] += row['total_inverter_quantity']
+
 
             # Preparing inverter data for chart.js
             inverter_chart_data = {
-                'labels': list(aggregated_inverter_data.keys()),
-                'data': list(aggregated_inverter_data.values())
+                'labels': list(aggregated_inverter_capacity.keys()),
+                'data': list(aggregated_inverter_capacity.values())
             }
+
+            inverter_quantity_chart_data = {
+                'labels': list(aggregated_inverter_quantity.keys()),
+                'data': list(aggregated_inverter_quantity.values())
+            }
+
 
             # Battery data
             battery_data = db.session.execute(
@@ -388,6 +399,7 @@ def graphical_reports():
         client_days_data=client_days_data,
         inverter_data=inverter_data,  # Raw data
         inverter_chart_data=inverter_chart_data,  # Preprocessed inverter data for chart
+        inverter_quantity_chart_data=inverter_quantity_chart_data,  # New chart for inverter quantities
         battery_data=battery_data,  # Raw battery data
         battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
         solar_panel_data=solar_panel_data,  # Raw solar panel data

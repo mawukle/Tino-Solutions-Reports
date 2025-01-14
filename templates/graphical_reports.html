@@ -599,6 +599,69 @@
 
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
 
+        <!-- Graph for Inverter Quantities -->
+        {% if inverter_quantities %}
+        <div class="chart-container">
+            <h2>Inverter Quantities</h2>
+            <canvas id="inverterChart"></canvas>
+        </div>
+        <script>
+            const inverterData = {
+                labels: {{ inverter_quantities | map(attribute='Item_Description') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'Quantity',
+                        data: {{ inverter_quantities | map(attribute='total_quantity') | list | tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const inverterConfig = {
+                type: 'bar',
+                data: inverterData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Inverter Description'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Quantity'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('inverterChart'),
+                inverterConfig
+            );
+        </script>
+        {% else %}
+        <p>No inverter quantities available for the selected period.</p>
+        {% endif %}
+
+
+
+
     </div>
 </body>
 </html>
