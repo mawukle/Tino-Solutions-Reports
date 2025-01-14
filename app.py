@@ -306,7 +306,7 @@ def graphical_reports():
 
             # Aggregating inverter data
             aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
-            aggregated_inverter_quantity = {'Tino Team': 0, 'Client': 0}
+            aggregated_inverter_quantity = defaultdict(int)  # Automatically initializes missing keys to 0
             for row in inverter_data:
                 if row['installed_by'] in aggregated_inverter_data:
                     aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
