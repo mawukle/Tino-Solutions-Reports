@@ -294,7 +294,13 @@ def graphical_reports():
 
             # Convert result to dictionaries for easier handling
             inverter_data = [
-                {'Client_Name': row[0], 'total_inverter_capacity': row[1], 'total_inverter_quantity': row[2], 'installed_by': row[3]}
+                {
+                    'Client_Name': row[0],
+                    'Item_Description': row[1],
+                    'total_inverter_capacity': row[2],
+                    'total_inverter_quantity': row[3],
+                    'installed_by': row[4]
+                }
                 for row in inverter_data
             ]
 
