@@ -315,8 +315,8 @@ def graphical_reports():
 
             # Preparing inverter data for chart.js
             inverter_chart_data = {
-                'labels': list(aggregated_battery_data.keys()),
-                'data': list(aggregated_battery_data.values())
+                'labels': list(aggregated_inverter_data.keys()),
+                'data': list(aggregated_inverter_data.values())
             }
 
             inverter_quantity_chart_data = {
