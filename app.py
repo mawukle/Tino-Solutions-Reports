@@ -276,7 +276,7 @@ def graphical_reports():
             inverter_data = db.session.execute(
                 text("""
                 SELECT cl.Client_Name,
-                       ci.item_description,
+                       ci.Item_Description,
                        ROUND(SUM(ci.quantity * il.kVA_kW), 2) AS total_inverter_capacity,
                        SUM(ci.quantity) AS total_inverter_quantity,
                        ci.installed_by
