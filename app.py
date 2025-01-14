@@ -325,7 +325,7 @@ def graphical_reports():
             }
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
 
-                print(inverter_quantity_chart_data)  # Check the data
+            print(inverter_quantity_chart_data)  # Check the data
 
 
             # Battery data
