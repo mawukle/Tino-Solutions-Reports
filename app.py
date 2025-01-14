@@ -318,14 +318,14 @@ def graphical_reports():
                 'labels': list(aggregated_inverter_data.keys()),
                 'data': list(aggregated_inverter_data.values())
             }
-'''
+
             inverter_quantity_chart_data = {
                 'labels': [row['Item_Description'] for row in inverter_quantity_chart_data],  # Use Item_Description as the labels
                 'data': [row['total_inverter_quantity'] for row in inverter_quantity_chart_data]  # Use total_inverter_quantity as the data
             }
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
-'''
-            print(inverter_quantity_chart_data)  # Check the data
+
+                print(inverter_quantity_chart_data)  # Check the data
 
 
             # Battery data
