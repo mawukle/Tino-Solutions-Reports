@@ -286,7 +286,7 @@ def graphical_reports():
                   ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY cl.Client_Name, ci.installed_by
-                ORDER BY total_inverter_capacity DESC
+                ORDER BY total_inverter_quantity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
