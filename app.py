@@ -306,11 +306,11 @@ def graphical_reports():
 
             # Aggregating inverter data
             aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
-            #aggregated_inverter_quantity = {'Tino Team': 0, 'Client': 0}
+            aggregated_inverter_quantity = {'Tino Team': 0, 'Client': 0}
             for row in inverter_data:
                 if row['installed_by'] in aggregated_inverter_data:
                     aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
-                    #aggregated_inverter_quantity[row['installed_by']] += row['total_inverter_quantity']
+                    aggregated_inverter_quantity[row['installed_by']] += row['total_inverter_quantity']
 
 
             # Preparing inverter data for chart.js
@@ -320,8 +320,8 @@ def graphical_reports():
             }
 
             inverter_quantity_chart_data = {
-                'labels': [row['Item_Description'] for row in inverter_quantity_chart_data],  # Use Item_Description as the labels
-                'data': [row['total_inverter_quantity'] for row in inverter_quantity_chart_data]  # Use total_inverter_quantity as the data
+                'labels': list(aggregated_inverter_quantity.keys()),
+                'data': list(aggregated_inverter_quantity.values())
             }
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
 
