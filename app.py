@@ -316,7 +316,7 @@ def graphical_reports():
                 'labels': list(aggregated_inverter_quantity.keys()),
                 'data': list(aggregated_inverter_quantity.values())
             }
-            logging.debug(f"Inverter Quantities: {inverter_quantities}")
+            logging.debug(f"Inverter Quantities: {inverter_data}")
 
 
             # Battery data
