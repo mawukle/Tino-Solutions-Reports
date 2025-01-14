@@ -607,11 +607,11 @@
         </div>
         <script>
             const inverterData = {
-                labels: {{ inverter_quantities | map(attribute='Item_Description') | list | tojson }},
+                labels: {{ inverter_data | map(attribute='Item_Description') | list | tojson }},
                 datasets: [
                     {
                         label: 'Quantity',
-                        data: {{ inverter_quantities | map(attribute='total_quantity') | list | tojson }},
+                        data: {{ inverter_data | map(attribute='total_quantity') | list | tojson }},
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
