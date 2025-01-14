@@ -658,6 +658,9 @@
         {% else %}
         <p>No inverter quantities available for the selected period.</p>
         {% endif %}
+        <script>
+            console.log("Inverter Quantity Chart Data:", {{ inverter_quantity_chart_data | tojson }});
+        </script>
 
 
 

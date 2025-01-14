@@ -319,10 +319,12 @@ def graphical_reports():
                 'data': list(aggregated_inverter_data.values())
             }
 
+            # Preparing inverter data for chart.js
             inverter_quantity_chart_data = {
-                'labels': list(aggregated_inverter_quantity.keys()),
-                'data': list(aggregated_inverter_quantity.values())
+                'labels': [row['Item_Description'] for row in inverter_data],
+                'data': [row['total_inverter_quantity'] for row in inverter_data]
             }
+
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
 
             print(inverter_quantity_chart_data)  # Check the data
