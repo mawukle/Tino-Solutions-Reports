@@ -286,14 +286,14 @@ def graphical_reports():
                 JOIN Client_List cl
                   ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
                 WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
-                GROUP BY cl.Client_Name, ci.installed_by
+                GROUP BY cl.Client_Name, ci.installed_by, ci. Item_Description
                 ORDER BY total_inverter_quantity DESC
                 """),
                 {'start_date': start_date, 'end_date': end_date}
             ).fetchall()
 
             # Convert result to dictionaries for easier handling
-            inverter_data = [
+            inverter_data_dict = [
                 {
                     'Client_Name': row[0],
                     'Item_Description': row[1],
@@ -307,7 +307,7 @@ def graphical_reports():
             # Aggregating inverter data
             aggregated_inverter_capacity = {'Tino Team': 0, 'Client': 0}
             aggregated_inverter_quantity = {'Tino Team': 0, 'Client': 0}
-            for row in inverter_data:
+            for row in inverter_data_dict:
                 if row['installed_by'] in aggregated_inverter_capacity:
                     aggregated_inverter_capacity[row['installed_by']] += row['total_inverter_capacity']
                     aggregated_inverter_quantity[row['installed_by']] += row['total_inverter_quantity']
@@ -315,15 +315,15 @@ def graphical_reports():
 
             # Preparing inverter data for chart.js
             inverter_chart_data = {
-                'labels': [row['Item_Description'] for row in inverter_data],  # Use Item_Description as the labels
-                'data': [row['total_inverter_quantity'] for row in inverter_data]  # Use total_inverter_quantity as the data
+                'labels': [row['Item_Description'] for row in inverter_data_dict],  # Use Item_Description as the labels
+                'data': [row['total_inverter_quantity'] for row in inverter_data_dict]  # Use total_inverter_quantity as the data
             }
 
             inverter_quantity_chart_data = {
                 'labels': list(aggregated_inverter_quantity.keys()),
                 'data': list(aggregated_inverter_quantity.values())
             }
-            logging.debug(f"Inverter Quantities: {inverter_data}")
+            logging.debug(f"Inverter Quantities: {inverter_data_dict}")
 
 
             # Battery data
