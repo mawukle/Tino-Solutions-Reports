@@ -315,8 +315,8 @@ def graphical_reports():
 
             # Preparing inverter data for chart.js
             inverter_chart_data = {
-                'labels': list(aggregated_inverter_capacity.keys()),
-                'data': list(aggregated_inverter_capacity.values())
+                'labels': [row['Item_Description'] for row in inverter_data],  # Use Item_Description as the labels
+                'data': [row['total_inverter_quantity'] for row in inverter_data]  # Use total_inverter_quantity as the data
             }
 
             inverter_quantity_chart_data = {
