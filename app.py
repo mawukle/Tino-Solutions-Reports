@@ -405,8 +405,8 @@ def graphical_reports():
         end_date=end_date,
         team_rankings=team_rankings,
         client_days_data=client_days_data,
-#        inverter_data=inverter_data,  # Raw data
-        inverter_data=inverter_chart_data,  # Preprocessed inverter data for chart
+        inverter_data=inverter_data,  # Raw data
+        inverter_chart_data=inverter_chart_data,  # Preprocessed inverter data for chart
         inverter_quantity_chart_data=inverter_quantity_chart_data,  # New chart for inverter quantities
         battery_data=battery_data,  # Raw battery data
         battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
