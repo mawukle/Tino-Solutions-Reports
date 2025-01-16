@@ -316,12 +316,12 @@ def graphical_reports():
             # Preparing inverter data for chart.js
             inverter_chart_data = {
                 'labels': list(aggregated_inverter_data.keys()),
-                'data': list(aggregated_inverter_data.values())
+                'data': [float(value) for value in aggregated_inverter_data.values()]  # Convert Decimal to float
             }
 
             inverter_quantity_chart_data = {
                 'labels': list(aggregated_inverter_quantity.keys()),
-                'data': list(aggregated_inverter_quantity.values())
+                'data': [float(value) for value in aggregated_inverter_quantity.values()]  # Convert Decimal to float
             }
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
 
