@@ -323,7 +323,11 @@ def graphical_reports():
                 'labels': list(aggregated_inverter_quantity.keys()),
                 'data': [float(value) for value in aggregated_inverter_quantity.values()]  # Convert Decimal to float
             }
+
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
+            logging.debug(f"Inverter Chart Data: {inverter_chart_data}")
+            logging.debug(f"Inverter Quantity Chart Data: {inverter_quantity_chart_data}")
+
 
             print(inverter_quantity_chart_data)  # Check the data
 
