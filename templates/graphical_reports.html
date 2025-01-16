@@ -611,7 +611,7 @@
                 datasets: [
                     {
                         label: 'Quantity',
-                        data: {{ inverter_quantity_chart_data.data | map(attribute='total_inverter_quantity') | list | tojson }},
+                        data: {{ inverter_quantity_chart_data.data | tojson }},
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
