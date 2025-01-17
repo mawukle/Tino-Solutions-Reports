@@ -320,7 +320,7 @@ def graphical_reports():
             }
 
             inverter_quantity_chart_data = {
-                'labels': [{'Item_Description': desc} for desc in aggregated_inverter_quantity.keys()],
+                'labels': list(aggregated_inverter_quantity.keys()),  # Use keys directly as strings
                 'data': [float(value) for value in aggregated_inverter_quantity.values()]  # Convert Decimal to float
             }
 

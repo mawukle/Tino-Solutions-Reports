@@ -607,7 +607,7 @@
         </div>
         <script>
             const inverterData = {
-                labels: {{ inverter_quantity_chart_data.labels | map(attribute='Item_Description') | list | tojson }},
+                labels: {{ inverter_quantity_chart_data.labels | tojson }}, // No need to map or attribute access
                 datasets: [
                     {
                         label: 'Quantity',
