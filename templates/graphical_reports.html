@@ -28,6 +28,13 @@
             margin: 0px auto;
         }
 
+        #inverterQuantities {
+            width: 100% !important;
+            height: auto; /* Adjust the height as needed */
+            max-width: 100%;
+            margin: 0px auto;
+        }
+
 /*    </style>
     <style>
         /* General styling for charts and their containers */
@@ -603,7 +610,7 @@
         {% if inverter_data %}
         <div class="chart-container">
             <h2>Inverter Quantities</h2>
-            <canvas id="inverterChart"></canvas>
+            <canvas id="inverterQuantities"></canvas>
         </div>
         <script>
             const inverterData = {
@@ -651,7 +658,7 @@
             };
 
             new Chart(
-                document.getElementById('inverterChart'),
+                document.getElementById('inverterQuantities'),
                 inverterConfig
             );
         </script>
