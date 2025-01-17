@@ -630,6 +630,7 @@
                 type: 'bar',
                 data: inverterQuantitiesData,
                 options: {
+                    indexAxis: 'y', // Swap the axes (horizontal bar chart)
                     responsive: true,
                     plugins: {
                         legend: {
@@ -640,18 +641,18 @@
                         }
                     },
                     scales: {
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Inverter Description'
-                            }
-                        },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Quantity'
                             },
                             beginAtZero: true
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Inverter Description'
+                            }
                         }
                     }
                 }
