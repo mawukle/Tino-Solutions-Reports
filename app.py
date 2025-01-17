@@ -319,20 +319,10 @@ def graphical_reports():
                 'data': [float(value) for value in aggregated_inverter_data.values()]  # Convert Decimal to float
             }
 
-            # Sorting aggregated inverter quantities by value in descending order
-            sorted_inverter_quantity = sorted(
-                aggregated_inverter_quantity.items(),
-                key=lambda x: x[1],  # Sort by quantity (value)
-                reverse=True         # Descending order
-            )
-
-            # Preparing inverter data for chart.js
             inverter_quantity_chart_data = {
-                'labels': [item[0] for item in sorted_inverter_quantity],  # Sorted descriptions
-                'data': [float(item[1]) for item in sorted_inverter_quantity]  # Sorted quantities
+                'labels': list(aggregated_inverter_quantity.keys()),  # Use keys directly as strings
+                'data': [float(value) for value in aggregated_inverter_quantity.values()]  # Convert Decimal to float
             }
-
-            logging.debug(f"Sorted Inverter Quantities: {inverter_quantity_chart_data}")
 
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
             logging.debug(f"Inverter Chart Data: {inverter_chart_data}")
