@@ -613,7 +613,7 @@
             <canvas id="inverterQuantities"></canvas>
         </div>
         <script>
-            const inverterData = {
+            const inverterQuantitiesData = {
                 labels: {{ inverter_quantity_chart_data.labels | tojson }}, // No need to map or attribute access
                 datasets: [
                     {
@@ -628,7 +628,7 @@
 
             const inverterConfig = {
                 type: 'bar',
-                data: inverterData,
+                data: inverterQuantitiesData,
                 options: {
                     responsive: true,
                     plugins: {
