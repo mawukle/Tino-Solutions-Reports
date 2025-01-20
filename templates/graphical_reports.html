@@ -608,7 +608,7 @@
 
         <!-- Graph for Inverter Quantities -->
         {% if inverter_data %}
-        <div class="chart-container" style="height: {{ 50 * inverter_quantity_chart_data.labels|length }}px;"> <!-- Dynamic height -->
+        <div class="chart-container" > <!-- Dynamic height -->
             <h2>Inverter Quantities</h2>
             <canvas id="inverterQuantities"></canvas>
         </div>
