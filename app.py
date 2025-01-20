@@ -304,13 +304,18 @@ def graphical_reports():
                 for row in inverter_data
             ]
 
-            # Aggregating inverter data
+            # Aggregating inverter capacity
             aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
-            aggregated_inverter_quantity = defaultdict(int)  # Automatically initializes missing keys to 0
+
             for row in inverter_data:
                 if row['installed_by'] in aggregated_inverter_data:
                     aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
-                    aggregated_inverter_quantity[row['Item_Description']] += row['total_inverter_quantity']
+
+            # Aggregating inverter quantity
+            aggregated_inverter_quantity = defaultdict(int)  # Automatically initializes missing keys to 0
+
+            for row in inverter_data:
+                aggregated_inverter_quantity[row['Item_Description']] += row['total_inverter_quantity']
 
 
             # Preparing inverter data for chart.js
