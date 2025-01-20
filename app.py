@@ -394,7 +394,7 @@ def graphical_reports():
                   ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
                 JOIN Client_List cl
                   ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
-                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
+                WHERE ci.component = 'Batteries' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY cl.Client_Name, ci.installed_by
                 ORDER BY total_battery_capacity DESC
                 """),
@@ -435,7 +435,7 @@ def graphical_reports():
                 FROM client_items ci
                 JOIN Items_List il
                   ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
-                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
+                WHERE ci.component = 'Batteries' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY ci.Item_Description, ci.installed_by  -- Group by Item_Description and installed_by
                 ORDER BY total_battery_quantity DESC
                 """),
