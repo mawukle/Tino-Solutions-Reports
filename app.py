@@ -304,16 +304,19 @@ def graphical_reports():
                 for row in inverter_data
             ]
 
-            # Aggregating inverter capacity by "installed_by"
-            aggregated_inverter_data = defaultdict(float)
-            for row in inverter_data:
-                aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
+            # Aggregating inverter capacity
+            aggregated_inverter_data = {'Tino Team': 0, 'Client': 0}
 
-            # Aggregating inverter quantity by "Item_Description"
-            aggregated_inverter_quantity = defaultdict(int)
             for row in inverter_data:
-                if row['Item_Description']:
-                    aggregated_inverter_quantity[row['Item_Description']] += row['total_inverter_quantity']
+                if row['installed_by'] in aggregated_inverter_data:
+                    aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
+
+            # Aggregating inverter quantity
+            aggregated_inverter_quantity = defaultdict(int)  # Automatically initializes missing keys to 0
+
+            for row in inverter_data:
+                aggregated_inverter_quantity[row['Item_Description']] += row['total_inverter_quantity']
+
 
             # Preparing inverter data for chart.js
             inverter_chart_data = {
@@ -328,7 +331,7 @@ def graphical_reports():
                 reverse=True         # Descending order
             )
 
-            # Preparing inverter quantity data for chart.js
+            # Preparing inverter data for chart.js
             inverter_quantity_chart_data = {
                 'labels': [item[0] for item in sorted_inverter_quantity],  # Sorted descriptions
                 'data': [float(item[1]) for item in sorted_inverter_quantity]  # Sorted quantities
@@ -340,6 +343,7 @@ def graphical_reports():
             logging.debug(f"Inverter Chart Data: {inverter_chart_data}")
             logging.debug(f"Inverter Quantity Chart Data: {inverter_quantity_chart_data}")
             logging.debug(f"Sorted Quantities for Chart: {sorted_inverter_quantity}")
+
 
 
             print(inverter_quantity_chart_data)  # Check the data
