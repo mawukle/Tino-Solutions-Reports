@@ -380,21 +380,19 @@ def graphical_reports():
             print(inverter_quantity_chart_data)  # Check the data
 
 
-            # Battery data
             battery_data = db.session.execute(
                 text("""
                 SELECT cl.Client_Name,
+                       ci.Item_Description,
                        ROUND(SUM(ci.quantity * il.kWh), 2) AS total_battery_capacity,
+                       SUM(ci.quantity) AS total_battery_quantity,
                        ci.installed_by
                 FROM client_items ci
                 JOIN Items_List il
-                  ON ci.item_description = il.Item_Description
-                     OR ci.item_description = il.Alias_Description
+                  ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
                 JOIN Client_List cl
-                  ON ci.client_name = cl.Client_Name
-                     OR ci.client_name = cl.Alias_Name
-                WHERE ci.component = 'Batteries'
-                  AND ci.date BETWEEN :start_date AND :end_date
+                  ON ci.client_name = cl.Client_Name OR ci.client_name = cl.Alias_Name
+                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
                 GROUP BY cl.Client_Name, ci.installed_by
                 ORDER BY total_battery_capacity DESC
                 """),
@@ -403,12 +401,19 @@ def graphical_reports():
 
             # Convert result to dictionaries for easier handling
             battery_data = [
-                {'Client_Name': row[0], 'total_battery_capacity': row[1], 'installed_by': row[2]}
+                {
+                    'Client_Name': row[0],
+                    'Item_Description': row[1],
+                    'total_battery_capacity': row[2],
+                    'total_battery_quantity': row[3],
+                    'installed_by': row[4]
+                }
                 for row in battery_data
             ]
 
-            # Aggregating battery data
+            # Aggregating battery capacity
             aggregated_battery_data = {'Tino Team': 0, 'Client': 0}
+
             for row in battery_data:
                 if row['installed_by'] in aggregated_battery_data:
                     aggregated_battery_data[row['installed_by']] += row['total_battery_capacity']
@@ -416,8 +421,71 @@ def graphical_reports():
             # Preparing battery data for chart.js
             battery_chart_data = {
                 'labels': list(aggregated_battery_data.keys()),
-                'data': list(aggregated_battery_data.values())
+                'data': [float(value) for value in aggregated_battery_data.values()]  # Convert Decimal to float
             }
+
+
+            battery_quantity_data = db.session.execute(
+                text("""
+                SELECT ci.Item_Description,
+                       SUM(ci.quantity) AS total_battery_quantity,
+                       ci.installed_by
+                FROM client_items ci
+                JOIN Items_List il
+                  ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
+                WHERE ci.component = 'Battery' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Item_Description, ci.installed_by  -- Group by Item_Description and installed_by
+                ORDER BY total_battery_quantity DESC
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
+
+
+            # Convert result to dictionaries for easier handling
+            battery_quantity_data = [
+                {
+                    'Item_Description': row[0],
+                    'total_battery_quantity': row[1],
+                    'installed_by': row[2]
+                }
+                for row in battery_quantity_data
+            ]
+
+            # Aggregating battery quantities for each Item_Description
+            aggregated_battery_quantity = defaultdict(lambda: {'Tino Team': 0, 'Client': 0})
+
+            for row in battery_quantity_data:
+                description = row['Item_Description']
+                quantity = row['total_battery_quantity']
+                installed_by = row['installed_by']
+
+                # Add the quantity to the corresponding installed_by category
+                if installed_by in aggregated_battery_quantity[description]:
+                    aggregated_battery_quantity[description][installed_by] += quantity
+
+            # Sorting aggregated battery quantities by value in descending order
+            sorted_battery_quantity = sorted(
+                [(description, sum(data.values())) for description, data in aggregated_battery_quantity.items()],
+                key=lambda x: x[1],  # Sort by quantity (value)
+                reverse=True         # Descending order
+            )
+
+            # Preparing battery data for chart.js
+            battery_quantity_chart_data = {
+                'labels': [item[0] for item in sorted_battery_quantity],  # Sorted descriptions
+                'data': [float(item[1]) for item in sorted_battery_quantity]  # Sorted quantities
+            }
+
+            logging.debug(f"Sorted Battery Quantities: {battery_quantity_chart_data}")
+
+            logging.debug(f"Battery Quantities: {battery_quantity_chart_data}")
+            logging.debug(f"Battery Chart Data: {battery_chart_data}")
+            logging.debug(f"Battery Quantity Chart Data: {battery_quantity_chart_data}")
+
+
+            print(battery_quantity_chart_data)  # Check the data
+
+
 
             # Solar panel data
             solar_panel_data = db.session.execute(
