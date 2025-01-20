@@ -608,13 +608,13 @@
 
         <!-- Graph for Inverter Quantities -->
         {% if inverter_data %}
-        <div class="chart-container">
+        <div class="chart-container" style="height: {{ 50 * inverter_quantity_chart_data.labels|length }}px;"> <!-- Dynamic height -->
             <h2>Inverter Quantities</h2>
             <canvas id="inverterQuantities"></canvas>
         </div>
         <script>
             const inverterQuantitiesData = {
-                labels: {{ inverter_quantity_chart_data.labels | tojson }}, // No need to map or attribute access
+                labels: {{ inverter_quantity_chart_data.labels | tojson }},
                 datasets: [
                     {
                         label: 'Quantity',
@@ -630,34 +630,22 @@
                 type: 'bar',
                 data: inverterQuantitiesData,
                 options: {
-                    indexAxis: 'y', // Swap the axes (horizontal bar chart)
+                    indexAxis: 'y',
                     responsive: true,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            enabled: true
-                        }
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true }
                     },
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Quantity'
-                            },
+                            title: { display: true, text: 'Quantity' },
                             beginAtZero: true
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: 'Inverter Description'
-                            },
+                            title: { display: true, text: 'Inverter Description' },
                             ticks: {
-                                autoSkip: false, // Ensure all labels are shown
-                                font: {
-                                    size: 10 // Adjust font size for better readability (optional)
-                                }
+                                autoSkip: false,
+                                font: { size: 10 }
                             }
                         }
                     }
