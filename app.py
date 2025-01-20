@@ -230,10 +230,12 @@ def graphical_reports():
     inverter_data = []
     inverter_quantity_data = []
     battery_data = []
+    battery_quanatity_data = []
     solar_panel_data = []
     inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
     inverter_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the inverter quantity chart
     battery_chart_data = {'labels': [], 'data': []}
+    battery_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the battery quantity chart
     solar_panel_chart_data = {'labels': [], 'data': []}
 
     if request.method == 'POST':
@@ -532,7 +534,9 @@ def graphical_reports():
         inverter_chart_data=inverter_chart_data,  # Preprocessed inverter data for chart
         inverter_quantity_chart_data=inverter_quantity_chart_data,  # New chart for inverter quantities
         battery_data=battery_data,  # Raw battery data
+        battery_quantity_data=battery_quantity_data,
         battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
+        battery_quantity_chart_data=battery_quantity_chart_data,
         solar_panel_data=solar_panel_data,  # Raw solar panel data
         solar_panel_chart_data=solar_panel_chart_data  # Preprocessed solar panel data for chart
     )
