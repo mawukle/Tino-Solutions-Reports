@@ -711,7 +711,7 @@ def team_ranking():
 
                 ).filter(
                     Items_List.Component == 'Victron Charge Controllers',
-                    sales_by_item.date.between(start_date, end_date)
+                    client_items.date.between(start_date, end_date)
                 ).group_by(Items_List.Item_Description)
                 .order_by(desc('total_quantity'))
                 .all()
