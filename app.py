@@ -635,14 +635,19 @@ def team_ranking():
                     "total_quantity": row.total_quantity
                 }
                 for row in db.session.query(
-                    func.max(Items_List.Item_Description).label('Item_Description'),
-                    func.sum(sales_by_item.qty_sold).label('total_quantity')
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')  # Sum quantities directly from client_items
                 ).join(
-                    sales_by_item, Items_List.Item_Description == sales_by_item.item_description
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
                 ).filter(
-                    Items_List.Component == 'Inverter',
-                    sales_by_item.date.between(start_date, end_date)
-                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+                    Items_List.Component == 'Inverter',  # Ensure filtering by component
+                    client_items.date.between(start_date, end_date)
+                ).group_by(Items_List.Item_Description)  # Group by Item_Description
+                .order_by(desc('total_quantity'))  # Sort by total quantity
+                .all()
             ]
 
             # Query for Battery Quantities
