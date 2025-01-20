@@ -664,6 +664,63 @@
             console.log("Inverter Quantity Chart Data:", {{ inverter_quantity_chart_data | tojson }});
         </script>
 
+        <!-- Graph for Battery Quantities -->
+        {% if battery_data %}
+        <div class="chart-container" > <!-- Dynamic height -->
+            <h2>Battery Quantities</h2>
+            <canvas id="batteryQuantities"></canvas>
+        </div>
+        <script>
+            const batteryQuantitiesData = {
+                labels: {{ battery_quantity_chart_data.labels | tojson }},
+                datasets: [
+                    {
+                        label: 'Quantity',
+                        data: {{ battery_quantity_chart_data.data | tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const batteryQuantitiesConfig = {
+                type: 'bar',
+                data: batteryQuantitiesData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Quantity' },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: { display: true, text: 'Battery Description' },
+                            ticks: {
+                                autoSkip: false,
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('batteryQuantities'),
+                batteryQuantitiesConfig
+            );
+        </script>
+        {% else %}
+        <p>No battery quantities available for the selected period.</p>
+        {% endif %}
+        <script>
+            console.log("Battery Quantity Chart Data:", {{ battery_quantity_chart_data | tojson }});
+        </script>
 
 
 
