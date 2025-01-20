@@ -338,12 +338,10 @@ def graphical_reports():
             }
 
             logging.debug(f"Sorted Inverter Quantities: {inverter_quantity_chart_data}")
-            logging.debug(f"Aggregated Quantities: {dict(aggregated_inverter_quantity)}")
+
             logging.debug(f"Inverter Quantities: {inverter_quantity_chart_data}")
             logging.debug(f"Inverter Chart Data: {inverter_chart_data}")
             logging.debug(f"Inverter Quantity Chart Data: {inverter_quantity_chart_data}")
-            logging.debug(f"Sorted Quantities for Chart: {sorted_inverter_quantity}")
-
 
 
             print(inverter_quantity_chart_data)  # Check the data
