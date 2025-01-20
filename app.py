@@ -311,13 +311,18 @@ def graphical_reports():
                 if row['installed_by'] in aggregated_inverter_data:
                     aggregated_inverter_data[row['installed_by']] += row['total_inverter_capacity']
 
-            # Aggregating inverter quantities for each Item_Description
-            aggregated_inverter_quantity = defaultdict(int)
+            # Aggregating inverter quantity
+            aggregated_inverter_quantity = defaultdict(int)  # Automatically initializes missing keys to 0
 
             for row in inverter_data:
-                description = row['Item_Description']
-                quantity = row['total_inverter_quantity']
-                aggregated_inverter_quantity[description] += quantity
+                aggregated_inverter_quantity[row['Item_Description']] += row['total_inverter_quantity']
+
+
+            # Preparing inverter data for chart.js
+            inverter_chart_data = {
+                'labels': list(aggregated_inverter_data.keys()),
+                'data': [float(value) for value in aggregated_inverter_data.values()]  # Convert Decimal to float
+            }
 
             # Sorting aggregated inverter quantities by value in descending order
             sorted_inverter_quantity = sorted(
