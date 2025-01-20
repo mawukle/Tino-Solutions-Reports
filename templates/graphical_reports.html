@@ -606,31 +606,41 @@
 
         <!-- Add similar graph sections for battery_data and solar_panel_data -->
 
-        <!-- Graph for Inverter Quantities -->
-        {% if inverter_data %}
+        {% if inverter_quantity_chart_data %}
         <div class="chart-container">
             <h2>Inverter Quantities</h2>
-            <canvas id="inverterQuantities"></canvas>
+            <canvas id="inverterQuantitiesChart"></canvas>
         </div>
         <script>
+            // Using data from backend
             const inverterQuantitiesData = {
-                labels: {{ inverter_quantity_chart_data.labels | tojson }}, // No need to map or attribute access
+                labels: {{ inverter_quantity_chart_data.labels | tojson }},
                 datasets: [
                     {
-                        label: 'Quantity',
+                        label: 'Inverter Quantities',
                         data: {{ inverter_quantity_chart_data.data | tojson }},
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        backgroundColor: generateColor({{ inverter_quantity_chart_data.data | length }}),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }
                 ]
             };
 
+            // Generate colors dynamically
+            const generateColor = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
             const inverterQuantitiesConfig = {
                 type: 'bar',
                 data: inverterQuantitiesData,
                 options: {
-                    indexAxis: 'y', // Swap the axes (horizontal bar chart)
+                    indexAxis: 'y',
                     responsive: true,
                     plugins: {
                         legend: {
@@ -642,11 +652,11 @@
                     },
                     scales: {
                         x: {
+                            beginAtZero: true,
                             title: {
                                 display: true,
                                 text: 'Quantity'
-                            },
-                            beginAtZero: true
+                            }
                         },
                         y: {
                             title: {
@@ -654,9 +664,9 @@
                                 text: 'Inverter Description'
                             },
                             ticks: {
-                                autoSkip: false, // Ensure all labels are shown
+                                autoSkip: false,
                                 font: {
-                                    size: 10 // Adjust font size for better readability (optional)
+                                    size: 10
                                 }
                             }
                         }
@@ -664,14 +674,16 @@
                 }
             };
 
+            // Render the chart
             new Chart(
-                document.getElementById('inverterQuantities'),
+                document.getElementById('inverterQuantitiesChart'),
                 inverterQuantitiesConfig
             );
         </script>
         {% else %}
         <p>No inverter quantities available for the selected period.</p>
         {% endif %}
+
         <script>
             console.log("Inverter Quantity Chart Data:", {{ inverter_quantity_chart_data | tojson }});
         </script>
