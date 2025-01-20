@@ -228,6 +228,7 @@ def graphical_reports():
     team_rankings = []
     client_days_data = []
     inverter_data = []
+    inverter_quantity_data = []
     battery_data = []
     solar_panel_data = []
     inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
@@ -317,17 +318,48 @@ def graphical_reports():
                 'data': [float(value) for value in aggregated_inverter_data.values()]  # Convert Decimal to float
             }
 
-            # Aggregating inverter quantities for each Item_Description
-            aggregated_inverter_quantity = defaultdict(int)
 
-            for row in inverter_data:
+            inverter_quantity_data = db.session.execute(
+                text("""
+                SELECT ci.Item_Description,
+                       SUM(ci.quantity) AS total_inverter_quantity,
+                       ci.installed_by
+                FROM client_items ci
+                JOIN Items_List il
+                  ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
+                WHERE ci.component = 'Inverter' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Item_Description, ci.installed_by  -- Group by Item_Description and installed_by
+                ORDER BY total_inverter_quantity DESC
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
+
+
+            # Convert result to dictionaries for easier handling
+            inverter_quantity_data = [
+                {
+                    'Item_Description': row[0],
+                    'total_inverter_quantity': row[1],
+                    'installed_by': row[2]
+                }
+                for row in inverter_quantity_data
+            ]
+
+            # Aggregating inverter quantities for each Item_Description
+            aggregated_inverter_quantity = defaultdict(lambda: {'Tino Team': 0, 'Client': 0})
+
+            for row in inverter_quantity_data:
                 description = row['Item_Description']
                 quantity = row['total_inverter_quantity']
-                aggregated_inverter_quantity[description] += quantity
+                installed_by = row['installed_by']
+
+                # Add the quantity to the corresponding installed_by category
+                if installed_by in aggregated_inverter_quantity[description]:
+                    aggregated_inverter_quantity[description][installed_by] += quantity
 
             # Sorting aggregated inverter quantities by value in descending order
             sorted_inverter_quantity = sorted(
-                aggregated_inverter_quantity.items(),
+                [(description, sum(data.values())) for description, data in aggregated_inverter_quantity.items()],
                 key=lambda x: x[1],  # Sort by quantity (value)
                 reverse=True         # Descending order
             )
@@ -428,6 +460,7 @@ def graphical_reports():
         team_rankings=team_rankings,
         client_days_data=client_days_data,
         inverter_data=inverter_data,  # Raw data
+        inverter_quantity_data=inverter_quantity_data,
         inverter_chart_data=inverter_chart_data,  # Preprocessed inverter data for chart
         inverter_quantity_chart_data=inverter_quantity_chart_data,  # New chart for inverter quantities
         battery_data=battery_data,  # Raw battery data
