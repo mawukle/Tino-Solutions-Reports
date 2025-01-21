@@ -671,7 +671,7 @@ def graphical_reports():
         solar_panel_quantity_data=solar_panel_quantity_data,
         solar_panel_chart_data=solar_panel_chart_data,  # Preprocessed solar panel data for chart
         solar_panel_quantity_chart_data=solar_panel_quantity_chart_data,
-        victron_charge_controller_data=victron_charge_controller_data,  # Raw solar panel data
+#        victron_charge_controller_data=victron_charge_controller_data,  # Raw solar panel data
         victron_charge_controller_quantity_data=victron_charge_controller_quantity_data,
         victron_charge_controller_chart_data=victron_charge_controller_chart_data,  # Preprocessed solar panel data for chart
         victron_charge_controller_quantity_chart_data=victron_charge_controller_quantity_chart_data
@@ -1019,6 +1019,7 @@ def team_ranking():
                         {"Client_Name": row.Client_Name, "total_solar_panel_capacity": row.total_solar_panel_capacity}
                         for row in solar_panel_data
                     ],
+
                     "inverter_quantities": [
                         {"Item_Description": row.Item_Description, "total_quantity": row.total_quantity}
                         for row in inverter_quantities
