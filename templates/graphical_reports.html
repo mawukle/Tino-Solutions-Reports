@@ -28,7 +28,7 @@
             margin: 0px auto;
         }
 
-        #inverterQuantities, #batteryQuantities, #solarPanelQuantities {
+        #inverterQuantities, #batteryQuantities, #solarPanelQuantities, #victronChargeControllerQuantities {
             width: 100% !important;
             height: auto; /* Adjust the height as needed */
             max-width: 100%;
@@ -779,6 +779,66 @@
         <script>
             console.log("Solar Panel Quantity Chart Data:", {{ solar_panel_quantity_chart_data | tojson }});
         </script>
+
+
+        <!-- Graph for Victron Solar Panel Quantities -->
+        {% if victron_charge_controller_data %}
+        <div class="chart-container" style="min-height: 400px; width: 100%;"> <!-- Adjust height and width -->
+            <h2>Victron Charge Controller Quantities</h2>
+            <canvas id="victronChargeControllerQuantities"></canvas>
+        </div>
+        <script>
+            const victronChargeControllerQuantitiesData = {
+                labels: {{ victron_charge_controller_quantity_chart_data.labels | tojson }},
+                datasets: [
+                    {
+                        label: 'Quantity',
+                        data: {{ victron_charge_controller_quantity_chart_data.data | tojson }},
+                        backgroundColor: 'rgba(75, 192, 75, 0.6)', /* Green shade */
+                        borderColor: 'rgba(75, 192, 75, 1)', /* Darker green */
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const victronChargeControllerQuantitiesConfig = {
+                type: 'bar',
+                data: victronChargeControllerQuantitiesData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Quantity' },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: { display: true, text: 'Victron Charge Controller Description' },
+                            ticks: {
+                                autoSkip: false,
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('victronChargeControllerQuantities'),
+                victronChargeControllerQuantitiesConfig
+            );
+        </script>
+        {% else %}
+        <p>No victron charge controller quantities available for the selected period.</p>
+        {% endif %}
+        <script>
+            console.log("Victron Charge Controller Quantity Chart Data:", {{ victron_charge_controller_quantity_chart_data | tojson }});
+        </script>
+
 
 
     </div>
