@@ -28,7 +28,7 @@
             margin: 0px auto;
         }
 
-        #inverterQuantities, #batteryQuantities {
+        #inverterQuantities, #batteryQuantities, #solarPanelQuantities {
             width: 100% !important;
             height: auto; /* Adjust the height as needed */
             max-width: 100%;
@@ -722,6 +722,63 @@
             console.log("Battery Quantity Chart Data:", {{ battery_quantity_chart_data | tojson }});
         </script>
 
+        <!-- Graph for Solar Panel Quantities -->
+        {% if solar_panel_data %}
+        <div class="chart-container" style="min-height: 400px; width: 100%;"> <!-- Adjust height and width -->
+            <h2>Solar Panel Quantities</h2>
+            <canvas id="solarPanelQuantities"></canvas>
+        </div>
+        <script>
+            const solarPanelQuantitiesData = {
+                labels: {{ solar_panel_quantity_chart_data.labels | tojson }},
+                datasets: [
+                    {
+                        label: 'Quantity',
+                        data: {{ solar_panel_quantity_chart_data.data | tojson }},
+                        backgroundColor: 'rgba(75, 192, 75, 0.6)', /* Green shade */
+                        borderColor: 'rgba(75, 192, 75, 1)', /* Darker green */
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const solarPanelQuantitiesConfig = {
+                type: 'bar',
+                data: solarPanelQuantitiesData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Quantity' },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: { display: true, text: 'Solar Panel Description' },
+                            ticks: {
+                                autoSkip: false,
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('solarPanelQuantities'),
+                solarPanelQuantitiesConfig
+            );
+        </script>
+        {% else %}
+        <p>No solar panel quantities available for the selected period.</p>
+        {% endif %}
+        <script>
+            console.log("Solar Panel Quantity Chart Data:", {{ solar_panel_quantity_chart_data | tojson }});
+        </script>
 
 
     </div>

@@ -230,13 +230,16 @@ def graphical_reports():
     inverter_data = []
     inverter_quantity_data = []
     battery_data = []
-    battery_quanatity_data = []
+    battery_quantity_data = []
     solar_panel_data = []
+    solar_panel_quantity_data = []
     inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
     inverter_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the inverter quantity chart
     battery_chart_data = {'labels': [], 'data': []}
     battery_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the battery quantity chart
     solar_panel_chart_data = {'labels': [], 'data': []}
+    solar_panel_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the battery quantity chart
+
 
     if request.method == 'POST':
         start_date = request.form.get('start_date')
@@ -523,6 +526,69 @@ def graphical_reports():
                 'data': list(aggregated_solar_panel_data.values())
             }
 
+
+            solar_panel_quantity_data = db.session.execute(
+                text("""
+                SELECT ci.Item_Description,
+                       SUM(ci.quantity) AS total_solar_panel_quantity,
+                       ci.installed_by
+                FROM client_items ci
+                JOIN Items_List il
+                  ON ci.item_description = il.Item_Description OR ci.item_description = il.Alias_Description
+                WHERE ci.component = 'Solar Panels' AND ci.date BETWEEN :start_date AND :end_date
+                GROUP BY ci.Item_Description, ci.installed_by  -- Group by Item_Description and installed_by
+                ORDER BY total_solar_panel_quantity DESC
+                """),
+                {'start_date': start_date, 'end_date': end_date}
+            ).fetchall()
+
+
+            # Convert result to dictionaries for easier handling
+            solar_panel_quantity_data = [
+                {
+                    'Item_Description': row[0],
+                    'total_solar_panel_quantity': row[1],
+                    'installed_by': row[2]
+                }
+                for row in solar_panel_quantity_data
+            ]
+
+            # Aggregating solar panel quantities for each Item_Description
+            aggregated_solar_panel_quantity = defaultdict(lambda: {'Tino Team': 0, 'Client': 0})
+
+            for row in solar_panel_quantity_data:
+                description = row['Item_Description']
+                quantity = row['total_solar_panel_quantity']
+                installed_by = row['installed_by']
+
+                # Add the quantity to the corresponding installed_by category
+                if installed_by in aggregated_solar_panel_quantity[description]:
+                    aggregated_solar_panel_quantity[description][installed_by] += quantity
+
+            # Sorting aggregated battery quantities by value in descending order
+            sorted_solar_panel_quantity = sorted(
+                [(description, sum(data.values())) for description, data in aggregated_solar_panel_quantity.items()],
+                key=lambda x: x[1],  # Sort by quantity (value)
+                reverse=True         # Descending order
+            )
+
+            # Preparing solar panel data for chart.js
+            solar_panel_quantity_chart_data = {
+                'labels': [item[0] for item in sorted_solar_panel_quantity],  # Sorted descriptions
+                'data': [float(item[1]) for item in sorted_solar_panel_quantity]  # Sorted quantities
+            }
+
+            logging.debug(f"Sorted Solar Panel Quantities: {solar_panel_quantity_chart_data}")
+
+            logging.debug(f"Solar Panel Quantities: {solar_panel_quantity_chart_data}")
+            logging.debug(f"Solar Panel Chart Data: {solar_panel_chart_data}")
+            logging.debug(f"Solar Panel Quantity Chart Data: {solar_panel_quantity_chart_data}")
+
+
+            print(solar_panel_quantity_chart_data)  # Check the data
+
+
+
     return render_template(
         'graphical_reports.html',
         start_date=start_date,
@@ -538,7 +604,9 @@ def graphical_reports():
         battery_chart_data=battery_chart_data,  # Preprocessed battery data for chart
         battery_quantity_chart_data=battery_quantity_chart_data,
         solar_panel_data=solar_panel_data,  # Raw solar panel data
-        solar_panel_chart_data=solar_panel_chart_data  # Preprocessed solar panel data for chart
+        solar_panel_quantity_data=solar_panel_quantity_data,
+        solar_panel_chart_data=solar_panel_chart_data,  # Preprocessed solar panel data for chart
+        solar_panel_quantity_chart_data=solar_panel_quantity_chart_data
     )
 
 
