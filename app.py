@@ -1396,6 +1396,11 @@ def client_list():
             ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
         }
 
+        from datetime import datetime, MINYEAR
+
+        # Default fallback datetime for missing or invalid dates
+        default_date = datetime(MINYEAR, 1, 1)
+
         # Sort the clients by installation date (latest first)
         clients = sorted(
             [[
@@ -1415,7 +1420,7 @@ def client_list():
                 battery_data.get(client.Client_Name, {}).get("installed_by", '') or
                 solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
             ] for client in clients],
-            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min,
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if isinstance(x[11], str) and x[11] else default_date,
             reverse=True  # Sort latest dates first
         )
 
