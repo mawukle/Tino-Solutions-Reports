@@ -1302,13 +1302,15 @@ class Client(db.Model):
 """
 
 # Route for displaying the client list sorted by Client_Unique_ID
+from datetime import datetime
+
 @app.route('/client_list', methods=['GET'])
 def client_list():
     message = request.args.get('message', '')  # Retrieve the message from query params if available
 
     try:
-        # Query the clients sorted by Client_Unique_ID using SQLAlchemy
-        clients = Client_List.query.order_by(Client_List.Client_Unique_ID).all()
+        # Query the clients
+        clients = Client_List.query.all()
 
         # Query for Inverter data
         inverter_data = {
@@ -1380,13 +1382,11 @@ def client_list():
         }
 
         # Query for Latest Installation Date
-#        from datetime import datetime
-
         try:
-            # Parse and format the latest installation date
             installation_date_data = {
-                row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
-                if row.latest_installation_date else ''
+                row.Client_Name: (
+                    row.latest_installation_date.strftime('%Y-%m-%d') if row.latest_installation_date else ''
+                )
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
                     func.max(client_items.date).label('latest_installation_date')
@@ -1401,7 +1401,7 @@ def client_list():
             logging.error(f"Error in installation_date_data query: {e}")
             installation_date_data = {}
 
-        # Prepare the client list for rendering
+        # Prepare the client list
         clients = [[
             client.Client_Unique_ID,
             client.Client_Name or '',
@@ -1419,6 +1419,9 @@ def client_list():
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
+
+        # Sort clients by Installation Date, descending (most recent first)
+        clients.sort(key=lambda x: datetime.strptime(x[10], '%Y-%m-%d') if x[10] else datetime.min, reverse=True)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
