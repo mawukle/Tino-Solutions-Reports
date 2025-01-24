@@ -1410,13 +1410,9 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients], key=lambda x: x[11], reverse=True)
+        ] for client in clients], key=lambda x: x[10], reverse=True)
 
-        # Sort clients by installation date in descending order
-        clients.sort(
-            key=lambda x: x[11] if x[11] else datetime.min,  # Use datetime.min for empty dates
-            reverse=True
-        )
+
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
