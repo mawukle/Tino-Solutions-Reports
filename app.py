@@ -1381,7 +1381,7 @@ def client_list():
 
         # Query for Latest Installation Date
         installation_date_data = {
-            row.Client_Name: row.latest_installation_date
+            row.Client_Name: (row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime.datetime) else row.latest_installation_date)
             for row in db.session.query(
                 func.max(Client_List.Client_Name).label('Client_Name'),
                 func.max(client_items.date).label('latest_installation_date')
@@ -1394,7 +1394,7 @@ def client_list():
         }
 
         # Prepare the client list for rendering
-        clients = [[
+        clients = sorted([[
             client.Client_Unique_ID,
             client.Client_Name or '',
             client.Town or '',
@@ -1410,7 +1410,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients]
+        ] for client in clients], key=lambda x: x[11], reverse=True)
 
         # Sort clients by installation date in descending order
         clients.sort(
