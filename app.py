@@ -1396,10 +1396,17 @@ def client_list():
             ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
         }
 
-        from datetime import datetime, MINYEAR
+        from datetime import datetime
 
-        # Default fallback datetime for missing or invalid dates
-        default_date = datetime(MINYEAR, 1, 1)
+        def parse_date(date_str):
+            """Parse a date string to a datetime object. Return None if invalid."""
+            try:
+                return datetime.strptime(date_str, '%d %B, %Y') if date_str else None
+            except ValueError:
+                return None
+
+        # Default datetime for missing or invalid dates
+        default_date = datetime.min
 
         # Sort the clients by installation date (latest first)
         clients = sorted(
@@ -1420,7 +1427,7 @@ def client_list():
                 battery_data.get(client.Client_Name, {}).get("installed_by", '') or
                 solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
             ] for client in clients],
-            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if isinstance(x[11], str) and x[11] else default_date,
+            key=lambda x: parse_date(x[11]) or default_date,  # Parse date or use default
             reverse=True  # Sort latest dates first
         )
 
