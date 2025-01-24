@@ -1412,9 +1412,9 @@ def client_list():
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
 
-        # Sort clients by Installation Date (index 11) in descending order
+        # Sort clients by installation date in descending order
         clients.sort(
-            key=lambda x: x[11] if isinstance(x[11], datetime) else datetime.min,
+            key=lambda x: x[11] if x[11] else datetime.min,  # Use datetime.min for empty dates
             reverse=True
         )
 
