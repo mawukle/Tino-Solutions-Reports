@@ -1381,25 +1381,22 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Query for Latest Installation Date
-        try:
-            installation_date_data = {
-                row.Client_Name: (
-                    row.latest_installation_date.strftime('%Y-%m-%d') if row.latest_installation_date else ''
+        # Parse and format the latest installation date
+        installation_date_data = {
+            row.Client_Name: (
+                row.latest_installation_date.strftime('%d %B, %Y')
+                if isinstance(row.latest_installation_date, datetime) else ''
+            )
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(client_items.date).label('latest_installation_date')
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
                 )
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.max(client_items.date).label('latest_installation_date')
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
-            }
-        except Exception as e:
-            logging.error(f"Error in installation_date_data query: {e}")
-            installation_date_data = {}
+            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+        }
 
         # Prepare the client list
         clients = [[
