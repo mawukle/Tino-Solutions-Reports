@@ -1414,7 +1414,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients], key=lambda x: x[10] if x[10] is not None else '', reverse=True)
+        ] for client in clients], key=lambda x: x[11] if x[11] is not None else '', reverse=True)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
