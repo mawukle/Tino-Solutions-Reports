@@ -1381,7 +1381,9 @@ def client_list():
 
         # Query for Latest Installation Date
         installation_date_data = {
-            row.Client_Name: (row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime.datetime) else row.latest_installation_date)
+            row.Client_Name: (
+                row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime) else row.latest_installation_date
+            )
             for row in db.session.query(
                 func.max(Client_List.Client_Name).label('Client_Name'),
                 func.max(client_items.date).label('latest_installation_date')
