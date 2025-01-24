@@ -28,13 +28,15 @@
                           <th>Client Code</th>
                           <th>Contact Person</th>
                           <th>Email Address</th>
-                          <th>Inverter</th>
-                          <th>Battery</th>
+                          <th>Inverter Capacity (kVA/kW)</th>
+                          <th>Installed By</th>
                           <th>Solar Panel</th>
+                          <th>Battery</th>
                           <th>Installation Date</th>
                           <th>Action</th>
                       </tr>
                   </thead>
+
                   <tbody>
                       {% for client in clients %}
                       <tr>
@@ -46,10 +48,11 @@
                           <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
                           <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
                           <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
-                          <td><input type="text" name="inverters" value="{{ client[8] }}"></td>
-                          <td><input type="text" name="batteries" value="{{ client[9] }}"></td>
+                          <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
+                          <td><input type="text" name="installed_bys" value="{{ client[9] }}"></td>
                           <td><input type="text" name="solar_panels" value="{{ client[10] }}"></td>
-                          <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
+                          <td><input type="text" name="batteries" value="{{ client[11] }}"></td>
+                          <td><input type="text" name="installation_dates" value="{{ client[12] }}"></td>
                           <td>
                               <input type="hidden" name="client_ids" value="{{ client[0] }}">
                               <button type="submit" class="update-button">Update</button>
