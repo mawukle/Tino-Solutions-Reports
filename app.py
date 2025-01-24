@@ -1379,6 +1379,20 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
+        # Query for Latest Installation Date
+        installation_date_data = {
+            row.Client_Name: row.latest_installation_date
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(client_items.date).label('latest_installation_date')
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+        }
+
         # Prepare the client list for rendering
         clients = [[
             client.Client_Unique_ID,
@@ -1392,7 +1406,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
             battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
             solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-            '',  # Placeholder for Installation Date
+            installation_date_data.get(client.Client_Name, ''),  # Installation Date
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
