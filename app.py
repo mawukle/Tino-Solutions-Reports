@@ -1380,9 +1380,12 @@ def client_list():
         }
 
         # Query for Latest Installation Date
+#        from datetime import datetime
+
         try:
+            # Parse and format the latest installation date
             installation_date_data = {
-                row.Client_Name: datetime.strptime(row.latest_installation_date, '%Y-%m-%d').strftime('%d %B, %Y')
+                row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
                 if row.latest_installation_date else ''
                 for row in db.session.query(
                     func.max(Client_List.Client_Name).label('Client_Name'),
