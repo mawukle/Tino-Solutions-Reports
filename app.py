@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Float, and_, func, literal_colum
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy.sql import text
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 import openpyxl
 from openpyxl import load_workbook
 from fpdf import FPDF
@@ -1380,25 +1380,29 @@ def client_list():
         }
 
         # Query for Latest Installation Date
-        installation_date_data = {
-            row.Client_Name: (
-                row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime)
-                else row.latest_installation_date if isinstance(row.latest_installation_date, str)
-                else None  # Handle invalid or None values
-            )
-            for row in db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
-                func.max(client_items.date).label('latest_installation_date')
-            ).join(
-                Client_List, or_(
-                    client_items.client_name == Client_List.Client_Name,
-                    client_items.client_name == Client_List.Alias_Name
-                )
-            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
-        }
+#        from datetime import datetime
+
+        try:
+            # Parse and format the latest installation date
+            installation_date_data = {
+                row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
+                if row.latest_installation_date else ''
+                for row in db.session.query(
+                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.max(client_items.date).label('latest_installation_date')
+                ).join(
+                    Client_List, or_(
+                        client_items.client_name == Client_List.Client_Name,
+                        client_items.client_name == Client_List.Alias_Name
+                    )
+                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+            }
+        except Exception as e:
+            logging.error(f"Error in installation_date_data query: {e}")
+            installation_date_data = {}
 
         # Prepare the client list for rendering
-        clients = sorted([[
+        clients = [[
             client.Client_Unique_ID,
             client.Client_Name or '',
             client.Town or '',
@@ -1414,7 +1418,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients], key=lambda x: x[11] if x[11] is not None else '', reverse=True)
+        ] for client in clients]
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
