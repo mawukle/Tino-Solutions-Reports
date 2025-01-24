@@ -1380,22 +1380,22 @@ def client_list():
         }
 
         # Query for Latest Installation Date
-#        from datetime import datetime
-
         try:
-            # Parse and format the latest installation date
+            # Sort by installation date in descending order
+            installation_date_query = db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(client_items.date).label('latest_installation_date')
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).order_by(func.max(client_items.date).desc()).all()
+
             installation_date_data = {
                 row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
                 if row.latest_installation_date else ''
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.max(client_items.date).label('latest_installation_date')
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+                for row in installation_date_query
             }
         except Exception as e:
             logging.error(f"Error in installation_date_data query: {e}")
@@ -1419,6 +1419,9 @@ def client_list():
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
+
+        # Sort clients by installation date (most recent first)
+        clients.sort(key=lambda x: x[11], reverse=True)  # Column 11 is the installation date
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
