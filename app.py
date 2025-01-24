@@ -1302,8 +1302,6 @@ class Client(db.Model):
 """
 
 # Route for displaying the client list sorted by Client_Unique_ID
-#from datetime import datetime
-
 @app.route('/client_list', methods=['GET'])
 def client_list():
     message = request.args.get('message', '')  # Retrieve the message from query params if available
@@ -1382,20 +1380,22 @@ def client_list():
         }
 
         # Query for Latest Installation Date
-        try:
-            installation_date_query = db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
-                func.max(client_items.date).label('latest_installation_date')
-            ).join(
-                Client_List, or_(
-                    client_items.client_name == Client_List.Client_Name,
-                    client_items.client_name == Client_List.Alias_Name
-                )
-            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+#        from datetime import datetime
 
+        try:
+            # Parse and format the latest installation date
             installation_date_data = {
-                row.Client_Name: datetime.strptime(row.latest_installation_date, '%Y-%m-%d') if row.latest_installation_date else None
-                for row in installation_date_query
+                row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
+                if row.latest_installation_date else ''
+                for row in db.session.query(
+                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.max(client_items.date).label('latest_installation_date')
+                ).join(
+                    Client_List, or_(
+                        client_items.client_name == Client_List.Client_Name,
+                        client_items.client_name == Client_List.Alias_Name
+                    )
+                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
             }
         except Exception as e:
             logging.error(f"Error in installation_date_data query: {e}")
@@ -1414,14 +1414,11 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
             battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
             solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-            installation_date_data.get(client.Client_Name, ''),  # Installation Date as datetime
+            installation_date_data.get(client.Client_Name, ''),  # Installation Date
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
-
-        # Sort clients by installation date (most recent first)
-        clients.sort(key=lambda x: x[11] or datetime.min, reverse=True)  # Column 11 is the installation date
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
