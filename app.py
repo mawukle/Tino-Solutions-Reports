@@ -1418,7 +1418,7 @@ def client_list():
         ] for client in clients]
 
         # Sort clients by Installation Date, descending (most recent first)
-        clients.sort(key=lambda x: datetime.strptime(x[10], '%d %B, %Y') if x[10] else datetime.min, reverse=True)
+        clients.sort(key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
