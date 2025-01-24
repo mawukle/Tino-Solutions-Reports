@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Float, and_, func, literal_colum
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy.sql import text
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import openpyxl
 from openpyxl import load_workbook
 from fpdf import FPDF
@@ -1382,7 +1382,9 @@ def client_list():
         # Query for Latest Installation Date
         installation_date_data = {
             row.Client_Name: (
-                row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime) else row.latest_installation_date
+                row.latest_installation_date.date() if isinstance(row.latest_installation_date, datetime)
+                else row.latest_installation_date if isinstance(row.latest_installation_date, str)
+                else None  # Handle invalid or None values
             )
             for row in db.session.query(
                 func.max(Client_List.Client_Name).label('Client_Name'),
@@ -1412,9 +1414,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients], key=lambda x: x[10], reverse=True)
-
-
+        ] for client in clients], key=lambda x: x[10] if x[10] is not None else '', reverse=True)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
