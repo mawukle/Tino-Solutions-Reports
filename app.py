@@ -1301,8 +1301,7 @@ class Client(db.Model):
     email_address = db.Column(db.String(100))
 """
 
-from datetime import datetime
-
+# Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
 def client_list():
     message = request.args.get('message', '')  # Retrieve the message from query params if available
@@ -1380,7 +1379,7 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Fetch installation date data as datetime objects
+        # Query for Latest Installation Date
         installation_date_data = {
             row.Client_Name: row.latest_installation_date
             for row in db.session.query(
@@ -1412,12 +1411,6 @@ def client_list():
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
-
-        # Sort clients by installation date in descending order
-        clients.sort(
-            key=lambda x: x[11] if isinstance(x[11], datetime) else datetime.min,
-            reverse=True
-        )
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
