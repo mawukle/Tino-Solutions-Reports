@@ -1301,7 +1301,8 @@ class Client(db.Model):
     email_address = db.Column(db.String(100))
 """
 
-# Route for displaying the client list sorted by Client_Unique_ID
+from datetime import datetime
+
 @app.route('/client_list', methods=['GET'])
 def client_list():
     message = request.args.get('message', '')  # Retrieve the message from query params if available
@@ -1380,26 +1381,18 @@ def client_list():
         }
 
         # Query for Latest Installation Date
-#        from datetime import datetime
-
-        try:
-            # Parse and format the latest installation date
-            installation_date_data = {
-                row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
-                if row.latest_installation_date else ''
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.max(client_items.date).label('latest_installation_date')
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
-            }
-        except Exception as e:
-            logging.error(f"Error in installation_date_data query: {e}")
-            installation_date_data = {}
+        installation_date_data = {
+            row.Client_Name: row.latest_installation_date
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(client_items.date).label('latest_installation_date')
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+        }
 
         # Prepare the client list for rendering
         clients = [[
@@ -1419,6 +1412,19 @@ def client_list():
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
+
+        # Sort clients by installation date
+        def parse_date(date):
+            if isinstance(date, datetime):
+                return date
+            elif isinstance(date, str) and date:
+                try:
+                    return datetime.strptime(date, '%d %B, %Y')
+                except ValueError:
+                    return None
+            return None
+
+        clients.sort(key=lambda x: parse_date(x[11]) or datetime.min, reverse=True)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
