@@ -8,24 +8,43 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <script>
         function sortTableByInstalledBy() {
-            var table, rows, switching, i, x, y, shouldSwitch;
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
             table = document.querySelector("table");
             switching = true;
+            dir = "asc"; // Set the sorting direction to ascending initially
+
+            // Run loop until no switching is needed
             while (switching) {
                 switching = false;
                 rows = table.rows;
+
+                // Loop through all rows, except the first (header row)
                 for (i = 1; i < (rows.length - 1); i++) {
                     shouldSwitch = false;
                     x = rows[i].cells[12]; // "Installed By" column (index 12)
                     y = rows[i + 1].cells[12];
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+
+                    // Check if rows should switch
+                    if (dir === "asc" && x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    } else if (dir === "desc" && x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
                         shouldSwitch = true;
                         break;
                     }
                 }
+
                 if (shouldSwitch) {
+                    // If a switch is needed, move the row
                     rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                     switching = true;
+                    switchcount++; // Increment count of switches
+                } else {
+                    // If no switching occurred, toggle the direction for next sort
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
                 }
             }
         }
