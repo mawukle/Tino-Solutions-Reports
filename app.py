@@ -1380,7 +1380,7 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Query for Latest Installation Date
+        # Fetch installation date data as datetime objects
         installation_date_data = {
             row.Client_Name: row.latest_installation_date
             for row in db.session.query(
@@ -1413,18 +1413,11 @@ def client_list():
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
 
-        # Sort clients by installation date
-        def parse_date(date):
-            if isinstance(date, datetime):
-                return date
-            elif isinstance(date, str) and date:
-                try:
-                    return datetime.strptime(date, '%d %B, %Y')
-                except ValueError:
-                    return None
-            return None
-
-        clients.sort(key=lambda x: parse_date(x[11]) or datetime.min, reverse=True)
+        # Sort clients by installation date in descending order
+        clients.sort(
+            key=lambda x: x[11] if isinstance(x[11], datetime) else datetime.min,
+            reverse=True
+        )
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
