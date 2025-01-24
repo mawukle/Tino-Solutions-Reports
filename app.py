@@ -1310,7 +1310,7 @@ def client_list():
         # Query the clients sorted by Client_Unique_ID using SQLAlchemy
         clients = Client_List.query.order_by(Client_List.Client_Unique_ID).all()
 
-        # Query for Inverter data with 'Installed By'
+        # Query for Inverter data
         inverter_data = {
             row.Client_Name: {
                 "total_inverter_capacity": round(row.total_inverter_capacity or 0, 2),
@@ -1330,12 +1330,56 @@ def client_list():
                     client_items.client_name == Client_List.Client_Name,
                     client_items.client_name == Client_List.Alias_Name
                 )
-            ).filter(
-                client_items.component == 'Inverter'
-            ).group_by(Client_List.Client_Name).all()
+            ).filter(client_items.component == 'Inverter').group_by(Client_List.Client_Name).all()
         }
 
-        # Convert None values to empty strings and prepare the data for rendering
+        # Query for Battery data
+        battery_data = {
+            row.Client_Name: {
+                "total_battery_capacity": round(row.total_battery_capacity or 0, 2),
+                "installed_by": row.installed_by
+            }
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity'),
+                func.max(client_items.installed_by).label('installed_by')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component == 'Batteries').group_by(Client_List.Client_Name).all()
+        }
+
+        # Query for Solar Panel data
+        solar_panel_data = {
+            row.Client_Name: {
+                "total_solar_panel_capacity": round(row.total_solar_panel_capacity or 0, 3),
+                "installed_by": row.installed_by
+            }
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
+                func.max(client_items.installed_by).label('installed_by')
+            ).join(
+                Items_List, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
+        }
+
+        # Prepare the client list for rendering
         clients = [[
             client.Client_Unique_ID,
             client.Client_Name or '',
@@ -1346,10 +1390,12 @@ def client_list():
             client.Contact_Person or '',
             client.email_address or '',
             inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
-            inverter_data.get(client.Client_Name, {}).get("installed_by", ''),
-            '',  # Placeholder for Solar Panel
-            '',  # Placeholder for Battery
-            ''   # Placeholder for Installation Date
+            battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
+            solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
+            '',  # Placeholder for Installation Date
+            inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
+            battery_data.get(client.Client_Name, {}).get("installed_by", '') or
+            solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
         ] for client in clients]
 
     except Exception as e:
