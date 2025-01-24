@@ -1381,43 +1381,43 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Query for Latest Installation Date
-        try:
-            installation_date_data = {
-                row.Client_Name: datetime.strptime(row.latest_installation_date, '%Y-%m-%d')
-                if row.latest_installation_date else None
-                for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
-                    func.max(client_items.date).label('latest_installation_date')
-                ).join(
-                    Client_List, or_(
-                        client_items.client_name == Client_List.Client_Name,
-                        client_items.client_name == Client_List.Alias_Name
-                    )
-                ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
-            }
-        except Exception as e:
-            logging.error(f"Error in installation_date_data query: {e}")
-            installation_date_data = {}
+        # Parse and format the latest installation date
+        installation_date_data = {
+            row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y')
+            if row.latest_installation_date else ''
+            for row in db.session.query(
+                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(client_items.date).label('latest_installation_date')
+            ).join(
+                Client_List, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
+        }
 
-        # Prepare the client list for rendering
-        clients = [[
-            client.Client_Unique_ID,
-            client.Client_Name or '',
-            client.Town or '',
-            client.City or '',
-            client.Phone_Number or '',
-            client.Client_Code or '',
-            client.Contact_Person or '',
-            client.email_address or '',
-            inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
-            battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
-            solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-            installation_date_data.get(client.Client_Name, ''),  # Installation Date as datetime object
-            inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
-            battery_data.get(client.Client_Name, {}).get("installed_by", '') or
-            solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients]
+        # Sort the clients by installation date (latest first)
+        clients = sorted(
+            [[
+                client.Client_Unique_ID,
+                client.Client_Name or '',
+                client.Town or '',
+                client.City or '',
+                client.Phone_Number or '',
+                client.Client_Code or '',
+                client.Contact_Person or '',
+                client.email_address or '',
+                inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
+                battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
+                solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
+                installation_date_data.get(client.Client_Name, ''),  # Installation Date
+                inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
+                battery_data.get(client.Client_Name, {}).get("installed_by", '') or
+                solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
+            ] for client in clients],
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min,
+            reverse=True  # Sort latest dates first
+        )
 
         # Sort clients by installation date in descending order (most recent first)
         clients.sort(key=lambda x: x[11] or datetime.min, reverse=True)  # x[11] is the installation date
