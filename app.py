@@ -1301,8 +1301,6 @@ class Client(db.Model):
     email_address = db.Column(db.String(100))
 """
 
-#from datetime import datetime
-
 # Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
 def client_list():
@@ -1383,7 +1381,7 @@ def client_list():
 
         # Query for Latest Installation Date
         installation_date_data = {
-            row.Client_Name: row.latest_installation_date.strftime('%d %B, %Y') if row.latest_installation_date else ''
+            row.Client_Name: row.latest_installation_date
             for row in db.session.query(
                 func.max(Client_List.Client_Name).label('Client_Name'),
                 func.max(client_items.date).label('latest_installation_date')
@@ -1393,17 +1391,6 @@ def client_list():
                     client_items.client_name == Client_List.Alias_Name
                 )
             ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
-        }
-
-        # Format dates to "7th June, 2024"
-        formatted_installation_dates = {
-            client_name: (
-                datetime.strptime(date, '%Y-%m-%d').strftime('%d') +
-                ('th' if 11 <= int(datetime.strptime(date, '%Y-%m-%d').strftime('%d')) <= 13 else
-                {1: 'st', 2: 'nd', 3: 'rd'}.get(int(datetime.strptime(date, '%Y-%m-%d').strftime('%d')) % 10, 'th')) +
-                datetime.strptime(date, '%Y-%m-%d').strftime(' %B, %Y')
-            ) if date else ''
-            for client_name, date in installation_date_data.items()
         }
 
         # Prepare the client list for rendering
@@ -1419,7 +1406,7 @@ def client_list():
             inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
             battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
             solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-            formatted_installation_dates.get(client.Client_Name, ''),  # Installation Date
+            installation_date_data.get(client.Client_Name, ''),  # Installation Date
             inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
             battery_data.get(client.Client_Name, {}).get("installed_by", '') or
             solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
