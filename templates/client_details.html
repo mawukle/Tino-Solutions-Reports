@@ -28,14 +28,16 @@
             <thead>
                 <tr>
                     <th>Item Description</th>
-                    <th>Total Quantity</th>
+                    <th>Inverter ID</th>
+                    <th>Number of Solar Panels</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in inverter_quantities %}
                 <tr>
                     <td>{{ item.Item_Description }}</td>
-                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ item.Inverter_ID }}</td>
+                    <td>{{ item.Number_of_Solar_Panels }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -85,14 +87,16 @@
             <thead>
                 <tr>
                     <th>Item Description</th>
-                    <th>Total Quantity</th>
+                    <th>Controller ID</th>
+                    <th>Number of Solar Panels</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in victron_charge_controller_quantities %}
                 <tr>
                     <td>{{ item.Item_Description }}</td>
-                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ item.Controller_ID }}</td>
+                    <td>{{ item.Number_of_Solar_Panels }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
