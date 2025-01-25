@@ -1428,6 +1428,14 @@ def client_list():
             elif client_row[12] == 'Client':
                 client_clients.append(client_row)
 
+        # Sort by Installation Date (descending)
+        tino_clients.sort(
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
+        )
+        client_clients.sort(
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
+        )
+
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
         message = 'Database query failed'
@@ -1435,7 +1443,6 @@ def client_list():
         client_clients = []
 
     return render_template('client_list.html', tino_clients=tino_clients, client_clients=client_clients, message=message)
-
 
 """
 # Route for displaying the client list sorted by Client_Unique_ID
