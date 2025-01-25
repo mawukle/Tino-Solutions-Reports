@@ -233,6 +233,7 @@ def graphical_reports():
     battery_quantity_data = []
     solar_panel_data = []
     solar_panel_quantity_data = []
+    victron_charge_controller_quantity_data = []  # Default value to avoid UnboundLocalError
     inverter_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the chart
     inverter_quantity_chart_data = {'labels': [], 'data': []}  # Preprocessed data for the inverter quantity chart
     battery_chart_data = {'labels': [], 'data': []}
