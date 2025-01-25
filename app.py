@@ -20,7 +20,7 @@ import tempfile
 from xhtml2pdf import pisa
 import io
 from sqlalchemy.sql.expression import true
-
+import decimal
 
 
 pymysql.install_as_MySQLdb()
