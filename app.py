@@ -1471,10 +1471,111 @@ def client_list():
     )
 
 
+
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
+    # Fetch client details
     client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
-    return render_template('client_details.html', client=client)
+    if not client:
+        return "Client not found", 404
+
+    # Query for Inverter Quantities
+    inverter_quantities = [
+        {
+            "Item_Description": row.Item_Description,
+            "total_quantity": row.total_quantity
+        }
+        for row in db.session.query(
+            Items_List.Item_Description.label('Item_Description'),
+            func.sum(client_items.quantity).label('total_quantity')
+        ).join(
+            client_items, or_(
+                client_items.item_description == Items_List.Item_Description,
+                client_items.item_description == Items_List.Alias_Description
+            )
+        ).filter(
+            Items_List.Component == 'Inverter',
+            client_items.client_name == client.Client_Name
+        ).group_by(Items_List.Item_Description)
+        .order_by(desc('total_quantity'))
+        .all()
+    ]
+
+    # Query for Battery Quantities
+    battery_quantities = [
+        {
+            "Item_Description": row.Item_Description,
+            "total_quantity": row.total_quantity
+        }
+        for row in db.session.query(
+            Items_List.Item_Description.label('Item_Description'),
+            func.sum(client_items.quantity).label('total_quantity')
+        ).join(
+            client_items, or_(
+                client_items.item_description == Items_List.Item_Description,
+                client_items.item_description == Items_List.Alias_Description
+            )
+        ).filter(
+            Items_List.Component == 'Batteries',
+            client_items.client_name == client.Client_Name
+        ).group_by(Items_List.Item_Description)
+        .order_by(desc('total_quantity'))
+        .all()
+    ]
+
+    # Query for Solar Panel Quantities
+    solar_panel_quantities = [
+        {
+            "Item_Description": row.Item_Description,
+            "total_quantity": row.total_quantity
+        }
+        for row in db.session.query(
+            Items_List.Item_Description.label('Item_Description'),
+            func.sum(client_items.quantity).label('total_quantity')
+        ).join(
+            client_items, or_(
+                client_items.item_description == Items_List.Item_Description,
+                client_items.item_description == Items_List.Alias_Description
+            )
+        ).filter(
+            Items_List.Component == 'Solar Panels',
+            client_items.client_name == client.Client_Name
+        ).group_by(Items_List.Item_Description)
+        .order_by(desc('total_quantity'))
+        .all()
+    ]
+
+    # Query for Victron Charge Controller Quantities
+    victron_charge_controller_quantities = [
+        {
+            "Item_Description": row.Item_Description,
+            "total_quantity": row.total_quantity
+        }
+        for row in db.session.query(
+            Items_List.Item_Description.label('Item_Description'),
+            func.sum(client_items.quantity).label('total_quantity')
+        ).join(
+            client_items, or_(
+                client_items.item_description == Items_List.Item_Description,
+                client_items.item_description == Items_List.Alias_Description
+            )
+        ).filter(
+            Items_List.Component == 'Victron Charge Controllers',
+            client_items.client_name == client.Client_Name
+        ).group_by(Items_List.Item_Description)
+        .order_by(desc('total_quantity'))
+        .all()
+    ]
+
+    # Render the client details template with all data
+    return render_template(
+        'client_details.html',
+        client=client,
+        inverter_quantities=inverter_quantities,
+        battery_quantities=battery_quantities,
+        solar_panel_quantities=solar_panel_quantities,
+        victron_charge_controller_quantities=victron_charge_controller_quantities
+    )
 
 
 
