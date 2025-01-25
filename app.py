@@ -1428,6 +1428,14 @@ def client_list():
             elif client_row[12] == 'Client':
                 client_clients.append(client_row)
 
+        # Sort the lists by Installation Date (most recent first)
+        tino_clients.sort(
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
+        )
+        client_clients.sort(
+            key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
+        )
+
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
         message = 'Database query failed'
@@ -1435,150 +1443,6 @@ def client_list():
         client_clients = []
 
     return render_template('client_list.html', tino_clients=tino_clients, client_clients=client_clients, message=message)
-
-
-"""
-# Route for displaying the client list sorted by Client_Unique_ID
-@app.route('/client_list', methods=['GET'])
-def client_list():
-    connection = get_sql_connection()
-    clients = []
-    message = request.args.get('message', '')  # Retrieve the message from query params if available
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT Client_Unique_ID, Client_Name, Town, City, Phone_Number, Client_Code, Contact_Person, email_address FROM Client_List ORDER BY Client_Unique_ID")
-        clients = cursor.fetchall()
-        #logging.debug(f"Clients fetched: {clients}")  # Log the fetched data
-        # Process the data to replace None with empty strings
-        clients = [[(value if value is not None else '') for value in row] for row in clients]
-        cursor.close()
-        connection.close()
-    else:
-        message = 'Database connection failed'
-
-    return render_template('client_list.html', clients=clients, message=message)
-"""
-
-@app.route('/update_client', methods=['POST'])
-def update_client():
-    message = ''  # Initialize an empty message string
-
-    # Get the form data
-    client_ids = request.form.getlist('client_ids')
-    client_names = request.form.getlist('client_names')
-    towns = request.form.getlist('towns')
-    cities = request.form.getlist('cities')
-    phone_numbers = request.form.getlist('phone_numbers')
-    client_codes = request.form.getlist('client_codes')
-    contact_persons = request.form.getlist('contact_persons')
-    email_addresses = request.form.getlist('email_addresses')
-
-    for i in range(len(client_ids)):
-        # Skip rows with blank required values
-        if any(field.strip() == '' for field in [client_names[i], towns[i], cities[i]]):
-            continue
-
-        try:
-            # Fetch the client by ID
-            client = Client_List.query.get(client_ids[i])
-
-            if client:
-                # Update the client fields
-                Client_List.Client_Name = client_names[i]
-                Client_List.Town = towns[i]
-                Client_List.City = cities[i]
-                Client_List.Phone_Number = phone_numbers[i]
-                Client_List.Client_Code = client_codes[i]
-                Client_List.Contact_Person = contact_persons[i]
-                Client_List.email_address = email_addresses[i]
-
-                # Commit the changes to the database
-                db.session.commit()
-            else:
-                message += f"Client with ID {client_ids[i]} not found.<br>"
-
-        except IntegrityError as e:
-            db.session.rollback()  # Rollback the transaction in case of errors
-            print(f"Duplicate entry error: {e}")
-            message += f"Duplicate entry detected for Client Name: '{client_names[i]}', Town: '{towns[i]}', City: '{cities[i]}'.<br>"
-
-    if message:
-        message = 'Some updates failed due to errors.<br>' + message
-
-    return redirect(url_for('client_list', message=message))
-
-"""
-@app.route('/update_client', methods=['POST'])
-def update_client():
-    connection = get_sql_connection()
-    message = ''  # Initialize an empty message string
-
-    if connection:
-        cursor = connection.cursor()
-        client_ids = request.form.getlist('client_ids')
-        client_names = request.form.getlist('client_names')
-        towns = request.form.getlist('towns')
-        cities = request.form.getlist('cities')
-        phone_numbers = request.form.getlist('phone_numbers')
-        client_codes = request.form.getlist('client_codes')
-        contact_persons = request.form.getlist('contact_persons')
-        email_addresses = request.form.getlist('email_addresses')
-"""
-#        update_query = """
-#        UPDATE Client_List
-#        SET Client_Name = %s, Town = %s, City = %s, Phone_Number = %s, Client_Code = %s, Contact_Person = %s, email_address = %s
-#        WHERE Client_Unique_ID = %s
-#        """
-"""
-        for i in range(len(client_ids)):
-            # Skip rows with blank values
-            if any(field.strip() == '' for field in [client_names[i], towns[i], cities[i]]):
-                continue
-
-            try:
-                cursor.execute(update_query, (
-                    client_names[i], towns[i], cities[i], phone_numbers[i],
-                    client_codes[i], contact_persons[i], email_addresses[i],
-                    client_ids[i]
-                ))
-            except mysql.connector.errors.IntegrityError as e:
-                print(f"Duplicate entry error: {e}")
-                message += f"Duplicate entry detected for Client Name: '{client_names[i]}', Town: '{towns[i]}', City: '{cities[i]}'.<br>"
-
-        connection.commit()
-        cursor.close()
-        connection.close()
-
-        if message:
-            message = 'Some updates failed due to duplicate entries.<br>' + message
-
-    else:
-        message = 'Database connection failed'
-
-    return redirect(url_for('client_list', message=message))
-"""
-
-@app.route('/delete_client/<client_id>', methods=['POST'])
-def delete_client(client_id):
-    try:
-        # Find the client by ID
-        client = Client_List.query.get(client_id)
-
-        if client:
-            # Delete the client
-            db.session.delete(client)
-            db.session.commit()
-            message = 'Client deleted successfully.'
-        else:
-            message = 'Client not found.'
-
-    except SQLAlchemyError as err:
-        # Rollback the transaction in case of an error
-        db.session.rollback()
-        print(f"Database error: {err}")
-        message = 'Error deleting Client_List.'
-
-    return redirect(url_for('client_list', message=message))
 
 """
 @app.route('/delete_client/<client_id>', methods=['POST'])
