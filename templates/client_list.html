@@ -23,20 +23,20 @@
                 <table>
                   <thead>
                       <tr>
-                          <th>Client Unique ID</th>
+                          <!--th>Client Unique ID</th-->
                           <th>Client Name</th>
                           <th>Town</th>
-                          <th>City</th>
+                          <!--th>City</th-->
                           <th>Phone Number</th>
-                          <th>Client Code</th>
-                          <th>Contact Person</th>
-                          <th>Email Address</th>
+                          <!--th>Client Code</th-->
+                          <!--th>Contact Person</th-->
+                          <!--th>Email Address</th-->
                           <th>Inverter Capacity (kVA/kW)</th>
                           <th>Battery Capacity (kWh)</th>
                           <th>Solar Panel Capacity (kVA/kW)</th>
                           <th>Installation Date</th>
-                          <th>Installed By</th>
-                          <th>Action</th>
+                          <!--th>Installed By</th-->
+                          <!--th>Action</th-->
                       </tr>
                   </thead>
 
@@ -46,23 +46,23 @@
                           <td>{{ client[0] }}</td>
                           <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
                           <td><input type="text" name="towns" value="{{ client[2] }}"></td>
-                          <td><input type="text" name="cities" value="{{ client[3] }}"></td>
+                          <!--td><input type="text" name="cities" value="{{ client[3] }}"></td-->
                           <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
-                          <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
-                          <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
-                          <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
+                          <!--td><input type="text" name="client_codes" value="{{ client[5] }}"></td-->
+                          <!--td><input type="text" name="contact_persons" value="{{ client[6] }}"></td-->
+                          <!--td><input type="text" name="email_addresses" value="{{ client[7] }}"></td-->
                           <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
                           <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
                           <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
                           <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
-                          <td><input type="text" name="installed_bys" value="{{ client[12] }}"></td>
-                          <td>
+                          <!--td><input type="text" name="installed_bys" value="{{ client[12] }}"></td-->
+                          <!--td>
                               <input type="hidden" name="client_ids" value="{{ client[0] }}">
                               <button type="submit" class="update-button">Update</button>
                               <form action="{{ url_for('delete_client', client_id=client[0]) }}" method="post" style="display:inline;">
                                   <button type="submit" class="delete-button">Delete</button>
                               </form>
-                          </td>
+                          </td-->
                       </tr>
                       {% endfor %}
                   </tbody>
