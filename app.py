@@ -1500,93 +1500,79 @@ def client_details(client_id):
         for component_name, component_filter in component_filters.items():
             if component_name == "Inverters":
                 # For inverters, repeat the description based on quantity
-                component_quantities[component_name] = [
-                    {
-                        "Item_Description": row.Item_Description,
-                        "Inverter_ID": f"Inverter {i+1}",
-                        "Number_of_Solar_Panels": ""  # Empty for now
-                    }
-                    for i, row in enumerate(db.session.query(
-                        Items_List.Item_Description.label('Item_Description'),
-                        func.sum(client_items.quantity).label('total_quantity')
-                    ).join(
-                        client_items, or_(
-                            client_items.item_description == Items_List.Item_Description,
-                            client_items.item_description == Items_List.Alias_Description
-                        )
-                    ).filter(
-                        Items_List.Component == component_filter,
-                        or_(
-                            client_items.client_name == client.Client_Name,
-                            client_items.client_name == client.Alias_Name
-                        )
-                    ).group_by(Items_List.Item_Description)
-                    .order_by(desc('total_quantity'))
-                    .all()):
-                        for _ in range(row.total_quantity):
-                            component_quantities[component_name].append({
-                                "Item_Description": row.Item_Description,
-                                "Inverter_ID": f"Inverter {i+1}",
-                                "Number_of_Solar_Panels": ""
-                            })
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+
+                for i, row in enumerate(rows):
+                    for _ in range(row.total_quantity):
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "Inverter_ID": f"Inverter {i+1}",
+                            "Number_of_Solar_Panels": ""  # Empty for now
+                        })
 
             elif component_name == "Victron Charge Controllers":
                 # Similar logic for Victron Charge Controllers
-                component_quantities[component_name] = [
-                    {
-                        "Item_Description": row.Item_Description,
-                        "Controller_ID": f"Controller {i+1}",
-                        "Number_of_Solar_Panels": ""  # Empty for now
-                    }
-                    for i, row in enumerate(db.session.query(
-                        Items_List.Item_Description.label('Item_Description'),
-                        func.sum(client_items.quantity).label('total_quantity')
-                    ).join(
-                        client_items, or_(
-                            client_items.item_description == Items_List.Item_Description,
-                            client_items.item_description == Items_List.Alias_Description
-                        )
-                    ).filter(
-                        Items_List.Component == component_filter,
-                        or_(
-                            client_items.client_name == client.Client_Name,
-                            client_items.client_name == client.Alias_Name
-                        )
-                    ).group_by(Items_List.Item_Description)
-                    .order_by(desc('total_quantity'))
-                    .all()):
-                        for _ in range(row.total_quantity):
-                            component_quantities[component_name].append({
-                                "Item_Description": row.Item_Description,
-                                "Controller_ID": f"Controller {i+1}",
-                                "Number_of_Solar_Panels": ""
-                            })
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+
+                for i, row in enumerate(rows):
+                    for _ in range(row.total_quantity):
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "Controller_ID": f"Controller {i+1}",
+                            "Number_of_Solar_Panels": ""  # Empty for now
+                        })
 
             else:
                 # For Batteries and Solar Panels, keep original logic
-                component_quantities[component_name] = [
-                    {
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+
+                for row in rows:
+                    component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
                         "total_quantity": row.total_quantity
-                    }
-                    for row in db.session.query(
-                        Items_List.Item_Description.label('Item_Description'),
-                        func.sum(client_items.quantity).label('total_quantity')
-                    ).join(
-                        client_items, or_(
-                            client_items.item_description == Items_List.Item_Description,
-                            client_items.item_description == Items_List.Alias_Description
-                        )
-                    ).filter(
-                        Items_List.Component == component_filter,
-                        or_(
-                            client_items.client_name == client.Client_Name,
-                            client_items.client_name == client.Alias_Name
-                        )
-                    ).group_by(Items_List.Item_Description)
-                    .order_by(desc('total_quantity'))
-                    .all()
-                ]
+                    })
 
     except Exception as e:
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
