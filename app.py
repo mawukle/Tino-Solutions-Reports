@@ -1400,33 +1400,41 @@ def client_list():
         }
 
         # Prepare the client list
-        clients = [[
-            client.Client_Unique_ID,
-            client.Client_Name or '',
-            client.Town or '',
-            client.City or '',
-            client.Phone_Number or '',
-            client.Client_Code or '',
-            client.Contact_Person or '',
-            client.email_address or '',
-            inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
-            battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
-            solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-            installation_date_data.get(client.Client_Name, ''),  # Installation Date
-            inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
-            battery_data.get(client.Client_Name, {}).get("installed_by", '') or
-            solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
-        ] for client in clients]
+        tino_clients = []
+        client_clients = []
 
-        # Sort clients by Installation Date, descending (most recent first)
-        clients.sort(key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True)
+        for client in clients:
+            client_row = [
+                client.Client_Unique_ID,
+                client.Client_Name or '',
+                client.Town or '',
+                client.City or '',
+                client.Phone_Number or '',
+                client.Client_Code or '',
+                client.Contact_Person or '',
+                client.email_address or '',
+                inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
+                battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
+                solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
+                installation_date_data.get(client.Client_Name, ''),  # Installation Date
+                inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
+                battery_data.get(client.Client_Name, {}).get("installed_by", '') or
+                solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
+            ]
+
+            # Categorize based on 'Installed By'
+            if client_row[12] == 'Tino Team':
+                tino_clients.append(client_row)
+            elif client_row[12] == 'Client':
+                client_clients.append(client_row)
 
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
         message = 'Database query failed'
-        clients = []
+        tino_clients = []
+        client_clients = []
 
-    return render_template('client_list.html', clients=clients, message=message)
+    return render_template('client_list.html', tino_clients=tino_clients, client_clients=client_clients, message=message)
 
 
 """
