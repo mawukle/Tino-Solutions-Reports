@@ -762,7 +762,7 @@ def team_ranking():
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.max(text("Client_List.Client_Name")).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity'),
                     func.max(client_items.installed_by).label('installed_by')
                 ).join(
@@ -789,7 +789,7 @@ def team_ranking():
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.max(text("Client_List.Client_Name")).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity'),
                     func.max(client_items.installed_by).label('installed_by')
                 ).join(
@@ -816,7 +816,7 @@ def team_ranking():
                     "installed_by": row.installed_by
                 }
                 for row in db.session.query(
-                    func.max(Client_List.Client_Name).label('Client_Name'),
+                    func.max(text("Client_List.Client_Name")).label('Client_Name'),
                     func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
                     func.max(client_items.installed_by).label('installed_by')
                 ).join(
@@ -1320,7 +1320,7 @@ def client_list():
                 "installed_by": row.installed_by
             }
             for row in db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 func.sum(client_items.quantity * Items_List.kVA_kW).label('total_inverter_capacity'),
                 func.max(client_items.installed_by).label('installed_by')
             ).join(
@@ -1343,7 +1343,7 @@ def client_list():
                 "installed_by": row.installed_by
             }
             for row in db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 func.sum(client_items.quantity * Items_List.kWh).label('total_battery_capacity'),
                 func.max(client_items.installed_by).label('installed_by')
             ).join(
@@ -1366,7 +1366,7 @@ def client_list():
                 "installed_by": row.installed_by
             }
             for row in db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 func.sum(client_items.quantity * Items_List.kVA_kW).label('total_solar_panel_capacity'),
                 func.max(client_items.installed_by).label('installed_by')
             ).join(
@@ -1389,7 +1389,7 @@ def client_list():
                 if row.latest_installation_date else ''
             )
             for row in db.session.query(
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 func.max(client_items.date).label('latest_installation_date')
             ).join(
                 Client_List, or_(
@@ -2605,7 +2605,7 @@ def summary():
             # Query to get the job details with filters
             jobs_query = db.session.query(
                 Job_Tracking.Job_ID,
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 func.max(Client_List.Town).label('Town'),
                 func.max(Client_List.Phone_Number).label('Phone_Number'),
                 Job_Tracking.Date,
@@ -3205,7 +3205,7 @@ def stock_summary():
             # Query to get the client-item details with proper component mapping from Items_List
             jobs_query = db.session.query(
                 client_items.client_item_id,
-                func.max(Client_List.Client_Name).label('Client_Name'),
+                func.max(text("Client_List.Client_Name")).label('Client_Name'),
                 client_items.date,
                 func.max(Items_List.Component).label('Component'),
                 func.max(Items_List.Item_Description).label('Item_Description'),
