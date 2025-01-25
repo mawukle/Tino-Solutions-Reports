@@ -1492,7 +1492,7 @@ def client_details(client_id):
         "Inverters": "Inverter",
         "Batteries": "Batteries",
         "Solar Panels": "Solar Panels",
-        "Victron Charge Controllers": "Victron Charge Controller"
+        "Victron Charge Controllers": "Victron Charge Controllers"
     }
 
     # Query for each component
