@@ -1518,10 +1518,10 @@ def client_details(client_id):
 
                 for i, row in enumerate(rows):
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
-                    for _ in range(total_quantity):
+                    for j in range(total_quantity):  # Repeat for each quantity
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Inverter_ID": f"Inverter {i+1}",
+                            "Inverter_ID": f"Inverter {sum([int(c.get('Inverter_ID', 0)) for c in component_quantities[component_name]]) + 1}",  # Inverter ID increases based on existing counts
                             "Number_of_Solar_Panels": ""  # Empty for now
                         })
 
