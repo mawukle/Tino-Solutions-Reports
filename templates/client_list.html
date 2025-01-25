@@ -43,7 +43,7 @@
                   <tbody>
                       {% for client in tino_clients %}
                       <tr class="clickable-row" data-href="{{ url_for('client_details', client_id=client[0]) }}">
-                          <td>{{ client[0] }}</td>
+                          <!--td>{{ client[0] }}</td-->
                           <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
                           <td><input type="text" name="towns" value="{{ client[2] }}"></td>
                           <!--td><input type="text" name="cities" value="{{ client[3] }}"></td-->
