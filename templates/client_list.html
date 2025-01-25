@@ -6,29 +6,6 @@
     <title>Client List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <script>
-        // Function to sort table by the Installation Date
-        function sortTable(tableId, colIndex) {
-            const table = document.getElementById(tableId);
-            const rows = Array.from(table.rows).slice(1); // Exclude header row
-
-            rows.sort((rowA, rowB) => {
-                const dateA = new Date(rowA.cells[colIndex].textContent.trim());
-                const dateB = new Date(rowB.cells[colIndex].textContent.trim());
-                return dateA - dateB;
-            });
-
-            // Append sorted rows back to the table body
-            const tbody = table.querySelector("tbody");
-            rows.forEach(row => tbody.appendChild(row));
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            // Automatically sort both tables by Installation Date (12th column, index 11)
-            sortTable('tinoTable', 11);
-            sortTable('clientTable', 11);
-        });
-    </script>
 </head>
 <body>
     <div class="container_1">
@@ -40,103 +17,109 @@
         <h1>TINO SOLUTIONS LIMITED<br>CLIENT LIST</h1>
 
         <!-- Table for Tino Team Installations -->
-        <h2>Installations by Tino Team</h2>
+        <h2>Installed by Tino Team</h2>
         <form action="{{ url_for('update_client') }}" method="post">
             <div class="table-container">
-                <table id="tinoTable">
-                    <thead>
-                        <tr>
-                            <th>Client Unique ID</th>
-                            <th>Client Name</th>
-                            <th>Town</th>
-                            <th>City</th>
-                            <th>Phone Number</th>
-                            <th>Client Code</th>
-                            <th>Contact Person</th>
-                            <th>Email Address</th>
-                            <th>Inverter Capacity (kVA/kW)</th>
-                            <th>Battery Capacity (kWh)</th>
-                            <th>Solar Panel Capacity (kVA/kW)</th>
-                            <th>Installation Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in tino_clients %}
-                        <tr>
-                            <td>{{ client[0] }}</td>
-                            <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
-                            <td><input type="text" name="towns" value="{{ client[2] }}"></td>
-                            <td><input type="text" name="cities" value="{{ client[3] }}"></td>
-                            <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
-                            <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
-                            <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
-                            <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
-                            <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
-                            <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
-                            <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
-                            <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
-                            <td>
-                                <input type="hidden" name="client_ids" value="{{ client[0] }}">
-                                <button type="submit" class="update-button">Update</button>
-                                <form action="{{ url_for('delete_client', client_id=client[0]) }}" method="post" style="display:inline;">
-                                    <button type="submit" class="delete-button">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                <table>
+                  <thead>
+                      <tr>
+                          <th>Client Unique ID</th>
+                          <th>Client Name</th>
+                          <th>Town</th>
+                          <th>City</th>
+                          <th>Phone Number</th>
+                          <th>Client Code</th>
+                          <th>Contact Person</th>
+                          <th>Email Address</th>
+                          <th>Inverter Capacity (kVA/kW)</th>
+                          <th>Battery Capacity (kWh)</th>
+                          <th>Solar Panel Capacity (kVA/kW)</th>
+                          <th>Installation Date</th>
+                          <th>Installed By</th>
+                          <th>Action</th>
+                      </tr>
+                  </thead>
+
+                  <tbody>
+                      {% for client in tino_clients %}
+                      <tr>
+                          <td>{{ client[0] }}</td>
+                          <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
+                          <td><input type="text" name="towns" value="{{ client[2] }}"></td>
+                          <td><input type="text" name="cities" value="{{ client[3] }}"></td>
+                          <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
+                          <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
+                          <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
+                          <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
+                          <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
+                          <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
+                          <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
+                          <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
+                          <td><input type="text" name="installed_bys" value="{{ client[12] }}"></td>
+                          <td>
+                              <input type="hidden" name="client_ids" value="{{ client[0] }}">
+                              <button type="submit" class="update-button">Update</button>
+                              <form action="{{ url_for('delete_client', client_id=client[0]) }}" method="post" style="display:inline;">
+                                  <button type="submit" class="delete-button">Delete</button>
+                              </form>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
                 </table>
             </div>
         </form>
 
         <!-- Table for Client Installations -->
-        <h2>Installations by Clients</h2>
+        <h2>Installed by Client</h2>
         <form action="{{ url_for('update_client') }}" method="post">
             <div class="table-container">
-                <table id="clientTable">
-                    <thead>
-                        <tr>
-                            <th>Client Unique ID</th>
-                            <th>Client Name</th>
-                            <th>Town</th>
-                            <th>City</th>
-                            <th>Phone Number</th>
-                            <th>Client Code</th>
-                            <th>Contact Person</th>
-                            <th>Email Address</th>
-                            <th>Inverter Capacity (kVA/kW)</th>
-                            <th>Battery Capacity (kWh)</th>
-                            <th>Solar Panel Capacity (kVA/kW)</th>
-                            <th>Installation Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in client_clients %}
-                        <tr>
-                            <td>{{ client[0] }}</td>
-                            <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
-                            <td><input type="text" name="towns" value="{{ client[2] }}"></td>
-                            <td><input type="text" name="cities" value="{{ client[3] }}"></td>
-                            <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
-                            <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
-                            <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
-                            <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
-                            <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
-                            <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
-                            <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
-                            <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
-                            <td>
-                                <input type="hidden" name="client_ids" value="{{ client[0] }}">
-                                <button type="submit" class="update-button">Update</button>
-                                <form action="{{ url_for('delete_client', client_id=client[0]) }}" method="post" style="display:inline;">
-                                    <button type="submit" class="delete-button">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                <table>
+                  <thead>
+                      <tr>
+                          <th>Client Unique ID</th>
+                          <th>Client Name</th>
+                          <th>Town</th>
+                          <th>City</th>
+                          <th>Phone Number</th>
+                          <th>Client Code</th>
+                          <th>Contact Person</th>
+                          <th>Email Address</th>
+                          <th>Inverter Capacity (kVA/kW)</th>
+                          <th>Battery Capacity (kWh)</th>
+                          <th>Solar Panel Capacity (kVA/kW)</th>
+                          <th>Installation Date</th>
+                          <th>Installed By</th>
+                          <th>Action</th>
+                      </tr>
+                  </thead>
+
+                  <tbody>
+                      {% for client in client_clients %}
+                      <tr>
+                          <td>{{ client[0] }}</td>
+                          <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
+                          <td><input type="text" name="towns" value="{{ client[2] }}"></td>
+                          <td><input type="text" name="cities" value="{{ client[3] }}"></td>
+                          <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
+                          <td><input type="text" name="client_codes" value="{{ client[5] }}"></td>
+                          <td><input type="text" name="contact_persons" value="{{ client[6] }}"></td>
+                          <td><input type="text" name="email_addresses" value="{{ client[7] }}"></td>
+                          <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
+                          <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
+                          <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
+                          <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
+                          <td><input type="text" name="installed_bys" value="{{ client[12] }}"></td>
+                          <td>
+                              <input type="hidden" name="client_ids" value="{{ client[0] }}">
+                              <button type="submit" class="update-button">Update</button>
+                              <form action="{{ url_for('delete_client', client_id=client[0]) }}" method="post" style="display:inline;">
+                                  <button type="submit" class="delete-button">Delete</button>
+                              </form>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
                 </table>
             </div>
         </form>
