@@ -1498,56 +1498,84 @@ def client_details(client_id):
     # Query for each component
     try:
         for component_name, component_filter in component_filters.items():
-            rows = db.session.query(
-                Items_List.Item_Description.label('Item_Description'),
-                func.sum(client_items.quantity).label('total_quantity')
-            ).join(
-                client_items, or_(
-                    client_items.item_description == Items_List.Item_Description,
-                    client_items.item_description == Items_List.Alias_Description
-                )
-            ).filter(
-                Items_List.Component == component_filter,
-                or_(
-                    client_items.client_name == client.Client_Name,
-                    client_items.client_name == client.Alias_Name
-                )
-            ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            if component_name == "Inverters":
+                # For inverters, repeat the description based on quantity
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
-            for i, row in enumerate(rows):
-                try:
-                    # Validate total_quantity before converting
-                    if row.total_quantity is not None and str(row.total_quantity).replace('.', '', 1).isdigit():
-                        total_quantity = int(float(row.total_quantity))
-                    else:
-                        logging.warning(f"Skipping non-numeric total_quantity for {row.Item_Description}")
-                        continue  # Skip invalid rows
-
-                    if component_name == "Inverters":
-                        for j in range(total_quantity):
-                            component_quantities[component_name].append({
-                                "Item_Description": row.Item_Description,
-                                "Inverter_ID": f"Inverter {sum([int(c.get('Inverter_ID', 0)) for c in component_quantities[component_name]]) + 1}",
-                                "Number_of_Solar_Panels": ""  # Empty for now
-                            })
-
-                    elif component_name == "Victron Charge Controllers":
-                        for _ in range(total_quantity):
-                            component_quantities[component_name].append({
-                                "Item_Description": row.Item_Description,
-                                "Controller_ID": f"Controller {i+1}",
-                                "Number_of_Solar_Panels": ""  # Empty for now
-                            })
-
-                    else:
+                for i, row in enumerate(rows):
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                    for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "total_quantity": total_quantity
+                            "Inverter_ID": f"Inverter {i+1}",
+                            "Number_of_Solar_Panels": ""  # Empty for now
                         })
 
-                except ValueError as e:
-                    logging.error(f"Error converting total_quantity for {row.Item_Description}: {e}")
-                    continue  # Skip invalid rows
+            elif component_name == "Victron Charge Controllers":
+                # Similar logic for Victron Charge Controllers
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+
+                for i, row in enumerate(rows):
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                    for _ in range(total_quantity):
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "Controller_ID": f"Controller {i+1}",
+                            "Number_of_Solar_Panels": ""  # Empty for now
+                        })
+
+            else:
+                # For Batteries and Solar Panels, keep original logic
+                rows = db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                    component_quantities[component_name].append({
+                        "Item_Description": row.Item_Description,
+                        "total_quantity": total_quantity  # Ensure it's converted to an integer
+                    })
 
     except Exception as e:
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
