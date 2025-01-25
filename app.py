@@ -1499,7 +1499,6 @@ def client_details(client_id):
     try:
         for component_name, component_filter in component_filters.items():
             if component_name == "Inverters":
-                # For inverters, repeat the description based on quantity
                 rows = db.session.query(
                     Items_List.Item_Description.label('Item_Description'),
                     func.sum(client_items.quantity).label('total_quantity')
@@ -1516,17 +1515,18 @@ def client_details(client_id):
                     )
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
-                for i, row in enumerate(rows):
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                inverter_id_counter = 1  # Initialize the counter for Inverter IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Inverter_ID": f"Inverter {i+1}",
+                            "Inverter_ID": f"Inverter {inverter_id_counter}",
                             "Number_of_Solar_Panels": ""  # Empty for now
                         })
+                        inverter_id_counter += 1  # Increment the counter for each item
 
             elif component_name == "Victron Charge Controllers":
-                # Similar logic for Victron Charge Controllers
                 rows = db.session.query(
                     Items_List.Item_Description.label('Item_Description'),
                     func.sum(client_items.quantity).label('total_quantity')
@@ -1543,14 +1543,16 @@ def client_details(client_id):
                     )
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
-                for i, row in enumerate(rows):
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                controller_id_counter = 1  # Initialize the counter for Controller IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Controller_ID": f"Controller {i+1}",
+                            "Controller_ID": f"Controller {controller_id_counter}",
                             "Number_of_Solar_Panels": ""  # Empty for now
                         })
+                        controller_id_counter += 1  # Increment the counter for each item
 
             else:
                 # For Batteries and Solar Panels, keep original logic
