@@ -1543,10 +1543,11 @@ def client_details(client_id):
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
                 for i, row in enumerate(rows):
-                    for _ in range(row.total_quantity):
+                    total_quantity = int(row.total_quantity)  # Convert to integer
+                    for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Controller_ID": f"Controller {i+1}",
+                            "Inverter_ID": f"Inverter {i+1}",
                             "Number_of_Solar_Panels": ""  # Empty for now
                         })
 
