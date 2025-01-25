@@ -1470,6 +1470,14 @@ def client_list():
         message=message
     )
 
+
+@app.route('/client_details/<client_id>')
+def client_details(client_id):
+    client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
+    return render_template('client_details.html', client=client)
+
+
+
 """
 # Route for displaying the client list sorted by Client_Unique_ID
 @app.route('/client_list', methods=['GET'])
