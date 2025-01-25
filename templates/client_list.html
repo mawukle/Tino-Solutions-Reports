@@ -123,6 +123,30 @@
                 </table>
             </div>
         </form>
+        <h3>Other Clients</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Unique ID</th>
+                    <th>Name</th>
+                    <th>Town</th>
+                    <th>City</th>
+                    <th>Phone Number</th>
+                    <th>Client Code</th>
+                    <th>Contact Person</th>
+                    <th>Email Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in other_clients %}
+                <tr>
+                    {% for data in client %}
+                    <td>{{ data }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
         {% if message %}
         <p class="message">{{ message }}</p>

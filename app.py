@@ -1399,7 +1399,7 @@ def client_list():
             ).filter(client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])).group_by(Client_List.Client_Name).all()
         }
 
-        # Prepare the client list
+        # Prepare the client lists
         tino_clients = []
         client_clients = []
 
@@ -1436,13 +1436,39 @@ def client_list():
             key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
         )
 
+        # Identify "Other Clients"
+        tino_client_names = {row[1] for row in tino_clients}
+        client_client_names = {row[1] for row in client_clients}
+        all_categorized_names = tino_client_names.union(client_client_names)
+
+        other_clients = [
+            [
+                client.Client_Unique_ID,
+                client.Client_Name or '',
+                client.Town or '',
+                client.City or '',
+                client.Phone_Number or '',
+                client.Client_Code or '',
+                client.Contact_Person or '',
+                client.email_address or ''
+            ]
+            for client in clients if client.Client_Name not in all_categorized_names
+        ]
+
     except Exception as e:
         logging.error(f"Error fetching clients: {e}")
         message = 'Database query failed'
         tino_clients = []
         client_clients = []
+        other_clients = []
 
-    return render_template('client_list.html', tino_clients=tino_clients, client_clients=client_clients, message=message)
+    return render_template(
+        'client_list.html',
+        tino_clients=tino_clients,
+        client_clients=client_clients,
+        other_clients=other_clients,
+        message=message
+    )
 
 """
 # Route for displaying the client list sorted by Client_Unique_ID
