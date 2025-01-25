@@ -1517,7 +1517,7 @@ def client_details(client_id):
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
                 for i, row in enumerate(rows):
-                    total_quantity = int(row.total_quantity)  # Convert to integer
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
                     for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
@@ -1544,7 +1544,8 @@ def client_details(client_id):
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
                 for i, row in enumerate(rows):
-                    for _ in range(row.total_quantity):
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                    for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
                             "Controller_ID": f"Controller {i+1}",
@@ -1570,9 +1571,10 @@ def client_details(client_id):
                 ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
                 for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
-                        "total_quantity": row.total_quantity
+                        "total_quantity": total_quantity  # Ensure it's converted to an integer
                     })
 
     except Exception as e:
