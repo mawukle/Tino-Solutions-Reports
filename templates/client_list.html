@@ -42,7 +42,7 @@
 
                   <tbody>
                       {% for client in tino_clients %}
-                      <tr>
+                      <tr class="clickable-row" data-href="{{ url_for('client_details', client_id=client[0]) }}">
                           <td>{{ client[0] }}</td>
                           <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
                           <td><input type="text" name="towns" value="{{ client[2] }}"></td>
@@ -69,6 +69,21 @@
                 </table>
             </div>
         </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const rows = document.querySelectorAll('.clickable-row');
+                rows.forEach(row => {
+                    row.addEventListener('click', () => {
+                        const href = row.getAttribute('data-href');
+                        if (href) {
+                            window.location.href = href;
+                        }
+                    });
+                });
+            });
+        </script>
+
 
         <!-- Table for Client Installations -->
         <h2>Installed by Client</h2>
