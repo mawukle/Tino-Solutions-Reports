@@ -94,7 +94,7 @@ button:hover {
     overflow: auto; /* Allow horizontal scrolling if necessary */
 /*    display: flex;
     justify-content: left;*/
-    max-height: 4000px; /* Set a maximum height to enable vertical scrolling */
+/*    max-height: 1500px; /* Set a maximum height to enable vertical scrolling */
     overflow-y: auto; /* Enable vertical scrolling */
     border: 1px solid #ddd;
     width: 100%;
