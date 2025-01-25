@@ -23,6 +23,7 @@
         <h2>Component Details</h2>
 
         <!-- Inverters -->
+        {% if inverter_quantities %}
         <h3>Inverters</h3>
         <table class="component-details">
             <thead>
@@ -42,8 +43,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
         <!-- Batteries -->
+        {% if battery_quantities %}
         <h3>Batteries</h3>
         <table class="component-details">
             <thead>
@@ -61,8 +64,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
         <!-- Solar Panels -->
+        {% if solar_panel_quantities %}
         <h3>Solar Panels</h3>
         <table class="component-details">
             <thead>
@@ -80,8 +85,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
         <!-- Victron Charge Controllers -->
+        {% if victron_charge_controller_quantities %}
         <h3>Victron Charge Controllers</h3>
         <table class="component-details">
             <thead>
@@ -101,6 +108,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
         <a href="{{ url_for('client_list') }}" class="back-button">Back to Client List</a>
     </div>
