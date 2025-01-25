@@ -1474,107 +1474,65 @@ def client_list():
 
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
-    # Fetch client details
+    # Fetch client details using Client_Unique_ID
     client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
     if not client:
         return "Client not found", 404
 
-    # Query for Inverter Quantities
-    inverter_quantities = [
-        {
-            "Item_Description": row.Item_Description,
-            "total_quantity": row.total_quantity
-        }
-        for row in db.session.query(
-            Items_List.Item_Description.label('Item_Description'),
-            func.sum(client_items.quantity).label('total_quantity')
-        ).join(
-            client_items, or_(
-                client_items.item_description == Items_List.Item_Description,
-                client_items.item_description == Items_List.Alias_Description
-            )
-        ).filter(
-            Items_List.Component == 'Inverter',
-            client_items.client_name == client.Client_Name
-        ).group_by(Items_List.Item_Description)
-        .order_by(desc('total_quantity'))
-        .all()
-    ]
+    # Initialize component quantities
+    component_quantities = {
+        "Inverters": [],
+        "Batteries": [],
+        "Solar Panels": [],
+        "Victron Charge Controllers": []
+    }
 
-    # Query for Battery Quantities
-    battery_quantities = [
-        {
-            "Item_Description": row.Item_Description,
-            "total_quantity": row.total_quantity
-        }
-        for row in db.session.query(
-            Items_List.Item_Description.label('Item_Description'),
-            func.sum(client_items.quantity).label('total_quantity')
-        ).join(
-            client_items, or_(
-                client_items.item_description == Items_List.Item_Description,
-                client_items.item_description == Items_List.Alias_Description
-            )
-        ).filter(
-            Items_List.Component == 'Batteries',
-            client_items.client_name == client.Client_Name
-        ).group_by(Items_List.Item_Description)
-        .order_by(desc('total_quantity'))
-        .all()
-    ]
+    # Map components to their filters
+    component_filters = {
+        "Inverters": "Inverter",
+        "Batteries": "Batteries",
+        "Solar Panels": "Solar Panels",
+        "Victron Charge Controllers": "Victron Charge Controller"
+    }
 
-    # Query for Solar Panel Quantities
-    solar_panel_quantities = [
-        {
-            "Item_Description": row.Item_Description,
-            "total_quantity": row.total_quantity
-        }
-        for row in db.session.query(
-            Items_List.Item_Description.label('Item_Description'),
-            func.sum(client_items.quantity).label('total_quantity')
-        ).join(
-            client_items, or_(
-                client_items.item_description == Items_List.Item_Description,
-                client_items.item_description == Items_List.Alias_Description
-            )
-        ).filter(
-            Items_List.Component == 'Solar Panels',
-            client_items.client_name == client.Client_Name
-        ).group_by(Items_List.Item_Description)
-        .order_by(desc('total_quantity'))
-        .all()
-    ]
+    # Query for each component
+    try:
+        for component_name, component_filter in component_filters.items():
+            component_quantities[component_name] = [
+                {
+                    "Item_Description": row.Item_Description,
+                    "total_quantity": row.total_quantity
+                }
+                for row in db.session.query(
+                    Items_List.Item_Description.label('Item_Description'),
+                    func.sum(client_items.quantity).label('total_quantity')
+                ).join(
+                    client_items, or_(
+                        client_items.item_description == Items_List.Item_Description,
+                        client_items.item_description == Items_List.Alias_Description
+                    )
+                ).filter(
+                    Items_List.Component == component_filter,
+                    or_(
+                        client_items.client_name == client.Client_Name,
+                        client_items.client_name == client.Alias_Name
+                    )
+                ).group_by(Items_List.Item_Description)
+                .order_by(desc('total_quantity'))
+                .all()
+            ]
+    except Exception as e:
+        logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
+        return "An error occurred while fetching component details.", 500
 
-    # Query for Victron Charge Controller Quantities
-    victron_charge_controller_quantities = [
-        {
-            "Item_Description": row.Item_Description,
-            "total_quantity": row.total_quantity
-        }
-        for row in db.session.query(
-            Items_List.Item_Description.label('Item_Description'),
-            func.sum(client_items.quantity).label('total_quantity')
-        ).join(
-            client_items, or_(
-                client_items.item_description == Items_List.Item_Description,
-                client_items.item_description == Items_List.Alias_Description
-            )
-        ).filter(
-            Items_List.Component == 'Victron Charge Controllers',
-            client_items.client_name == client.Client_Name
-        ).group_by(Items_List.Item_Description)
-        .order_by(desc('total_quantity'))
-        .all()
-    ]
-
-    # Render the client details template with all data
+    # Render the client details page
     return render_template(
         'client_details.html',
         client=client,
-        inverter_quantities=inverter_quantities,
-        battery_quantities=battery_quantities,
-        solar_panel_quantities=solar_panel_quantities,
-        victron_charge_controller_quantities=victron_charge_controller_quantities
+        inverter_quantities=component_quantities["Inverters"],
+        battery_quantities=component_quantities["Batteries"],
+        solar_panel_quantities=component_quantities["Solar Panels"],
+        victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
     )
 
 
