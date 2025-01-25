@@ -1479,6 +1479,27 @@ def client_details(client_id):
     if not client:
         return "Client not found", 404
 
+    # Fetch the latest installation date for the client
+    installation_date_query = db.session.query(
+        func.max(client_items.date).label('latest_installation_date')
+    ).join(
+        Client_List, or_(
+            client_items.client_name == Client_List.Client_Name,
+            client_items.client_name == Client_List.Alias_Name
+        )
+    ).filter(
+        or_(
+            client_items.client_name == client.Client_Name,
+            client_items.client_name == client.Alias_Name
+        ),
+        client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])
+    ).first()
+
+    installation_date = (
+        installation_date_query.latest_installation_date.strftime('%d %B, %Y')
+        if installation_date_query.latest_installation_date else 'No installation date found'
+    )
+
     # Initialize component quantities
     component_quantities = {
         "Inverters": [],
@@ -1587,6 +1608,7 @@ def client_details(client_id):
     return render_template(
         'client_details.html',
         client=client,
+        installation_date=installation_date,
         inverter_quantities=component_quantities["Inverters"],
         battery_quantities=component_quantities["Batteries"],
         solar_panel_quantities=component_quantities["Solar Panels"],
