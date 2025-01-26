@@ -120,7 +120,7 @@
         <h2>General Comments</h2>
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
             <textarea name="general_comment" rows="5" cols="50" placeholder="Enter your comments about the installation...&#10;Enter client's favourite food...&#10;Enter the nearest bank address...">{{
-                client.general_comment if client.general_comment is not none else "Enter your comments about the installation...\nEnter client's favourite food...\nEnter the nearest bank address..."
+                client.general_comment if client.general_comment is not none else ""
             }}</textarea>
             <br>
             <button type="submit">Save Comment</button>
