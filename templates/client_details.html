@@ -8,6 +8,11 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+
+        <!-- Back to Homepage Link -->
+        <a href="{{ url_for('client_list') }}" class="back-link">The Renewable Energy Experts</a>
+
         <h1>Client Details</h1>
         <table class="client-details">
             <!--tr><th>Unique ID</th><td>{{ client.Client_Unique_ID }}</td></tr-->
