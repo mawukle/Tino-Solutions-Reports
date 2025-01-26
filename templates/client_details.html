@@ -19,10 +19,10 @@
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
             <tr><th>City</th><td>{{ client.City }}</td></tr>
-            <tr><th>Phone Number</th><td>{{ client.Phone_Number }}</td></tr>
+            <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
             <!--tr><th>Client Code</th><td>{{ client.Client_Code }}</td></tr-->
-            <tr><th>Contact Person</th><td>{{ client.Contact_Person }}</td></tr>
-            <tr><th>Email Address</th><td>{{ client.email_address }}</td></tr>
+            <tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr>
+            <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
 
         </table>
