@@ -119,7 +119,7 @@
 
         <h2>General Comments</h2>
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
-            <textarea name="general_comment" rows="5" cols="50" placeholder="Enter your comments about the installation...&#10;Enter client's favourite food...&#10;Enter the nearest bank address...">{{
+            <textarea name="general_comment" rows="5" cols="50" placeholder="Comment about the configuration parameters used in the installation...&#10;If it's a victron system, talk about the Virtual Switch or ESS settings that have been used....&#10;If fronius, deye, or other inverter brand, provide details of the configuration...&#10;Provide general comments about the installation that could be useful for troubleshooting in the future">{{
                 client.general_comment if client.general_comment is not none else ""
             }}</textarea>
             <br>
