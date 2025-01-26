@@ -116,6 +116,13 @@
             </tbody>
         </table>
         {% endif %}
+        
+        <h2>General Comments</h2>
+        <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
+            <textarea name="general_comment" rows="5" cols="50" placeholder="Enter your comments about the installation...">{{ client.general_comment }}</textarea>
+            <br>
+            <button type="submit">Save Comment</button>
+        </form>
 
         <!--a href="{{ url_for('client_list') }}" class="back-button">Back to Client List</a-->
     </div>

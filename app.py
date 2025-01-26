@@ -1615,6 +1615,28 @@ def client_details(client_id):
         victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
     )
 
+@app.route('/save_client_comment/<client_id>', methods=['POST'])
+def save_client_comment(client_id):
+    # Fetch the client based on the Client_Unique_ID
+    client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
+    if not client:
+        return "Client not found", 404
+
+    # Get the comment from the form
+    general_comment = request.form.get('general_comment', '')
+
+    # Update the client's general comment
+    client.general_comment = general_comment
+    try:
+        db.session.commit()
+        flash("Comment saved successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving comment for client {client.Client_Name}: {e}")
+        flash("An error occurred while saving the comment.", "danger")
+
+    return redirect(url_for('client_details', client_id=client_id))
+
 
 
 """

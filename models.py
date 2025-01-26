@@ -16,6 +16,9 @@ class Client_List(db.Model):
     Contact_Person = db.Column(db.String(100), nullable=True)
     email_address = db.Column(db.String(100), nullable=True)
     Alias_Name = db.Column(db.String(100), nullable=False, default='')  # New column
+    Installer = db.Column(db.String(100), nullable=True)
+    comments = db.Column(db.Text, nullable = True)  # New column to store installation comments
+
 
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
