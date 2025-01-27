@@ -1516,88 +1516,42 @@ def client_details(client_id):
         "Victron Charge Controllers": "Victron Charge Controllers"
     }
 
-    # Query for each component
     try:
         for component_name, component_filter in component_filters.items():
-            if component_name == "Inverters":
-                rows = db.session.query(
-                    Items_List.Item_Description.label('Item_Description'),
-                    func.sum(client_items.quantity).label('total_quantity')
-                ).join(
-                    client_items, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).filter(
-                    Items_List.Component == component_filter,
-                    or_(
-                        client_items.client_name == client.Client_Name,
-                        client_items.client_name == client.Alias_Name
-                    )
-                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            rows = db.session.query(
+                Items_List.Item_Description.label('Item_Description'),
+                func.sum(client_items.quantity).label('total_quantity')
+            ).join(
+                client_items, or_(
+                    client_items.item_description == Items_List.Item_Description,
+                    client_items.item_description == Items_List.Alias_Description
+                )
+            ).filter(
+                Items_List.Component == component_filter,
+                or_(
+                    client_items.client_name == client.Client_Name,
+                    client_items.client_name == client.Alias_Name
+                )
+            ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
 
-                inverter_id_counter = 1  # Initialize the counter for Inverter IDs
+            if component_name in ["Inverters", "Victron Charge Controllers"]:
+                id_counter = 1  # Initialize the counter for unique IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Inverter_ID": f"Inverter {inverter_id_counter}",
+                            f"{component_name[:-1]}_ID": f"{component_name[:-1]} {id_counter}",
                             "Number_of_Solar_Panels": ""  # Empty for now
                         })
-                        inverter_id_counter += 1  # Increment the counter for each item
-
-            elif component_name == "Victron Charge Controllers":
-                rows = db.session.query(
-                    Items_List.Item_Description.label('Item_Description'),
-                    func.sum(client_items.quantity).label('total_quantity')
-                ).join(
-                    client_items, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).filter(
-                    Items_List.Component == component_filter,
-                    or_(
-                        client_items.client_name == client.Client_Name,
-                        client_items.client_name == client.Alias_Name
-                    )
-                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
-
-                controller_id_counter = 1  # Initialize the counter for Controller IDs
-                for row in rows:
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-                    for _ in range(total_quantity):
-                        component_quantities[component_name].append({
-                            "Item_Description": row.Item_Description,
-                            "Controller_ID": f"Controller {controller_id_counter}",
-                            "Number_of_Solar_Panels": ""  # Empty for now
-                        })
-                        controller_id_counter += 1  # Increment the counter for each item
-
+                        id_counter += 1
             else:
-                # For Batteries and Solar Panels, keep original logic
-                rows = db.session.query(
-                    Items_List.Item_Description.label('Item_Description'),
-                    func.sum(client_items.quantity).label('total_quantity')
-                ).join(
-                    client_items, or_(
-                        client_items.item_description == Items_List.Item_Description,
-                        client_items.item_description == Items_List.Alias_Description
-                    )
-                ).filter(
-                    Items_List.Component == component_filter,
-                    or_(
-                        client_items.client_name == client.Client_Name,
-                        client_items.client_name == client.Alias_Name
-                    )
-                ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
-
+                # For Batteries and Solar Panels
                 for row in rows:
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity  # Convert to integer if decimal
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
-                        "total_quantity": total_quantity  # Ensure it's converted to an integer
+                        "total_quantity": total_quantity
                     })
 
     except Exception as e:
@@ -1617,16 +1571,13 @@ def client_details(client_id):
 
 @app.route('/save_client_comment/<client_id>', methods=['POST'])
 def save_client_comment(client_id):
-    # Fetch the client based on the Client_Unique_ID
     client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
     if not client:
         return "Client not found", 404
 
-    # Get the general comment from the form
     general_comment = request.form.get('general_comment', '')
     client.general_comment = general_comment
 
-    # Update the Number of Solar Panels for Inverters
     try:
         for key, value in request.form.items():
             if key.startswith("number_of_solar_panels_"):
@@ -1634,7 +1585,6 @@ def save_client_comment(client_id):
                 number_of_solar_panels = int(value)
                 client_item_id = request.form.get(f"client_item_id_{index}")
                 if client_item_id:
-                    # Update the corresponding client item in the database
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
@@ -1644,12 +1594,10 @@ def save_client_comment(client_id):
                 number_of_solar_panels = int(value)
                 client_item_id = request.form.get(f"client_item_id_victron_{index}")
                 if client_item_id:
-                    # Update the corresponding client item in the database
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
-        # Commit changes to the database
         db.session.commit()
         flash("Comment and solar panel data saved successfully!", "success")
 
