@@ -15,16 +15,13 @@
 
         <h1>Client Details</h1>
         <table class="client-details">
-            <!--tr><th>Unique ID</th><td>{{ client.Client_Unique_ID }}</td></tr-->
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
             <tr><th>City</th><td>{{ client.City }}</td></tr>
             <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
-            <!--tr><th>Client Code</th><td>{{ client.Client_Code }}</td></tr-->
             <tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr>
             <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
-
         </table>
 
         <h2>Component Details</h2>
@@ -45,7 +42,16 @@
                 <tr>
                     <td>{{ item.Item_Description }}</td>
                     <td>{{ item.Inverter_ID }}</td>
-                    <td>{{ item.Number_of_Solar_Panels }}</td>
+                    <td>
+                        <input
+                            type="number"
+                            name="number_of_solar_panels_{{ loop.index }}"
+                            value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
+                            min="0"
+                            required
+                        />
+                        <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -110,7 +116,16 @@
                 <tr>
                     <td>{{ item.Item_Description }}</td>
                     <td>{{ item.Controller_ID }}</td>
-                    <td>{{ item.Number_of_Solar_Panels }}</td>
+                    <td>
+                        <input
+                            type="number"
+                            name="number_of_solar_panels_victron_{{ loop.index }}"
+                            value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
+                            min="0"
+                            required
+                        />
+                        <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -126,7 +141,6 @@
             <button type="submit">Save Comment</button>
         </form>
 
-        <!--a href="{{ url_for('client_list') }}" class="back-button">Back to Client List</a-->
     </div>
 </body>
 </html>

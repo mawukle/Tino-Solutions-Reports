@@ -1622,18 +1622,41 @@ def save_client_comment(client_id):
     if not client:
         return "Client not found", 404
 
-    # Get the comment from the form
+    # Get the general comment from the form
     general_comment = request.form.get('general_comment', '')
-
-    # Update the client's general comment
     client.general_comment = general_comment
+
+    # Update the Number of Solar Panels for Inverters
     try:
+        for key, value in request.form.items():
+            if key.startswith("number_of_solar_panels_"):
+                index = key.split("_")[-1]
+                number_of_solar_panels = int(value)
+                client_item_id = request.form.get(f"client_item_id_{index}")
+                if client_item_id:
+                    # Update the corresponding client item in the database
+                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
+                    if client_item:
+                        client_item.number_of_solar_panels = number_of_solar_panels
+
+            if key.startswith("number_of_solar_panels_victron_"):
+                index = key.split("_")[-1]
+                number_of_solar_panels = int(value)
+                client_item_id = request.form.get(f"client_item_id_victron_{index}")
+                if client_item_id:
+                    # Update the corresponding client item in the database
+                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
+                    if client_item:
+                        client_item.number_of_solar_panels = number_of_solar_panels
+
+        # Commit changes to the database
         db.session.commit()
-        flash("Comment saved successfully!", "success")
+        flash("Comment and solar panel data saved successfully!", "success")
+
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error saving comment for client {client.Client_Name}: {e}")
-        flash("An error occurred while saving the comment.", "danger")
+        logging.error(f"Error saving data for client {client.Client_Name}: {e}")
+        flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
 
