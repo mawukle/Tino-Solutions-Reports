@@ -1575,25 +1575,20 @@ def save_client_comment(client_id):
     if not client:
         return "Client not found", 404
 
+    # Get general comment from form
     general_comment = request.form.get('general_comment', '')
     client.general_comment = general_comment
 
     try:
         for key, value in request.form.items():
-            if key.startswith("number_of_solar_panels_"):
+            # Handle inverters and victron charge controllers
+            if key.startswith("number_of_solar_panels_") or key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
-                number_of_solar_panels = int(value)
-                client_item_id = request.form.get(f"client_item_id_{index}")
-                if client_item_id:
-                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
-                    if client_item:
-                        client_item.number_of_solar_panels = number_of_solar_panels
+                number_of_solar_panels = int(value) if value.isdigit() else None
+                client_item_id_key = f"client_item_id_{index}" if "victron" not in key else f"client_item_id_victron_{index}"
+                client_item_id = request.form.get(client_item_id_key)
 
-            if key.startswith("number_of_solar_panels_victron_"):
-                index = key.split("_")[-1]
-                number_of_solar_panels = int(value)
-                client_item_id = request.form.get(f"client_item_id_victron_{index}")
-                if client_item_id:
+                if client_item_id and number_of_solar_panels is not None:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels

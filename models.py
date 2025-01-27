@@ -108,16 +108,17 @@ class Client_Items(db.Model):
 class client_items(db.Model):
     __tablename__ = 'client_items'
 
-    client_item_id = db.Column(db.Integer, primary_key=True)  # Rename the primary key column to 'client_item_id'
+    client_item_id = db.Column(db.Integer, primary_key=True)
     client_name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.Date, nullable=False)
     component = db.Column(db.String(255), nullable=False)
     item_description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    installed_by = db.Column(db.String(50), nullable=False)  # New column
+    installed_by = db.Column(db.String(50), nullable=False)
+    number_of_solar_panels = db.Column(db.Integer, nullable=True)  # Add this column
 
     def __repr__(self):
-        return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}>"
+        return f"<Client_Items {self.client_item_id}, {self.client_name}, {self.date}, {self.component}, {self.item_description}, {self.quantity}, {self.number_of_solar_panels}>"
 
 class sales_by_item(db.Model):
     __tablename__ = 'sales_by_item'
