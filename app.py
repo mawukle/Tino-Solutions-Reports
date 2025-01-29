@@ -1575,26 +1575,27 @@ def save_client_comment(client_id):
 
     try:
         for key, value in request.form.items():
-            # Handle inverters and victron charge controllers solar panel counts
-            if key.startswith("number_of_solar_panels_"):
+            # Handle Inverters solar panel counts
+            if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
                 number_of_solar_panels = int(value) if value.isdigit() else None
                 client_item_id_key = f"client_item_id_{index}"  # Get corresponding client_item_id
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id and number_of_solar_panels is not None:
-                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
+                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
+            # Handle Victron Charge Controllers solar panel counts
             elif key.startswith("number_of_solar_panels_victron_"):
-                index = key.replace("number_of_solar_panels_victron_", "")
+                index = key.split("_")[-1]  # Use split for consistency
                 number_of_solar_panels = int(value) if value.isdigit() else None
-                client_item_id_key = f"client_item_id_victron_{index}"
+                client_item_id_key = f"client_item_id_victron_{index}"  # Get corresponding client_item_id
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id and number_of_solar_panels is not None:
-                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id).first()
+                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Victron Charge Controllers").first()
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
