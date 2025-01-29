@@ -1588,7 +1588,7 @@ def save_client_comment(client_id):
                         client_item.number_of_solar_panels = number_of_solar_panels
 
             elif key.startswith("number_of_solar_panels_victron_"):
-                index = key.split("_")[-1]
+                index = key.replace("number_of_solar_panels_victron_", "")
                 number_of_solar_panels = int(value) if value.isdigit() else None
                 client_item_id_key = f"client_item_id_victron_{index}"
                 client_item_id = request.form.get(client_item_id_key)
