@@ -1562,7 +1562,6 @@ def client_details(client_id):
         victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
     )
 
-
 @app.route('/save_client_comment/<client_id>', methods=['POST'])
 def save_client_comment(client_id):
     client = db.session.query(Client_List).filter_by(Client_Unique_ID=client_id).first()
@@ -1578,26 +1577,26 @@ def save_client_comment(client_id):
             # Handle Inverters solar panel counts
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
-                number_of_solar_panels = int(value) if value.isdigit() else None
-                client_item_id_key = f"client_item_id_{index}"  # Get corresponding client_item_id
+                number_of_solar_panels = int(value) if value.strip().isdigit() else None
+                client_item_id_key = f"client_item_id_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
-                if client_item_id and number_of_solar_panels is not None:
+                if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        client_item.number_of_solar_panels = number_of_solar_panels
+                        client_item.number_of_solar_panels = number_of_solar_panels  # Allow None to clear
 
             # Handle Victron Charge Controllers solar panel counts
             elif key.startswith("number_of_solar_panels_victron_"):
-                index = key.split("_")[-1]  # Use split for consistency
-                number_of_solar_panels = int(value) if value.isdigit() else None
-                client_item_id_key = f"client_item_id_victron_{index}"  # Get corresponding client_item_id
+                index = key.split("_")[-1]
+                number_of_solar_panels = int(value) if value.strip().isdigit() else None
+                client_item_id_key = f"client_item_id_victron_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
-                if client_item_id and number_of_solar_panels is not None:
+                if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Victron Charge Controllers").first()
                     if client_item:
-                        client_item.number_of_solar_panels = number_of_solar_panels
+                        client_item.number_of_solar_panels = number_of_solar_panels  # Allow None to clear
 
         db.session.commit()
         flash("Comment and solar panel data saved successfully!", "success")
@@ -1608,6 +1607,7 @@ def save_client_comment(client_id):
         flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
+
 
 
 
