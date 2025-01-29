@@ -1482,11 +1482,6 @@ def client_details(client_id):
     # Fetch the latest installation date for the client
     installation_date_query = db.session.query(
         func.max(client_items.date).label('latest_installation_date')
-    ).join(
-        Client_List, or_(
-            client_items.client_name == Client_List.Client_Name,
-            client_items.client_name == Client_List.Alias_Name
-        )
     ).filter(
         or_(
             client_items.client_name == client.Client_Name,
@@ -1508,31 +1503,27 @@ def client_details(client_id):
         "Victron Charge Controllers": []
     }
 
-    # Map components to their filters
-    component_filters = {
-        "Inverters": "Inverter",
-        "Batteries": "Batteries",
-        "Solar Panels": "Solar Panels",
-        "Victron Charge Controllers": "Victron Charge Controllers"
-    }
-
+    # Fetch components and number of solar panels from client_items
     try:
-        for component_name, component_filter in component_filters.items():
+        for component_name, component_filter in {
+            "Inverters": "Inverter",
+            "Batteries": "Batteries",
+            "Solar Panels": "Solar Panels",
+            "Victron Charge Controllers": "Victron Charge Controllers"
+        }.items():
+
             rows = db.session.query(
-                Items_List.Item_Description.label('Item_Description'),
-                func.sum(client_items.quantity).label('total_quantity')
-            ).join(
-                client_items, or_(
-                    client_items.item_description == Items_List.Item_Description,
-                    client_items.item_description == Items_List.Alias_Description
-                )
+                client_items.client_item_id,
+                client_items.item_description.label('Item_Description'),
+                func.sum(client_items.quantity).label('total_quantity'),
+                client_items.number_of_solar_panels
             ).filter(
-                Items_List.Component == component_filter,
+                client_items.component == component_filter,
                 or_(
                     client_items.client_name == client.Client_Name,
                     client_items.client_name == client.Alias_Name
                 )
-            ).group_by(Items_List.Item_Description).order_by(desc('total_quantity')).all()
+            ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
             if component_name in ["Inverters", "Victron Charge Controllers"]:
                 id_counter = 1  # Initialize the counter for unique IDs
@@ -1542,7 +1533,8 @@ def client_details(client_id):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
                             f"{component_name[:-1]}_ID": f"{component_name[:-1]} {id_counter}",
-                            "Number_of_Solar_Panels": ""  # Empty for now
+                            "Number_of_Solar_Panels": row.number_of_solar_panels if row.number_of_solar_panels else "",
+                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
                         })
                         id_counter += 1
             else:
@@ -1551,7 +1543,8 @@ def client_details(client_id):
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
-                        "total_quantity": total_quantity
+                        "total_quantity": total_quantity,
+                        "Client_Item_ID": row.client_item_id  # Store ID for reference
                     })
 
     except Exception as e:
@@ -1568,6 +1561,7 @@ def client_details(client_id):
         solar_panel_quantities=component_quantities["Solar Panels"],
         victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
     )
+
 
 @app.route('/save_client_comment/<client_id>', methods=['POST'])
 def save_client_comment(client_id):
