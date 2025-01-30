@@ -1611,12 +1611,15 @@ def save_client_comment(client_id):
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
                         print(f"Before Update (List Format): {existing_values}")
 
-                        # Convert index to integer (1-based to 0-based)
-                        index_int = int(index) - 1
+                        # Retrieve total quantity
+                        total_quantity = int(client_item.quantity) if client_item.quantity else None
 
                         # Ensure the list is large enough
                         while len(existing_values) < total_quantity:
                             existing_values.append("")
+
+                        # Convert index to integer (1-based to 0-based)
+                        index_int = int(index) - 1
 
                         # Update the correct inverter's value
                         if index_int < len(existing_values):
@@ -1624,20 +1627,18 @@ def save_client_comment(client_id):
                         else:
                             flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
 
-                        # Retrieve total quantity
-                        total_quantity = int(client_item.quantity) if client_item.quantity else None
-
                         # Ensure total count does not exceed `total_quantity`
                         current_total_numbers = len([num for num in existing_values if num.isdigit()])
                         if total_quantity is not None and current_total_numbers > total_quantity:
                             flash(f"Error: The total count of numbers exceeds allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
                             continue  # Skip saving this update
+
+                        # Save the updated list
+                        client_item.number_of_solar_panels = ' '.join(existing_values)
                         print(f"After Update (List Format): {existing_values}")
-                        print(f"After Update (Raw String): {' '.join(existing_values)}")
+                        print(f"After Update (Raw String): {client_item.number_of_solar_panels}")
 
-
-            # Handle Victron Charge Controllers solar panel counts
-            elif key.startswith("number_of_solar_panels_victron_"):
+            elif key.startswith("number_of_solar_panels_victron_"):  # FIXED INDENTATION HERE
                 index = key.split("_")[-1]  # Extract the index
                 number_of_solar_panels = int(value) if value.strip().isdigit() else None
 
