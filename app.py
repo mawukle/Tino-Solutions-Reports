@@ -1594,50 +1594,55 @@ def save_client_comment(client_id):
 
     try:
         for key, value in request.form.items():
+            # Check if the key corresponds to an inverter
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
                 number_of_solar_panels_str = str(value).strip()
                 number_of_solar_panels_list = [x for x in number_of_solar_panels_str.split() if x.isdigit()]
 
+                # Form the client item ID key for the inverter
                 client_item_id_key = f"client_item_id_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        # Get current values as a list
+                        # Get current values as a list (ensure there is a list for solar panels)
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
 
-                        # Retrieve total quantity
+                        # Retrieve total quantity (this determines how many solar panels exist for this item)
                         total_quantity = int(client_item.quantity) if client_item.quantity else None
 
-                        # Ensure the list is large enough for the total quantity
+                        # Ensure the list is large enough to hold all quantities
                         while len(existing_values) < total_quantity:
                             existing_values.append("")
 
-                        # Convert index to integer (1-based to 0-based)
+                        # Convert index to an integer, adjusting from 1-based to 0-based
                         index_int = int(index) - 1
 
-                        # Ensure the correct value is updated for the specific inverter
+                        # Check if the index is within the bounds of the existing solar panels list
                         if index_int < len(existing_values):
+                            # Update the number of solar panels for the specified inverter
                             existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
                         else:
                             flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
-                            continue  # Skip saving this update
+                            continue  # Skip this update if the index is out of range
 
-                        # Ensure the total count does not exceed `total_quantity`
+                        # Ensure the total count does not exceed the allowed quantity
                         current_total_numbers = len([num for num in existing_values if num.isdigit()])
                         if total_quantity is not None and current_total_numbers > total_quantity:
                             flash(f"Error: The total count of numbers exceeds allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
                             continue  # Skip saving this update
 
-                        # Save the updated list
+                        # Save the updated list back into the database
                         client_item.number_of_solar_panels = ' '.join(existing_values)
 
-            elif key.startswith("number_of_solar_panels_victron_"):  # Fixed indentation here
+            # Handling Victron Charge Controllers separately (similar logic)
+            elif key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]  # Extract the index
                 number_of_solar_panels = int(value) if value.strip().isdigit() else None
 
+                # Create the client item ID key for Victron Charge Controllers
                 client_item_id_key = f"client_item_id_victron_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
@@ -1649,10 +1654,11 @@ def save_client_comment(client_id):
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
-        db.session.commit()  # Commit changes
+        # Commit changes to the database
+        db.session.commit()
         flash("Comment and solar panel data saved successfully!", "success")
     except Exception as e:
-        db.session.rollback()
+        db.session.rollback()  # Rollback the transaction in case of an error
         logging.error(f"Error saving data for client {client.Client_Name}: {e}")
         flash("An error occurred while saving the data.", "danger")
 
