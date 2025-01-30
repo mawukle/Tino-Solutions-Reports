@@ -1570,7 +1570,7 @@ def client_details(client_id):
         'client_details.html',
         client=client,
         installation_date=installation_date,
-        inverter_quantities=component_quantities["Inverters"],
+        inverter_quantities=component_quantities["Inverter"],
         battery_quantities=component_quantities["Batteries"],
         solar_panel_quantities=component_quantities["Solar Panels"],
         victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
