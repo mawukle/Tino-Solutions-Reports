@@ -1605,7 +1605,7 @@ def save_client_comment(client_id):
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        # Get current values as a dictionary or list
+                        # Get current values as a list
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
 
                         # Retrieve total quantity
@@ -1618,7 +1618,7 @@ def save_client_comment(client_id):
                         # Convert index to integer (1-based to 0-based)
                         index_int = int(index) - 1
 
-                        # Ensure the correct value is updated
+                        # Ensure the correct value is updated for the specific inverter
                         if index_int < len(existing_values):
                             existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
                         else:
@@ -1657,6 +1657,7 @@ def save_client_comment(client_id):
         flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
+
 
 
 
