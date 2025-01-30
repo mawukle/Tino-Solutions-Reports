@@ -1605,11 +1605,8 @@ def save_client_comment(client_id):
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        print(f"Before Update: {client_item.number_of_solar_panels}")
-
                         # Get current values as a list
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
-                        print(f"Before Update (List Format): {existing_values}")
 
                         # Retrieve total quantity
                         total_quantity = int(client_item.quantity) if client_item.quantity else None
@@ -1626,6 +1623,7 @@ def save_client_comment(client_id):
                             existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
                         else:
                             flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
+                            continue  # Skip saving this update
 
                         # Ensure total count does not exceed `total_quantity`
                         current_total_numbers = len([num for num in existing_values if num.isdigit()])
@@ -1635,10 +1633,8 @@ def save_client_comment(client_id):
 
                         # Save the updated list
                         client_item.number_of_solar_panels = ' '.join(existing_values)
-                        print(f"After Update (List Format): {existing_values}")
-                        print(f"After Update (Raw String): {client_item.number_of_solar_panels}")
 
-            elif key.startswith("number_of_solar_panels_victron_"):  # FIXED INDENTATION HERE
+            elif key.startswith("number_of_solar_panels_victron_"):  # Fixed indentation here
                 index = key.split("_")[-1]  # Extract the index
                 number_of_solar_panels = int(value) if value.strip().isdigit() else None
 
@@ -1655,11 +1651,9 @@ def save_client_comment(client_id):
 
         db.session.commit()  # Commit changes
         flash("Comment and solar panel data saved successfully!", "success")
-        print("Data committed successfully")
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error saving data for client {client.Client_Name}: {e}")
-        print(f"Error: {e}")  # Print error for debugging
         flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
