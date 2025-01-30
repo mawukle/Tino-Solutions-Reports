@@ -1634,7 +1634,7 @@ def save_client_comment(client_id):
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
-    try:
+    #try:
         db.session.commit()  # Commit changes
         flash("Comment and solar panel data saved successfully!", "success")
         print("Data committed successfully")
