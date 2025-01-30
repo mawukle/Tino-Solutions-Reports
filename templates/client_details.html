@@ -116,14 +116,14 @@
                   {% for item in victron_charge_controller_quantities %}
                   <tr>
                       <td>{{ item.Item_Description }}</td>
-                      <td>{{ item.Victron_Charge_Controller_ID }}</td>
+                      <td>{{ item.Controller_ID }}</td>
                       <td>
                           <input
                               type="number"
                               name="number_of_solar_panels_victron_{{ loop.index }}"
                               value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
                               min="0"
-                              
+
                           />
                           <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
                       </td>

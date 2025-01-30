@@ -1506,7 +1506,7 @@ def client_details(client_id):
     # Fetch components and number of solar panels from client_items
     try:
         for component_name, component_filter in {
-            "Inverters": "Inverter",
+            "Inverter": "Inverter",
             "Batteries": "Batteries",
             "Solar Panels": "Solar Panels",
             "Victron Charge Controllers": "Victron Charge Controllers"
@@ -1525,18 +1525,32 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            if component_name in ["Inverters", "Victron Charge Controllers"]:
-                id_counter = 1  # Initialize the counter for unique IDs
+            if component_name == "Inverter":
+                id_counter = 1  # Counter for Inverter IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            f"{component_name[:-1]}_ID": f"{component_name[:-1]} {id_counter}",
+                            "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
                             "Number_of_Solar_Panels": row.number_of_solar_panels if row.number_of_solar_panels else "",
                             "Client_Item_ID": row.client_item_id  # Store ID for updating later
                         })
                         id_counter += 1
+
+            elif component_name == "Victron Charge Controllers":
+                id_counter = 1  # Counter for Controller IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    for _ in range(total_quantity):
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
+                            "Number_of_Solar_Panels": row.number_of_solar_panels if row.number_of_solar_panels else "",
+                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
+                        })
+                        id_counter += 1
+
             else:
                 # For Batteries and Solar Panels
                 for row in rows:
