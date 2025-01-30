@@ -1497,7 +1497,7 @@ def client_details(client_id):
 
     # Initialize component quantities
     component_quantities = {
-        "Inverters": [],
+        "Inverter": [],
         "Batteries": [],
         "Solar Panels": [],
         "Victron Charge Controllers": []
