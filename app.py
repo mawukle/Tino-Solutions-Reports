@@ -1594,28 +1594,50 @@ def save_client_comment(client_id):
 
     try:
         for key, value in request.form.items():
-            # Handle number_of_solar_panels for Inverter (not Victron)
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
                 number_of_solar_panels_str = str(value).strip()
                 number_of_solar_panels_list = [x for x in number_of_solar_panels_str.split() if x.isdigit()]
 
-                # Identify the client_item_id for the current inverter
                 client_item_id_key = f"client_item_id_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        # Directly update the number of solar panels for this specific inverter
-                        client_item.number_of_solar_panels = ' '.join(number_of_solar_panels_list)
+                        # Get current values as a list
+                        existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
 
-            # Handle number_of_solar_panels for Victron (if it's a Victron inverter)
-            elif key.startswith("number_of_solar_panels_victron_"):
-                index = key.split("_")[-1]
+                        # Retrieve total quantity
+                        total_quantity = int(client_item.quantity) if client_item.quantity else None
+
+                        # Ensure the list is large enough for the total quantity
+                        while len(existing_values) < total_quantity:
+                            existing_values.append("")
+
+                        # Convert index to integer (1-based to 0-based)
+                        index_int = int(index) - 1
+
+                        # Ensure the correct value is updated for the specific inverter
+                        if index_int < len(existing_values):
+                            existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
+                        else:
+                            flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
+                            continue  # Skip saving this update
+
+                        # Ensure the total count does not exceed `total_quantity`
+                        current_total_numbers = len([num for num in existing_values if num.isdigit()])
+                        if total_quantity is not None and current_total_numbers > total_quantity:
+                            flash(f"Error: The total count of numbers exceeds allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
+                            continue  # Skip saving this update
+
+                        # Save the updated list
+                        client_item.number_of_solar_panels = ' '.join(existing_values)
+
+            elif key.startswith("number_of_solar_panels_victron_"):  # Fixed indentation here
+                index = key.split("_")[-1]  # Extract the index
                 number_of_solar_panels = int(value) if value.strip().isdigit() else None
 
-                # Identify the client_item_id for the Victron inverter
                 client_item_id_key = f"client_item_id_victron_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
@@ -1625,7 +1647,6 @@ def save_client_comment(client_id):
                     ).first()
 
                     if client_item:
-                        # Directly update the number of solar panels for the Victron inverter
                         client_item.number_of_solar_panels = number_of_solar_panels
 
         db.session.commit()  # Commit changes
