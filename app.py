@@ -1606,6 +1606,8 @@ def save_client_comment(client_id):
 
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
+                    total_quantity = int(client_item.quantity) if client_item and client_item.quantity.isdigit() else 0
+
                     if client_item:
                         print(f"Before Update: {client_item.number_of_solar_panels}")  # Check current value
 
