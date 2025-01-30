@@ -1529,18 +1529,11 @@ def client_details(client_id):
                 id_counter = 1  # Counter for Inverter IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-
-                    # Extract and split number_of_solar_panels values
-                    solar_panel_values = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else []
-
-                    for i in range(total_quantity):
-                        # Assign corresponding solar panel value or empty if not enough values
-                        num_solar_panels = solar_panel_values[i] if i < len(solar_panel_values) else ""
-
+                    for _ in range(total_quantity):
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
                             "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
-                            "Number_of_Solar_Panels": num_solar_panels,
+                            "Number_of_Solar_Panels": row.number_of_solar_panels if row.number_of_solar_panels else "",
                             "Client_Item_ID": row.client_item_id  # Store ID for updating later
                         })
                         id_counter += 1
