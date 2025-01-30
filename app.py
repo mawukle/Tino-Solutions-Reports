@@ -1609,29 +1609,32 @@ def save_client_comment(client_id):
 
                         # Get current values as a list
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
+                        print(f"Before Update (List Format): {existing_values}")
 
                         # Convert index to integer (1-based to 0-based)
                         index_int = int(index) - 1
 
                         # Ensure the list is large enough
-                        while len(existing_values) <= index_int:
+                        while len(existing_values) < total_quantity:
                             existing_values.append("")
 
                         # Update the correct inverter's value
-                        existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
+                        if index_int < len(existing_values):
+                            existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
+                        else:
+                            flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
 
                         # Retrieve total quantity
                         total_quantity = int(client_item.quantity) if client_item.quantity else None
 
                         # Ensure total count does not exceed `total_quantity`
                         current_total_numbers = len([num for num in existing_values if num.isdigit()])
+                        if total_quantity is not None and current_total_numbers > total_quantity:
+                            flash(f"Error: The total count of numbers exceeds allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
+                            continue  # Skip saving this update
+                        print(f"After Update (List Format): {existing_values}")
+                        print(f"After Update (Raw String): {' '.join(existing_values)}")
 
-                        if total_quantity is not None and current_total_numbers <= total_quantity:
-                            client_item.number_of_solar_panels = " ".join(existing_values)
-                            print(f"After Update: {client_item.number_of_solar_panels}")
-                        else:
-                            flash(f"Error: The total count of numbers exceeds the allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
-                            continue
 
             # Handle Victron Charge Controllers solar panel counts
             elif key.startswith("number_of_solar_panels_victron_"):
