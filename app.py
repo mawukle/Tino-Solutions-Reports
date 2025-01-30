@@ -1609,8 +1609,21 @@ def save_client_comment(client_id):
                     if client_item:
                         print(f"Before Update: {client_item.number_of_solar_panels}")  # Check current value
 
-                        # Corrected update logic
-                        client_item.number_of_solar_panels = " ".join(number_of_solar_panels_list)
+                        # Get current values as a list
+                        existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
+
+                        # Convert index to integer
+                        index_int = int(index) - 1  # Convert from 1-based index to 0-based for list indexing
+
+                        # Ensure the list is large enough to hold the new value at the correct position
+                        while len(existing_values) <= index_int:
+                            existing_values.append("")  # Fill missing spots with empty strings
+
+                        # Update only the correct inverter's value
+                        existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
+
+                        # Save updated value
+                        client_item.number_of_solar_panels = " ".join(existing_values)
 
                         db.session.commit()
                         print(f"After Update: {client_item.number_of_solar_panels}")  # Check new value
