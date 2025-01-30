@@ -1605,27 +1605,27 @@ def save_client_comment(client_id):
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        # Get current values as a list
+                        # Get current values as a dictionary or list
                         existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
 
                         # Retrieve total quantity
                         total_quantity = int(client_item.quantity) if client_item.quantity else None
 
-                        # Ensure the list is large enough
+                        # Ensure the list is large enough for the total quantity
                         while len(existing_values) < total_quantity:
                             existing_values.append("")
 
                         # Convert index to integer (1-based to 0-based)
                         index_int = int(index) - 1
 
-                        # Update the correct inverter's value
+                        # Ensure the correct value is updated
                         if index_int < len(existing_values):
                             existing_values[index_int] = number_of_solar_panels_list[0] if number_of_solar_panels_list else ""
                         else:
                             flash(f"Error: Index {index_int} out of range for inverter values.", "danger")
                             continue  # Skip saving this update
 
-                        # Ensure total count does not exceed `total_quantity`
+                        # Ensure the total count does not exceed `total_quantity`
                         current_total_numbers = len([num for num in existing_values if num.isdigit()])
                         if total_quantity is not None and current_total_numbers > total_quantity:
                             flash(f"Error: The total count of numbers exceeds allowed quantity ({total_quantity}) for Inverter {index}.", "danger")
@@ -1657,6 +1657,7 @@ def save_client_comment(client_id):
         flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
+
 
 
 
