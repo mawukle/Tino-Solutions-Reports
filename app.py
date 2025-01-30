@@ -1525,7 +1525,7 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            if component_name in ["Inverters", "Victron Charge Controllers"]:
+            if component_name in ["Inverters", "Victron Charge Controllerss"]:
                 id_counter = 1  # Initialize the counter for unique IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
