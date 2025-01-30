@@ -1607,8 +1607,10 @@ def save_client_comment(client_id):
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        print(f"Before Update: {client_item.number_of_solar_panels}")
-                        total_quantity = int(client_item.quantity)
+                        print(f"Before Update: {client_item.number_of_solar_panels}")  # Check current value
+                        client_item.number_of_solar_panels = new_value  # Update
+                        db.session.commit()
+                        print(f"After Update: {client_item.number_of_solar_panels}")  # Check new value
 
                         if len(number_of_solar_panels_list) == total_quantity:
                             client_item.number_of_solar_panels = " ".join(number_of_solar_panels_list)
