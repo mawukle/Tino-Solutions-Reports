@@ -1591,14 +1591,28 @@ def save_client_comment(client_id):
             # Handle Inverters solar panel counts
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
-                number_of_solar_panels = int(value) if value.strip().isdigit() else None
+                number_of_solar_panels_str = value.strip()
+                # Split the value by space and convert to list of integers
+                number_of_solar_panels_list = [int(x) for x in number_of_solar_panels_str.split() if x.isdigit()]
+
+                # Get the corresponding client item ID
                 client_item_id_key = f"client_item_id_{index}"
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
                     if client_item:
-                        client_item.number_of_solar_panels = number_of_solar_panels  # Allow None to clear
+                        # Ensure the number of solar panels matches the quantity
+                        total_quantity = client_item.quantity
+                        if len(number_of_solar_panels_list) == total_quantity:
+                            # Assign each value to an Inverter ID
+                            for i, solar_panels in enumerate(number_of_solar_panels_list):
+                                inverter_id = f"Inverter {index + i}"  # Adjust for the index if needed
+                                client_item.number_of_solar_panels = solar_panels  # Assign number of solar panels
+                                # You can optionally create a log entry or perform other tasks for each inverter
+                        else:
+                            flash(f"Error: Number of solar panels doesn't match the quantity for Inverter {index}.", "danger")
+                            continue
 
             # Handle Victron Charge Controllers solar panel counts
             elif key.startswith("number_of_solar_panels_victron_"):
@@ -1621,6 +1635,7 @@ def save_client_comment(client_id):
         flash("An error occurred while saving the data.", "danger")
 
     return redirect(url_for('client_details', client_id=client_id))
+
 
 
 
