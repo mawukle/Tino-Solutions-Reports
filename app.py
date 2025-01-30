@@ -1596,7 +1596,7 @@ def save_client_comment(client_id):
         for key, value in request.form.items():
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]
-                number_of_solar_panels_str = value.strip()
+                number_of_solar_panels_str = str(value).strip()  # Ensure it's a string
                 number_of_solar_panels_list = [x for x in number_of_solar_panels_str.split() if x.isdigit()]
 
                 client_item_id_key = f"client_item_id_{index}"
@@ -1606,8 +1606,6 @@ def save_client_comment(client_id):
 
                 if client_item_id:
                     client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
-                    total_quantity = int(client_item.quantity) if client_item and client_item.quantity.isdigit() else 0
-
                     if client_item:
                         print(f"Before Update: {client_item.number_of_solar_panels}")  # Check current value
 
@@ -1627,16 +1625,15 @@ def save_client_comment(client_id):
                         # Save updated value
                         client_item.number_of_solar_panels = " ".join(existing_values)
 
-                        db.session.commit()
-                        print(f"After Update: {client_item.number_of_solar_panels}")  # Check new value
+                        # Retrieve total quantity
+                        total_quantity = int(client_item.quantity) if client_item.quantity else None
 
-                        if len(number_of_solar_panels_list) == total_quantity:
+                        if total_quantity is not None and len(number_of_solar_panels_list) == total_quantity:
                             client_item.number_of_solar_panels = " ".join(number_of_solar_panels_list)
                             print(f"After Update: {client_item.number_of_solar_panels}")
                         else:
                             flash(f"Error: Number of solar panels doesn't match quantity for Inverter {index}.", "danger")
                             continue
-
 
             # Handle Victron Charge Controllers solar panel counts
             elif key.startswith("number_of_solar_panels_victron_"):
@@ -1654,7 +1651,6 @@ def save_client_comment(client_id):
                     if client_item:
                         client_item.number_of_solar_panels = number_of_solar_panels
 
-    #try:
         db.session.commit()  # Commit changes
         flash("Comment and solar panel data saved successfully!", "success")
         print("Data committed successfully")
