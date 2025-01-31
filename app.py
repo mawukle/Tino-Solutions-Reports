@@ -1593,8 +1593,20 @@ def save_client_comment(client_id):
     client.general_comment = general_comment
 
     try:
+        # Fetch all inverter records for this client, ordered by client_item_id
+        inverter_items = db.session.query(client_items).filter(
+            client_items.component == "Inverter",
+            or_(
+                client_items.client_name == client.Client_Name,
+                client_items.client_name == client.Alias_Name
+            )
+        ).order_by(client_items.client_item_id).all()
+
+        # Dictionary to store updates for each inverter record
+        inverter_updates = {}
+
+        # Process the form inputs
         for key, value in request.form.items():
-            # Handle Inverters (Solar Panels)
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = int(key.split("_")[-1]) - 1  # Convert to 0-based index
 
@@ -1602,48 +1614,35 @@ def save_client_comment(client_id):
                 number_of_solar_panels_value = number_of_solar_panels_str if number_of_solar_panels_str.isdigit() else ""
 
                 # Get corresponding client item ID
-                client_item_id_key = f"client_item_id_{index + 1}"  # Since form uses 1-based index
+                client_item_id_key = f"client_item_id_{index + 1}"
                 client_item_id = request.form.get(client_item_id_key)
 
                 if client_item_id:
-                    client_item = db.session.query(client_items).filter_by(
-                        client_item_id=client_item_id, component="Inverter"
-                    ).first()
+                    # Ensure we only update the correct client_item_id once
+                    if client_item_id not in inverter_updates:
+                        inverter_updates[client_item_id] = []
 
-                    if client_item:
-                        # Get current solar panel values
-                        existing_values = client_item.number_of_solar_panels.split() if client_item.number_of_solar_panels else []
-                        total_quantity = int(client_item.quantity) if client_item.quantity else 0
+                    inverter_updates[client_item_id].append(number_of_solar_panels_value)
 
-                        # Ensure the list has enough elements
-                        while len(existing_values) < total_quantity:
-                            existing_values.append("")
+        # Apply the updates in the correct order
+        for inverter_item in inverter_items:
+            if str(inverter_item.client_item_id) in inverter_updates:
+                # Convert the existing values to a list
+                existing_values = inverter_item.number_of_solar_panels.split() if inverter_item.number_of_solar_panels else []
+                total_quantity = int(inverter_item.quantity) if inverter_item.quantity else 0
 
-                        # Update the correct index
-                        if 0 <= index < len(existing_values):
-                            existing_values[index] = number_of_solar_panels_value
-                        else:
-                            flash(f"Error: Index {index + 1} out of range for inverter values.", "danger")
-                            continue
+                # Ensure the list has enough elements
+                while len(existing_values) < total_quantity:
+                    existing_values.append("")
 
-                        # Save updated list back to the database
-                        client_item.number_of_solar_panels = ' '.join(existing_values)
+                # Update the values
+                updates_for_item = inverter_updates[str(inverter_item.client_item_id)]
+                for i, update_value in enumerate(updates_for_item):
+                    if i < len(existing_values):
+                        existing_values[i] = update_value
 
-            # Handle Victron Charge Controllers
-            elif key.startswith("number_of_solar_panels_victron_"):
-                index = int(key.split("_")[-1]) - 1  # Convert to 0-based index
-                number_of_solar_panels = int(value) if value.strip().isdigit() else None
-
-                client_item_id_key = f"client_item_id_victron_{index + 1}"
-                client_item_id = request.form.get(client_item_id_key)
-
-                if client_item_id:
-                    client_item = db.session.query(client_items).filter_by(
-                        client_item_id=client_item_id, component="Victron Charge Controllers"
-                    ).first()
-
-                    if client_item:
-                        client_item.number_of_solar_panels = number_of_solar_panels
+                # Save updated list back to the database
+                inverter_item.number_of_solar_panels = ' '.join(existing_values)
 
         db.session.commit()
         flash("Comment and solar panel data saved successfully!", "success")
