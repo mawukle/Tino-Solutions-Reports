@@ -1595,7 +1595,7 @@ def save_client_comment(client_id):
     try:
         # Iterate over form items
         for key, value in request.form.items():
-            # Check if the key corresponds to an inverter (for solar panels)
+            # Handle Inverters (Solar Panels)
             if key.startswith("number_of_solar_panels_") and not key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]  # Extract index
                 number_of_solar_panels_str = str(value).strip()
@@ -1607,7 +1607,9 @@ def save_client_comment(client_id):
 
                 if client_item_id:
                     # Ensure we are targeting the correct item (e.g., Inverter)
-                    client_item = db.session.query(client_items).filter_by(client_item_id=client_item_id, component="Inverter").first()
+                    client_item = db.session.query(client_items).filter_by(
+                        client_item_id=client_item_id, component="Inverter"
+                    ).first()
 
                     if client_item:
                         # Update number of solar panels for the specific inverter
@@ -1631,6 +1633,7 @@ def save_client_comment(client_id):
 
                         client_item.number_of_solar_panels = ' '.join(existing_values)
 
+            # Handle Victron Charge Controllers
             elif key.startswith("number_of_solar_panels_victron_"):
                 index = key.split("_")[-1]  # Extract the index
                 number_of_solar_panels = int(value) if value.strip().isdigit() else None
