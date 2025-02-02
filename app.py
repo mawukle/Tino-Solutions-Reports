@@ -66,6 +66,21 @@ if not all([os.getenv('JAWSDB_HOST'), os.getenv('JAWSDB_USER'), os.getenv('JAWSD
     logging.error("One or more JAWSDB environment variables are not set")
     raise EnvironmentError("Database environment variables are not set")
 
+@app.route('/test_schema')
+def test_schema():
+    connection = get_sql_connection()
+    if connection:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT DATABASE()")
+                schema_name = cursor.fetchone()
+                return f"Connected to schema: {schema_name['DATABASE()']}"
+        except Exception as e:
+            logging.error(f"Error fetching schema: {e}")
+            return "Error fetching schema"
+    return "Connection failed"
+
+
 @app.route('/test_db')
 def test_db():
     connection = get_sql_connection()
