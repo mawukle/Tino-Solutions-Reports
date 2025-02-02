@@ -21,6 +21,7 @@ from xhtml2pdf import pisa
 import io
 from sqlalchemy.sql.expression import true
 import decimal
+from urllib.parse import urlparse
 
 
 pymysql.install_as_MySQLdb()
@@ -83,19 +84,31 @@ def internal_server_error(e):
 # Function to establish the connection to the database
 def get_sql_connection():
     try:
+        # Get the JAWSDB_URL from Heroku config
+        database_url = os.getenv('JAWSDB_URL')
+
+        if not database_url:
+            logging.error("Database URL not found in environment variables")
+            return None
+
+        # Parse the database URL using urlparse
+        parsed_url = urlparse(database_url)
+
+        # Extract connection details from the parsed URL
         connection = pymysql.connect(
-            host=os.getenv('JAWSDB_HOST','localhost'),
-            user=os.getenv('JAWSDB_USER', 'root'),
-            password=os.getenv('JAWSDB_PASSWORD', ''),
-            database=os.getenv('JAWSDB_DB', ''),
+            host=parsed_url.hostname,
+            user=parsed_url.username,
+            password=parsed_url.password,
+            database=parsed_url.path[1:],  # Remove the leading slash
             cursorclass=pymysql.cursors.DictCursor
         )
+
         logging.info("Database connection successful")
         return connection
+
     except pymysql.MySQLError as e:
         logging.error(f"Database connection failed: {e}")
         return None  # Return None to allow error handling in calling code
-
 # Function to check if a record already exists
 #import logging
 
