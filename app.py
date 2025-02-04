@@ -1567,6 +1567,7 @@ def client_details(client_id):
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,  # Add total_quantity here
                             "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id  # Store ID for updating later
@@ -1586,6 +1587,7 @@ def client_details(client_id):
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,  # Add total_quantity here
                             "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id  # Store ID for updating later
