@@ -1570,7 +1570,8 @@ def client_details(client_id):
                             "total_quantity": total_quantity,  # Add total_quantity here
                             "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": total_quantity < 0  # Add flag
                         })
                         id_counter += 1
 
@@ -1590,7 +1591,8 @@ def client_details(client_id):
                             "total_quantity": total_quantity,  # Add total_quantity here
                             "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": total_quantity < 0  # Add flag
                         })
                         id_counter += 1
 
@@ -1601,7 +1603,8 @@ def client_details(client_id):
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
-                        "Client_Item_ID": row.client_item_id  # Store ID for reference
+                        "Client_Item_ID": row.client_item_id,  # Store ID for reference
+                        "negative_quantity": total_quantity < 0  # Flag for negative quantities
                     })
 
     except Exception as e:
