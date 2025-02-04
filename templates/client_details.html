@@ -9,6 +9,8 @@
 <body>
     <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+
+        <!-- Back to Homepage Link -->
         <a href="{{ url_for('client_list') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>Client Details</h1>
@@ -16,14 +18,13 @@
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
             <tr><th>City</th><td>{{ client.City }}</td></tr>
-            <tr><th>Phone Number</th><td>{{ client.Phone_Number or '' }}</td></tr>
-            <tr><th>Contact Person</th><td>{{ client.Contact_Person or '' }}</td></tr>
-            <tr><th>Email Address</th><td>{{ client.email_address or '' }}</td></tr>
+            <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
+            <tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr>
+            <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
         </table>
 
         <h2>Component Details</h2>
-        <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
 
         <!-- Inverters -->
         {% if inverter_quantities %}
@@ -39,10 +40,10 @@
             <tbody>
                 {% for item in inverter_quantities %}
                 <tr>
-                    <td>{% if item.total_quantity < 1 %}<s>{{ item.Item_Description }}</s>{% else %}{{ item.Item_Description }}{% endif %}</td>
+                    <td {% if item.total_quantity < 1 %} style="text-decoration: line-through;" {% endif %}>{{ item.Item_Description }}</td>
                     <td>{{ item.ID }}</td>
                     <td>
-                        <input type="number" name="solar_panels_{{ loop.index }}" value="{{ item.Number_of_Solar_Panels or '' }}" min="0">
+                        <input type="number" name="number_of_solar_panels_{{ loop.index }}" value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}" min="0" />
                         <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
                     </td>
                 </tr>
@@ -65,10 +66,10 @@
             <tbody>
                 {% for item in victron_charge_controller_quantities %}
                 <tr>
-                    <td>{% if item.total_quantity < 1 %}<s>{{ item.Item_Description }}</s>{% else %}{{ item.Item_Description }}{% endif %}</td>
+                    <td {% if item.total_quantity < 1 %} style="text-decoration: line-through;" {% endif %}>{{ item.Item_Description }}</td>
                     <td>{{ item.ID }}</td>
                     <td>
-                        <input type="number" name="solar_panels_victron_{{ loop.index }}" value="{{ item.Number_of_Solar_Panels or '' }}" min="0">
+                        <input type="number" name="number_of_solar_panels_victron_{{ loop.index }}" value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}" min="0" />
                         <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
                     </td>
                 </tr>
@@ -78,10 +79,9 @@
         {% endif %}
 
         <h2>General Comments</h2>
-        <textarea name="general_comment" rows="5" cols="50">{{ client.general_comment or "" }}</textarea>
+        <textarea name="general_comment" rows="5" cols="50">{{ client.general_comment if client.general_comment is not none else "" }}</textarea>
         <br>
         <button type="submit">Save Comment</button>
-        </form>
     </div>
 </body>
 </html>
