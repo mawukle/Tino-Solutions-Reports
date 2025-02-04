@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Details</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .strikethrough {
+            text-decoration: line-through;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -49,7 +54,6 @@
                             name="number_of_solar_panels_{{ loop.index }}"
                             value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
                             min="0"
-
                         />
                         <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
                     </td>
@@ -72,7 +76,7 @@
             <tbody>
                 {% for item in battery_quantities %}
                 <tr>
-                    <td>{{ item.Item_Description }}</td>
+                    <td class="{% if item.total_quantity < 1 %}strikethrough{% endif %}">{{ item.Item_Description }}</td>
                     <td>{{ item.total_quantity }}</td>
                 </tr>
                 {% endfor %}
@@ -93,7 +97,7 @@
             <tbody>
                 {% for item in solar_panel_quantities %}
                 <tr>
-                    <td>{{ item.Item_Description }}</td>
+                    <td class="{% if item.total_quantity < 1 %}strikethrough{% endif %}">{{ item.Item_Description }}</td>
                     <td>{{ item.total_quantity }}</td>
                 </tr>
                 {% endfor %}
@@ -123,7 +127,6 @@
                             name="number_of_solar_panels_victron_{{ loop.index }}"
                             value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
                             min="0"
-
                         />
                         <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
                     </td>
