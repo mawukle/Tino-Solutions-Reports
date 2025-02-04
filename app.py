@@ -1558,20 +1558,21 @@ def client_details(client_id):
                 id_counter = 1  # Counter for Inverter IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    is_negative = total_quantity < 0  # Check if total quantity is negative
 
                     # Split 'number_of_solar_panels' into individual values
                     solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
-                    for i in range(total_quantity):
+                    for i in range(abs(total_quantity)):  # Use absolute value to avoid errors
                         solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "total_quantity": total_quantity,  # Add total_quantity here
+                            "total_quantity": total_quantity,  # Store original value
                             "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id,  # Store ID for updating later
-                            "negative_quantity": total_quantity < 0  # Add flag
+                            "negative_quantity": is_negative  # Flag negative quantity correctly
                         })
                         id_counter += 1
 
@@ -1579,20 +1580,21 @@ def client_details(client_id):
                 id_counter = 1  # Counter for Controller IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    is_negative = total_quantity < 0  # Check if total quantity is negative
 
                     # Split 'number_of_solar_panels' into individual values
                     solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
-                    for i in range(total_quantity):
+                    for i in range(abs(total_quantity)):  # Use absolute value to avoid errors
                         solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "total_quantity": total_quantity,  # Add total_quantity here
-                            "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
+                            "total_quantity": total_quantity,  # Store original value
+                            "Controller_ID": f"Controller {id_counter}",  # Generate Controller IDs
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id,  # Store ID for updating later
-                            "negative_quantity": total_quantity < 0  # Add flag
+                            "negative_quantity": is_negative  # Flag negative quantity correctly
                         })
                         id_counter += 1
 
