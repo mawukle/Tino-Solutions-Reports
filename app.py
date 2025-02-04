@@ -1516,7 +1516,7 @@ def client_details(client_id):
             client_items.client_name == client.Client_Name,
             client_items.client_name == client.Alias_Name
         ),
-        client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])
+        client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels', 'Victron Charge Controllers'])
     ).first()
 
     installation_date = (
@@ -1559,48 +1559,53 @@ def client_details(client_id):
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
 
-                    # Split 'number_of_solar_panels' into individual values
-                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+                    # Only include items with positive quantity
+                    if total_quantity > 0:
+                        solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
-                    for i in range(total_quantity):
-                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+                        for i in range(total_quantity):
+                            solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
 
-                        component_quantities[component_name].append({
-                            "Item_Description": row.Item_Description,
-                            "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
-                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
-                        })
-                        id_counter += 1
+                            component_quantities[component_name].append({
+                                "Item_Description": row.Item_Description,
+                                "Inverter_ID": f"Inverter {id_counter}",
+                                "Number_of_Solar_Panels": solar_panel_value,
+                                "Client_Item_ID": row.client_item_id
+                            })
+                            id_counter += 1
 
             elif component_name == "Victron Charge Controllers":
                 id_counter = 1  # Counter for Controller IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
 
-                    # Split 'number_of_solar_panels' into individual values
-                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+                    # Only include items with positive quantity
+                    if total_quantity > 0:
+                        solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
-                    for i in range(total_quantity):
-                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+                        for i in range(total_quantity):
+                            solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
 
-                        component_quantities[component_name].append({
-                            "Item_Description": row.Item_Description,
-                            "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
-                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
-                        })
-                        id_counter += 1
+                            component_quantities[component_name].append({
+                                "Item_Description": row.Item_Description,
+                                "Controller_ID": f"Controller {id_counter}",
+                                "Number_of_Solar_Panels": solar_panel_value,
+                                "Client_Item_ID": row.client_item_id
+                            })
+                            id_counter += 1
 
             else:
                 # For Batteries and Solar Panels
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-                    component_quantities[component_name].append({
-                        "Item_Description": row.Item_Description,
-                        "total_quantity": total_quantity,
-                        "Client_Item_ID": row.client_item_id  # Store ID for reference
-                    })
+
+                    # Only include items with positive quantity
+                    if total_quantity > 0:
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,
+                            "Client_Item_ID": row.client_item_id
+                        })
 
     except Exception as e:
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
@@ -1611,11 +1616,12 @@ def client_details(client_id):
         'client_details.html',
         client=client,
         installation_date=installation_date,
-        inverter_quantities=component_quantities["Inverter"],
-        battery_quantities=component_quantities["Batteries"],
-        solar_panel_quantities=component_quantities["Solar Panels"],
-        victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"]
+        inverter_quantities=component_quantities["Inverter"] if component_quantities["Inverter"] else None,
+        battery_quantities=component_quantities["Batteries"] if component_quantities["Batteries"] else None,
+        solar_panel_quantities=component_quantities["Solar Panels"] if component_quantities["Solar Panels"] else None,
+        victron_charge_controller_quantities=component_quantities["Victron Charge Controllers"] if component_quantities["Victron Charge Controllers"] else None
     )
+
 
 @app.route('/save_client_comment/<client_id>', methods=['POST'])
 def save_client_comment(client_id):
