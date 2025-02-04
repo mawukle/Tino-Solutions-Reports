@@ -1501,12 +1501,6 @@ def client_list():
 
 
 
-
-from flask import render_template
-from sqlalchemy import func, or_
-import logging
-import decimal
-
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
     # Fetch client details using Client_Unique_ID
@@ -1522,7 +1516,7 @@ def client_details(client_id):
             client_items.client_name == client.Client_Name,
             client_items.client_name == client.Alias_Name
         ),
-        client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels', 'Victron Charge Controllers'])
+        client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels'])
     ).first()
 
     installation_date = (
@@ -1560,8 +1554,8 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            if component_name in ["Inverter", "Victron Charge Controllers"]:
-                id_counter = 1  # Counter for IDs
+            if component_name == "Inverter":
+                id_counter = 1  # Counter for Inverter IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
 
@@ -1573,10 +1567,28 @@ def client_details(client_id):
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "ID": f"{component_name} {id_counter}",
-                            "Number_of_Solar_Panels": solar_panel_value,
-                            "Client_Item_ID": row.client_item_id,
-                            "total_quantity": total_quantity  # Add total_quantity for checking strikethrough
+                            "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
+                        })
+                        id_counter += 1
+
+            elif component_name == "Victron Charge Controllers":
+                id_counter = 1  # Counter for Controller IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+
+                    # Split 'number_of_solar_panels' into individual values
+                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+
+                    for i in range(total_quantity):
+                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
                         })
                         id_counter += 1
 
@@ -1587,7 +1599,7 @@ def client_details(client_id):
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
-                        "Client_Item_ID": row.client_item_id
+                        "Client_Item_ID": row.client_item_id  # Store ID for reference
                     })
 
     except Exception as e:
