@@ -712,3 +712,8 @@ textarea {
     align-items: center;
     gap: 10px;
 }
+
+.strikethrough td {
+    text-decoration: line-through;
+    color: grey;
+}
