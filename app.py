@@ -1501,6 +1501,7 @@ def client_list():
 
 
 
+
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
     # Fetch client details using Client_Unique_ID
@@ -1554,10 +1555,10 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            if component_name == "Inverter":
-                id_counter = 1  # Counter for Inverter IDs
+            if component_name in ["Inverter", "Victron Charge Controllers"]:
+                id_counter = 1  # Counter for unique IDs
                 for row in rows:
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    total_quantity = int(row.total_quantity) if row.total_quantity else 0  # Ensure total_quantity is always defined
 
                     # Split 'number_of_solar_panels' into individual values
                     solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
@@ -1567,35 +1568,17 @@ def client_details(client_id):
 
                         component_quantities[component_name].append({
                             "Item_Description": row.Item_Description,
-                            "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
-                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
-                        })
-                        id_counter += 1
-
-            elif component_name == "Victron Charge Controllers":
-                id_counter = 1  # Counter for Controller IDs
-                for row in rows:
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-
-                    # Split 'number_of_solar_panels' into individual values
-                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
-
-                    for i in range(total_quantity):
-                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
-
-                        component_quantities[component_name].append({
-                            "Item_Description": row.Item_Description,
-                            "Controller_ID": f"Controller {id_counter}",  # Fix: Generate Controller 1, Controller 2...
-                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
-                            "Client_Item_ID": row.client_item_id  # Store ID for updating later
+                            "ID": f"{component_name} {id_counter}",  # Dynamic ID
+                            "Number_of_Solar_Panels": solar_panel_value,
+                            "Client_Item_ID": row.client_item_id,
+                            "total_quantity": total_quantity  # Ensure total_quantity is always passed
                         })
                         id_counter += 1
 
             else:
                 # For Batteries and Solar Panels
                 for row in rows:
-                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    total_quantity = int(row.total_quantity) if row.total_quantity else 0  # Ensure total_quantity is always defined
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
