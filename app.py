@@ -1560,6 +1560,10 @@ def client_details(client_id):
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     is_negative = total_quantity < 0  # Check if total quantity is negative
 
+                    # Skip negative items
+                    if is_negative:
+                        continue
+
                     # Split 'number_of_solar_panels' into individual values
                     solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
@@ -1572,7 +1576,7 @@ def client_details(client_id):
                             "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id,  # Store ID for updating later
-                            "negative_quantity": is_negative  # Flag negative quantity correctly
+                            "negative_quantity": False  # Default as positive
                         })
                         id_counter += 1
 
@@ -1581,6 +1585,10 @@ def client_details(client_id):
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     is_negative = total_quantity < 0  # Check if total quantity is negative
+
+                    # Skip negative items
+                    if is_negative:
+                        continue
 
                     # Split 'number_of_solar_panels' into individual values
                     solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
@@ -1594,7 +1602,7 @@ def client_details(client_id):
                             "Controller_ID": f"Controller {id_counter}",  # Generate Controller IDs
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id,  # Store ID for updating later
-                            "negative_quantity": is_negative  # Flag negative quantity correctly
+                            "negative_quantity": False  # Default as positive
                         })
                         id_counter += 1
 
@@ -1602,11 +1610,16 @@ def client_details(client_id):
                 # For Batteries and Solar Panels
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+
+                    # Skip negative items
+                    if total_quantity < 0:
+                        continue
+
                     component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
                         "Client_Item_ID": row.client_item_id,  # Store ID for reference
-                        "negative_quantity": total_quantity < 0  # Flag for negative quantities
+                        "negative_quantity": False  # Default as positive
                     })
 
     except Exception as e:
@@ -1620,14 +1633,14 @@ def client_details(client_id):
         for item in items:
             item_status[(component_name, item["Item_Description"])].append(item)
 
-    # Apply strikethrough to an additional item per negative item
+    # Apply strikethrough to an additional positive item per negative item
     for (component, description), item_list in item_status.items():
-        negative_items = [item for item in item_list if item["negative_quantity"]]
+        num_negative = len([item for item in item_list if item["negative_quantity"]])
         positive_items = [item for item in item_list if not item["negative_quantity"]]
 
-        # Pair each negative item with one positive item
-        for i in range(min(len(negative_items), len(positive_items))):
-            positive_items[i]["negative_quantity"] = True  # Mark a positive item as negative
+        # Mark an equal number of positive items as negative
+        for i in range(min(num_negative, len(positive_items))):
+            positive_items[i]["negative_quantity"] = True  # Mark for strikethrough
 
     # Render the template with the updated component_quantities
     return render_template(
