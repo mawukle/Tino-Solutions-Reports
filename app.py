@@ -1500,10 +1500,6 @@ def client_list():
     )
 
 from collections import defaultdict
-from flask import render_template
-from sqlalchemy import func, or_
-import decimal
-import logging
 
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
@@ -1558,58 +1554,82 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            id_counter = 1  # ID counter for Inverters and Controllers
+            if component_name == "Inverter":
+                id_counter = 1  # Counter for Inverter IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    is_negative = total_quantity < 0  # Check if total quantity is negative
 
-            for row in rows:
-                total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-                is_negative = total_quantity < 0  # Check if total quantity is negative
+                    # Split 'number_of_solar_panels' into individual values
+                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
 
-                # Split 'number_of_solar_panels' into individual values
-                solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+                    for i in range(abs(total_quantity)):  # Use absolute value to avoid errors
+                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
 
-                for i in range(abs(total_quantity)):  # Use absolute value to avoid errors
-                    solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,  # Store original value
+                            "Inverter_ID": f"Inverter {id_counter}",  # Inverter ID format
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": is_negative  # Flag negative quantity correctly
+                        })
+                        id_counter += 1
 
-                    item_entry = {
+            elif component_name == "Victron Charge Controllers":
+                id_counter = 1  # Counter for Controller IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    is_negative = total_quantity < 0  # Check if total quantity is negative
+
+                    # Split 'number_of_solar_panels' into individual values
+                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+
+                    for i in range(abs(total_quantity)):  # Use absolute value to avoid errors
+                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+
+                        component_quantities[component_name].append({
+                            "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,  # Store original value
+                            "Controller_ID": f"Controller {id_counter}",  # Generate Controller IDs
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": is_negative  # Flag negative quantity correctly
+                        })
+                        id_counter += 1
+
+            else:
+                # For Batteries and Solar Panels
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    component_quantities[component_name].append({
                         "Item_Description": row.Item_Description,
-                        "total_quantity": total_quantity,  # Store original value
-                        "Client_Item_ID": row.client_item_id,  # Store ID for updating later
-                        "negative_quantity": is_negative  # Flag negative quantity correctly
-                    }
-
-                    # Assign IDs based on component type
-                    if component_name == "Inverter":
-                        item_entry["Inverter_ID"] = f"Inverter {id_counter}"
-                    elif component_name == "Victron Charge Controllers":
-                        item_entry["Controller_ID"] = f"Controller {id_counter}"
-
-                    if component_name in ["Inverter", "Victron Charge Controllers"]:
-                        item_entry["Number_of_Solar_Panels"] = solar_panel_value  # Assign solar panels
-
-                    component_quantities[component_name].append(item_entry)
-                    id_counter += 1
+                        "total_quantity": total_quantity,
+                        "Client_Item_ID": row.client_item_id,  # Store ID for reference
+                        "negative_quantity": total_quantity < 0  # Flag for negative quantities
+                    })
 
     except Exception as e:
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
         return "An error occurred while fetching component details.", 500
 
-    # **Apply strikethrough logic**
+    # Create a dictionary to track item descriptions with negative and positive quantities
     item_status = defaultdict(list)
 
-    # Group items by (component, Item_Description)
     for component_name, items in component_quantities.items():
         for item in items:
             item_status[(component_name, item["Item_Description"])].append(item)
 
-    # Apply strikethrough to an equal number of positive items per negative item
+    # Apply strikethrough to an additional item per negative item
     for (component, description), item_list in item_status.items():
         negative_items = [item for item in item_list if item["negative_quantity"]]
         positive_items = [item for item in item_list if not item["negative_quantity"]]
 
+        # Pair each negative item with one positive item
         for i in range(min(len(negative_items), len(positive_items))):
             positive_items[i]["negative_quantity"] = True  # Mark a positive item as negative
 
-    # Render the template with updated component_quantities
+    # Render the template with the updated component_quantities
     return render_template(
         'client_details.html',
         client=client,
