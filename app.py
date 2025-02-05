@@ -1501,13 +1501,7 @@ def client_list():
 
 from collections import defaultdict
 
-from collections import defaultdict
-import logging
-import decimal
-from flask import render_template
-from sqlalchemy import func, or_
-from your_flask_app import app, db
-from your_flask_app.models import Client_List, client_items
+
 
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
