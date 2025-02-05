@@ -1503,6 +1503,7 @@ from collections import defaultdict
 
 
 
+
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
     # Fetch client details using Client_Unique_ID
@@ -1559,10 +1560,8 @@ def client_details(client_id):
                 )
             ).group_by(client_items.client_item_id, client_items.item_description, client_items.number_of_solar_panels).all()
 
-            if component_name in ["Inverter", "Victron Charge Controllers"]:
-                id_counter = 1  # Counter for IDs
-                id_prefix = "Inverter" if component_name == "Inverter" else "Controller"
-
+            if component_name == "Inverter":
+                id_counter = 1  # Restoring original logic for Inverter IDs
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
                     is_negative = total_quantity < 0
@@ -1579,13 +1578,39 @@ def client_details(client_id):
                         item_entry = {
                             "Item_Description": row.Item_Description,
                             "total_quantity": total_quantity,  # Store original value
-                            "ID": f"{id_prefix} {id_counter}",  # Generate unique ID
+                            "Inverter_ID": f"Inverter {id_counter}",  # Restore original Inverter ID logic
                             "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
                             "Client_Item_ID": row.client_item_id,  # Store ID for updating later
                             "negative_quantity": False  # Default as positive
                         }
                         item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
-                        id_counter += 1
+                        id_counter += 1  # Increment Inverter ID counter
+
+            elif component_name == "Victron Charge Controllers":
+                id_counter = 1  # Restoring original logic for Controller IDs
+                for row in rows:
+                    total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
+                    is_negative = total_quantity < 0
+
+                    if is_negative:
+                        item_status[(component_name, row.Item_Description)]["negative_count"] += abs(total_quantity)
+                        continue  # Skip negative items
+
+                    solar_panels_list = str(row.number_of_solar_panels).split() if row.number_of_solar_panels else [""]
+
+                    for i in range(abs(total_quantity)):  # Use absolute value
+                        solar_panel_value = solar_panels_list[i] if i < len(solar_panels_list) else ""
+
+                        item_entry = {
+                            "Item_Description": row.Item_Description,
+                            "total_quantity": total_quantity,  # Store original value
+                            "Controller_ID": f"Controller {id_counter}",  # Restore original Controller ID logic
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": False  # Default as positive
+                        }
+                        item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
+                        id_counter += 1  # Increment Controller ID counter
 
             else:  # Batteries & Solar Panels
                 for row in rows:
