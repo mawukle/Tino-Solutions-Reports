@@ -1612,18 +1612,15 @@ def client_details(client_id):
                         item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
                         id_counter += 1  # Increment Controller ID counter
 
-            else:  # Batteries & Solar Panels
+            else:  # Batteries & Solar Panels (No Strikethrough, No Omission)
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
-                    if total_quantity < 0:
-                        item_status[(component_name, row.Item_Description)]["negative_count"] += abs(total_quantity)
-                        continue  # Skip negative items
 
                     item_entry = {
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
                         "Client_Item_ID": row.client_item_id,  # Store ID for reference
-                        "negative_quantity": False  # Default as positive
+                        "negative_quantity": False  # Keep all items, no strikethrough
                     }
                     item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
 
@@ -1631,15 +1628,16 @@ def client_details(client_id):
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
         return "An error occurred while fetching component details.", 500
 
-    # Apply strikethrough to positive items equivalent to negative count
+    # Apply strikethrough **only** for Inverters & Victron Charge Controllers
     for (component, description), status in item_status.items():
-        num_negative = status["negative_count"]
-        positive_items = status["positive"]
+        if component in ["Inverter", "Victron Charge Controllers"]:
+            num_negative = status["negative_count"]
+            positive_items = status["positive"]
 
-        for i in range(min(num_negative, len(positive_items))):
-            positive_items[i]["negative_quantity"] = True  # Mark for strikethrough
+            for i in range(min(num_negative, len(positive_items))):
+                positive_items[i]["negative_quantity"] = True  # Mark for strikethrough
 
-        component_quantities[component].extend(positive_items)  # Only add valid items
+        component_quantities[component].extend(status["positive"])  # Add all items
 
     # Render the template with the updated component_quantities
     return render_template(
