@@ -1504,12 +1504,6 @@ from collections import defaultdict
 
 
 
-from flask import render_template
-from sqlalchemy import func, or_
-from collections import defaultdict
-import decimal
-import logging
-
 @app.route('/client_details/<client_id>')
 def client_details(client_id):
     # Fetch client details using Client_Unique_ID
@@ -1584,10 +1578,10 @@ def client_details(client_id):
                         item_entry = {
                             "Item_Description": row.Item_Description,
                             "total_quantity": total_quantity,  # Store original value
-                            "Inverter_ID": f"Inverter {id_counter}",
-                            "Number_of_Solar_Panels": solar_panel_value,
-                            "Client_Item_ID": row.client_item_id,
-                            "negative_quantity": False
+                            "Inverter_ID": f"Inverter {id_counter}",  # Restore original Inverter ID logic
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": False  # Default as positive
                         }
                         item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
                         id_counter += 1  # Increment Inverter ID counter
@@ -1609,24 +1603,24 @@ def client_details(client_id):
 
                         item_entry = {
                             "Item_Description": row.Item_Description,
-                            "total_quantity": total_quantity,
-                            "Controller_ID": f"Controller {id_counter}",
-                            "Number_of_Solar_Panels": solar_panel_value,
-                            "Client_Item_ID": row.client_item_id,
-                            "negative_quantity": False
+                            "total_quantity": total_quantity,  # Store original value
+                            "Controller_ID": f"Controller {id_counter}",  # Restore original Controller ID logic
+                            "Number_of_Solar_Panels": solar_panel_value,  # Assign individual values
+                            "Client_Item_ID": row.client_item_id,  # Store ID for updating later
+                            "negative_quantity": False  # Default as positive
                         }
                         item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
                         id_counter += 1  # Increment Controller ID counter
 
-            else:  # Batteries & Solar Panels (No omission, apply red color for negative rows)
+            else:  # Batteries & Solar Panels (No Strikethrough, No Omission)
                 for row in rows:
                     total_quantity = int(row.total_quantity) if isinstance(row.total_quantity, decimal.Decimal) else row.total_quantity
 
                     item_entry = {
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
-                        "Client_Item_ID": row.client_item_id,
-                        "negative_quantity": total_quantity < 0  # Mark for red font color
+                        "Client_Item_ID": row.client_item_id,  # Store ID for reference
+                        "negative_quantity": False  # Keep all items, no strikethrough
                     }
                     item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
 
@@ -1634,16 +1628,16 @@ def client_details(client_id):
         logging.error(f"Error fetching component quantities for client {client.Client_Name}: {e}")
         return "An error occurred while fetching component details.", 500
 
-    # Apply strikethrough only to Inverters and Victron Charge Controllers
+    # Apply strikethrough **only** for Inverters & Victron Charge Controllers
     for (component, description), status in item_status.items():
-        num_negative = status["negative_count"]
-        positive_items = status["positive"]
+        if component in ["Inverter", "Victron Charge Controllers"]:
+            num_negative = status["negative_count"]
+            positive_items = status["positive"]
 
-        if component in ["Inverter", "Victron Charge Controllers"]:  # Strikethrough logic only for these
             for i in range(min(num_negative, len(positive_items))):
-                positive_items[i]["negative_quantity"] = True
+                positive_items[i]["negative_quantity"] = True  # Mark for strikethrough
 
-        component_quantities[component].extend(positive_items)  # Add all valid items
+        component_quantities[component].extend(status["positive"])  # Add all items
 
     # Render the template with the updated component_quantities
     return render_template(
