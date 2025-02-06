@@ -1620,7 +1620,7 @@ def client_details(client_id):
                         "Item_Description": row.Item_Description,
                         "total_quantity": total_quantity,
                         "Client_Item_ID": row.client_item_id,  # Store ID for reference
-                        "negative_quantity": False  # Keep all items, no strikethrough
+                        "negative_quantity": total_quantity < 0  # Mark negative values
                     }
                     item_status[(component_name, row.Item_Description)]["positive"].append(item_entry)
 

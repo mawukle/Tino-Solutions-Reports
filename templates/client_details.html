@@ -65,6 +65,7 @@
         {% endif %}
 
         <!-- Batteries -->
+        <!-- Batteries -->
         {% if battery_quantities %}
         <h3>Batteries</h3>
         <table class="component-details">
@@ -76,7 +77,7 @@
             </thead>
             <tbody>
                 {% for item in battery_quantities %}
-                <tr class="{% if item.negative_quantity %}negative-item{% endif %}">
+                <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
                     <td>{{ item.Item_Description }}</td>
                     <td>{{ item.total_quantity }}</td>
                 </tr>
@@ -85,6 +86,7 @@
         </table>
         {% endif %}
 
+        <!-- Solar Panels -->
         <!-- Solar Panels -->
         {% if solar_panel_quantities %}
         <h3>Solar Panels</h3>
@@ -97,7 +99,7 @@
             </thead>
             <tbody>
                 {% for item in solar_panel_quantities %}
-                <tr class="{% if item.negative_quantity %}negative-item{% endif %}">
+                <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
                     <td>{{ item.Item_Description }}</td>
                     <td>{{ item.total_quantity }}</td>
                 </tr>
