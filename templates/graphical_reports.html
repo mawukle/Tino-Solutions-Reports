@@ -76,131 +76,6 @@
             <button type="submit">Generate Graphs</button>
         </form>
 
-        <!-- Graph for Team Rankings -->
-        {% if team_rankings %}
-<!--        <h2>Team Members' Availability</h2>-->
-        <canvas id="teamRankingChart"></canvas>
-        <script>
-            const teamRankingData = {
-                labels: {{ team_rankings | map(attribute='Team_Member_Name') | list | tojson }},
-                datasets: [
-                    {
-                        label: 'Days Worked',
-                        data: {{ team_rankings | map(attribute='days_worked') | list | tojson }},
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Clients Visited',
-                        data: {{ team_rankings | map(attribute='clients_visited') | list | tojson }},
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            };
-
-            const teamRankingConfig = {
-                type: 'bar',
-                data: teamRankingData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            };
-
-            new Chart(
-                document.getElementById('teamRankingChart'),
-                teamRankingConfig
-            );
-        </script>
-
-        <h2>Team Members' Availability</h2>
-
-        {% endif %}
-<!--        <br><br-->
-        <!-- Graph for Client Visit Days -->
-        {% if client_days_data %}
-        <div class="chart-container">
-<!--            <br><br><br><br><br>
-            <h2>Days Spent at Site</h2>-->
-            <canvas id="clientVisitDaysChart"></canvas>
-        </div>
-        <script>
-            const clientVisitDaysData = {
-                labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
-                datasets: [
-                    {
-                        label: 'Unique Days Visited',
-                        data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
-                        backgroundColor: [], // Will be populated dynamically
-                        borderColor: 'rgba(255, 159, 64, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            };
-
-            // Generate up to 60 distinct colors
-            const generateColors = (n) => {
-                let colors = [];
-                for (let i = 0; i < n; i++) {
-                    const hue = (i * 360 / n); // Spread hues evenly
-                    colors.push(`hsl(${hue}, 70%, 70%)`);
-                }
-                return colors;
-            };
-
-            const colors = generateColors(80);
-            let counter = 0;
-            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
-
-            // Create labels that include both the client name and the unique days visited
-            const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
-                const uniqueDays = clientVisitDaysData.datasets[0].data[index];
-                return `${uniqueDays}: ${label}`;
-            });
-
-            const clientVisitDaysConfig = {
-                type: 'pie',
-                data: {
-                    labels: modifiedLabels,
-                    datasets: clientVisitDaysData.datasets
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                usePointStyle: true, // Makes the legend markers circular
-                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
-                                font: {
-                                    size: 8 // Set font size to a smaller value (adjust as needed)
-                                }
-                            }
-
-                        }
-                    }
-                }
-            };
-
-            new Chart(
-                document.getElementById('clientVisitDaysChart'),
-                clientVisitDaysConfig
-            );
-        </script>
-        <h2>Days Spent at Site</h2>
-
-        {% endif %}
-
-<!--        <br><br-->
-
-
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
         <div class="chart-container">
@@ -837,6 +712,131 @@
         <script>
             console.log("Victron Charge Controller Quantity Chart Data:", {{ victron_charge_controller_quantity_chart_data | tojson }});
         </script>
+
+        <!-- Graph for Team Rankings -->
+        {% if team_rankings %}
+<!--        <h2>Team Members' Availability</h2>-->
+        <canvas id="teamRankingChart"></canvas>
+        <script>
+            const teamRankingData = {
+                labels: {{ team_rankings | map(attribute='Team_Member_Name') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'Days Worked',
+                        data: {{ team_rankings | map(attribute='days_worked') | list | tojson }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Clients Visited',
+                        data: {{ team_rankings | map(attribute='clients_visited') | list | tojson }},
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            const teamRankingConfig = {
+                type: 'bar',
+                data: teamRankingData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('teamRankingChart'),
+                teamRankingConfig
+            );
+        </script>
+
+        <h2>Team Members' Availability</h2>
+
+        {% endif %}
+<!--        <br><br-->
+        <!-- Graph for Client Visit Days -->
+        {% if client_days_data %}
+        <div class="chart-container">
+<!--            <br><br><br><br><br>
+            <h2>Days Spent at Site</h2>-->
+            <canvas id="clientVisitDaysChart"></canvas>
+        </div>
+        <script>
+            const clientVisitDaysData = {
+                labels: {{ client_days_data | map(attribute='Client_Name') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'Unique Days Visited',
+                        data: {{ client_days_data | map(attribute='unique_days_at_client') | list | tojson }},
+                        backgroundColor: [], // Will be populated dynamically
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            // Generate up to 60 distinct colors
+            const generateColors = (n) => {
+                let colors = [];
+                for (let i = 0; i < n; i++) {
+                    const hue = (i * 360 / n); // Spread hues evenly
+                    colors.push(`hsl(${hue}, 70%, 70%)`);
+                }
+                return colors;
+            };
+
+            const colors = generateColors(80);
+            let counter = 0;
+            clientVisitDaysData.datasets[0].backgroundColor = clientVisitDaysData.labels.map(() => colors[counter++ % colors.length]);
+
+            // Create labels that include both the client name and the unique days visited
+            const modifiedLabels = clientVisitDaysData.labels.map((label, index) => {
+                const uniqueDays = clientVisitDaysData.datasets[0].data[index];
+                return `${uniqueDays}: ${label}`;
+            });
+
+            const clientVisitDaysConfig = {
+                type: 'pie',
+                data: {
+                    labels: modifiedLabels,
+                    datasets: clientVisitDaysData.datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true, // Makes the legend markers circular
+                                pointStyle: 'rectRounded', // Overrides to make them small rounded squares
+                                font: {
+                                    size: 8 // Set font size to a smaller value (adjust as needed)
+                                }
+                            }
+
+                        }
+                    }
+                }
+            };
+
+            new Chart(
+                document.getElementById('clientVisitDaysChart'),
+                clientVisitDaysConfig
+            );
+        </script>
+        <h2>Days Spent at Site</h2>
+
+        {% endif %}
+
+<!--        <br><br-->
+
 
 
 
