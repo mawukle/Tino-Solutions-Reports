@@ -79,7 +79,7 @@
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
         <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-            <canvas id="inverterChart" style="width: 10%; min-width: 100px;"></canvas>
+            <canvas id="inverterChart" style="width: 10%; max-width: 800px;"></canvas>
             <h2>Inverter Capacities Sold (kW/kVA)</h2>
         </div>
         <script>
@@ -135,7 +135,7 @@
                                 usePointStyle: true, // Makes the legend markers circular
                                 pointStyle: 'rectRounded', // Overrides to make them small rounded squares
                                 font: {
-                                    size: 8 // Set font size to a smaller value (adjust as needed)
+                                    size: 7 // Set font size to a smaller value (adjust as needed)
                                 }
                             }
 
