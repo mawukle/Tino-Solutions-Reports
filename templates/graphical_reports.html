@@ -79,7 +79,7 @@
         <!-- Graph for Inverter Capacities -->
         {% if inverter_data %}
         <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-            <canvas id="inverterChart" style="width: 20%; min-width: 200px;"></canvas>
+            <canvas id="inverterChart" style="width: 10%; min-width: 100px;"></canvas>
             <h2>Inverter Capacities Sold (kW/kVA)</h2>
         </div>
         <script>
@@ -127,7 +127,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,  // Allow custom width/height
-                    cutout: '50%',  // Adjust doughnut thickness (50% is standard)
+                    cutout: '25%',  // Adjust doughnut thickness (50% is standard)
                     plugins: {
                         legend: {
                             position: 'right',
@@ -210,7 +210,7 @@
                                 usePointStyle: true,
                                 pointStyle: 'rectRounded',
                                 font: {
-                                    size: 8 // Set font size to a smaller value (adjust as needed)
+                                    size: 7 // Set font size to a smaller value (adjust as needed)
                                 }
                             }
                         }
