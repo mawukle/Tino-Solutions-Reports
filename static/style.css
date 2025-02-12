@@ -108,6 +108,25 @@ button:hover {
     margin-top: 20px;
 }
 
+table-container-1 {
+    max-height: none; /* Ensure there is no height limit */
+    overflow: auto; /* Allow horizontal scrolling if necessary */
+/*    display: flex;
+    justify-content: left;*/
+/*    max-height: 500px; /* Set a maximum height to enable vertical scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ddd;
+    width: 100%;
+/*    box-sizing: border-box;*/
+}
+
+.table-container-1 table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
 table, th, td {
     border: 1px solid #ddd;
 }
