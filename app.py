@@ -1662,21 +1662,19 @@ def save_client_comment(client_id):
     if not client:
         return "Client not found", 404
 
-    # Get general comment from form
+    # Get values from form
     general_comment = request.form.get('general_comment', '')
+    sales_person = request.form.get('sales_person', '')
+    lead_installer = request.form.get('lead_installer', '')
+    start_date = request.form.get('start_date', None)
+    commissioning_date = request.form.get('commissioning_date', None)
+
+    # Update client details
     client.general_comment = general_comment
-
-    # Update Sales Person and Lead Installer
-    client.sales_person = request.form.get('sales_person', '')
-    client.lead_installer = request.form.get('lead_installer', '')
-
-    # Update Start Date and Commissioning Date
-    start_date = request.form.get('start_date', '')
-    commissioning_date = request.form.get('commissioning_date', '')
-
+    client.sales_person = sales_person if sales_person else None
+    client.lead_installer = lead_installer if lead_installer else None
     client.start_date = start_date if start_date else None
     client.commissioning_date = commissioning_date if commissioning_date else None
-
 
     try:
         # Fetch all inverter records for this client, ordered by client_item_id
@@ -1756,7 +1754,7 @@ def save_client_comment(client_id):
                 victron_item.number_of_solar_panels = ' '.join(existing_values)
 
         db.session.commit()
-        flash("Comment and solar panel data saved successfully!", "success")
+        flash("Client details and comments saved successfully!", "success")
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error saving data for client {client.Client_Name}: {e}")
