@@ -60,7 +60,7 @@
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
             <tr>
                 <th>Start Date</th>
-                <td><input type="text" name="start_date" value="{{ client.start_date.strftime('%d %B, %Y') if client.start_date else '' }}"></td>
+                <td><input type="date" name="start_date" value="{{ client.start_date if client.start_date else '' }}"></td>
             </tr>
 
             <tr>

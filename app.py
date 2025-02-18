@@ -1666,6 +1666,18 @@ def save_client_comment(client_id):
     general_comment = request.form.get('general_comment', '')
     client.general_comment = general_comment
 
+    # Update Sales Person and Lead Installer
+    client.sales_person = request.form.get('sales_person', '')
+    client.lead_installer = request.form.get('lead_installer', '')
+
+    # Update Start Date and Commissioning Date
+    start_date = request.form.get('start_date', '')
+    commissioning_date = request.form.get('commissioning_date', '')
+
+    client.start_date = start_date if start_date else None
+    client.commissioning_date = commissioning_date if commissioning_date else None
+
+
     try:
         # Fetch all inverter records for this client, ordered by client_item_id
         inverter_items = db.session.query(client_items).filter(
