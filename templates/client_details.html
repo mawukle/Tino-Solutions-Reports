@@ -23,11 +23,16 @@
         <table class="client-details">
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
-            <tr><th>City</th><td>{{ client.City }}</td></tr>
+            <!--tr><th>City</th><td>{{ client.City }}</td></tr-->
             <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
-            <tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr>
+            <!--tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr-->
             <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
+            <tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr>
+            <tr><th>Sales Person</th><td>{{ client.sales_person if client.sales_person is not none else '' }}</td></tr>
+            <tr><th>Lead Installer</th><td>{{ client.lead_installer if client.lead_installer is not none else '' }}</td></tr>
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
+            <tr><th>Start Date</th><td>{{ client.start_date.strftime('%d %B, %Y') if client.start_date else '' }}</td></tr>
+            <tr><th>Commissioning Date</th><td>{{ client.commissioning_date.strftime('%d %B, %Y') if client.commissioning_date else '' }}</td></tr>
         </table>
 
         <h2>Component Details</h2>
