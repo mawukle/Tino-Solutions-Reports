@@ -1511,6 +1511,9 @@ def client_details(client_id):
     if not client:
         return "Client not found", 404
 
+    # Fetch team members for dropdown
+    team_members = db.session.query(Team_Members).all()
+
     # Fetch the latest installation date for the client
     installation_date_query = db.session.query(
         func.max(client_items.date).label('latest_installation_date')
@@ -1644,6 +1647,7 @@ def client_details(client_id):
         'client_details.html',
         client=client,
         installation_date=installation_date,
+        team_members=team_members,  # Pass team members to template
         inverter_quantities=component_quantities["Inverter"],
         battery_quantities=component_quantities["Batteries"],
         solar_panel_quantities=component_quantities["Solar Panels"],
