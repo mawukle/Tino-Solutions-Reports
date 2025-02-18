@@ -23,171 +23,171 @@
         <table class="client-details">
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
-            <!--tr><th>City</th><td>{{ client.City }}</td></tr-->
             <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
-            <!--tr><th>Contact Person</th><td>{{ client.Contact_Person if client.Contact_Person is not none else '' }}</td></tr-->
             <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
             <tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr>
-            <tr>
-                <th>Sales Person</th>
-                <td>
-                    <select name="sales_person">
-                        <option value="">-- Select Sales Person --</option>
-                        {% for member in team_members %}
-                            <option value="{{ member.Team_Member_Name }}"
-                                {% if client.sales_person == member.Team_Member_Name %} selected {% endif %}>
-                                {{ member.Team_Member_Name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <th>Lead Installer</th>
-                <td>
-                    <select name="lead_installer">
-                        <option value="">-- Select Lead Installer --</option>
-                        {% for member in team_members %}
-                            <option value="{{ member.Team_Member_Name }}"
-                                {% if client.lead_installer == member.Team_Member_Name %} selected {% endif %}>
-                                {{ member.Team_Member_Name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
             <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
-            <tr>
-                <th>Start Date</th>
-                <td><input type="date" name="start_date" value="{{ client.start_date if client.start_date else '' }}"></td>
-            </tr>
-
-            <tr>
-                <th>Commissioning Date</th>
-                <td><input type="date" name="commissioning_date" value="{{ client.commissioning_date if client.commissioning_date else '' }}"></td>
-            </tr>
         </table>
 
-        <h2>Component Details</h2>
+        <!-- Editable Form Section -->
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
-
-        <!-- Inverters -->
-        {% if inverter_quantities %}
-        <h3>Inverters</h3>
-        <table class="component-details">
-            <thead>
+            <table class="client-details">
                 <tr>
-                    <th>Item Description</th>
-                    <th>Inverter ID</th>
-                    <th>Number of Solar Panels</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in inverter_quantities %}
-                <tr {% if item.negative_quantity %} class="negative-item" {% endif %}>
-                    <td>{{ item.Item_Description }}</td>
-                    <td>{{ item.Inverter_ID }}</td>
+                    <th>Sales Person</th>
                     <td>
-                        <input
-                            type="number"
-                            name="number_of_solar_panels_{{ loop.index }}"
-                            value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
-                            min="0"
-                        />
-                        <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                        <select name="sales_person">
+                            <option value="">-- Select Sales Person --</option>
+                            {% for member in team_members %}
+                                <option value="{{ member.Team_Member_Name }}"
+                                    {% if client.sales_person == member.Team_Member_Name %} selected {% endif %}>
+                                    {{ member.Team_Member_Name }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
 
-        <!-- Batteries -->
-        <!-- Batteries -->
-        {% if battery_quantities %}
-        <h3>Batteries</h3>
-        <table class="component-details">
-            <thead>
                 <tr>
-                    <th>Item Description</th>
-                    <th>Total Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in battery_quantities %}
-                <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
-                    <td>{{ item.Item_Description }}</td>
-                    <td>{{ item.total_quantity }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-
-        <!-- Solar Panels -->
-        <!-- Solar Panels -->
-        {% if solar_panel_quantities %}
-        <h3>Solar Panels</h3>
-        <table class="component-details">
-            <thead>
-                <tr>
-                    <th>Item Description</th>
-                    <th>Total Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in solar_panel_quantities %}
-                <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
-                    <td>{{ item.Item_Description }}</td>
-                    <td>{{ item.total_quantity }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-
-        <!-- Victron Charge Controllers -->
-        {% if victron_charge_controller_quantities %}
-        <h3>Victron Charge Controllers</h3>
-        <table class="component-details">
-            <thead>
-                <tr>
-                    <th>Item Description</th>
-                    <th>Controller ID</th>
-                    <th>Number of Solar Panels</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in victron_charge_controller_quantities %}
-                <tr>
-                    <td {% if item.negative_quantity %} style="text-decoration: line-through;" {% endif %}>
-                        {{ item.Item_Description }}
-                    </td>
-                    <td>{{ item.Controller_ID }}</td>
+                    <th>Lead Installer</th>
                     <td>
-                        <input
-                            type="number"
-                            name="number_of_solar_panels_victron_{{ loop.index }}"
-                            value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
-                            min="0"
-                        />
-                        <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                        <select name="lead_installer">
+                            <option value="">-- Select Lead Installer --</option>
+                            {% for member in team_members %}
+                                <option value="{{ member.Team_Member_Name }}"
+                                    {% if client.lead_installer == member.Team_Member_Name %} selected {% endif %}>
+                                    {{ member.Team_Member_Name }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
 
-        <h2>General Comments</h2>
+                <tr>
+                    <th>Start Date</th>
+                    <td><input type="date" name="start_date" value="{{ client.start_date if client.start_date else '' }}"></td>
+                </tr>
+
+                <tr>
+                    <th>Commissioning Date</th>
+                    <td><input type="date" name="commissioning_date" value="{{ client.commissioning_date if client.commissioning_date else '' }}"></td>
+                </tr>
+            </table>
+
+            <h2>Component Details</h2>
+
+            <!-- Inverters -->
+            {% if inverter_quantities %}
+            <h3>Inverters</h3>
+            <table class="component-details">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Inverter ID</th>
+                        <th>Number of Solar Panels</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inverter_quantities %}
+                    <tr {% if item.negative_quantity %} class="negative-item" {% endif %}>
+                        <td>{{ item.Item_Description }}</td>
+                        <td>{{ item.Inverter_ID }}</td>
+                        <td>
+                            <input
+                                type="number"
+                                name="number_of_solar_panels_{{ loop.index }}"
+                                value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
+                                min="0"
+                            />
+                            <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <!-- Batteries -->
+            {% if battery_quantities %}
+            <h3>Batteries</h3>
+            <table class="component-details">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Total Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in battery_quantities %}
+                    <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
+                        <td>{{ item.Item_Description }}</td>
+                        <td>{{ item.total_quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <!-- Solar Panels -->
+            {% if solar_panel_quantities %}
+            <h3>Solar Panels</h3>
+            <table class="component-details">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Total Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in solar_panel_quantities %}
+                    <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
+                        <td>{{ item.Item_Description }}</td>
+                        <td>{{ item.total_quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <!-- Victron Charge Controllers -->
+            {% if victron_charge_controller_quantities %}
+            <h3>Victron Charge Controllers</h3>
+            <table class="component-details">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Controller ID</th>
+                        <th>Number of Solar Panels</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in victron_charge_controller_quantities %}
+                    <tr>
+                        <td {% if item.negative_quantity %} style="text-decoration: line-through;" {% endif %}>
+                            {{ item.Item_Description }}
+                        </td>
+                        <td>{{ item.Controller_ID }}</td>
+                        <td>
+                            <input
+                                type="number"
+                                name="number_of_solar_panels_victron_{{ loop.index }}"
+                                value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
+                                min="0"
+                            />
+                            <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <h2>General Comments</h2>
             <textarea name="general_comment" rows="5" cols="50" placeholder="Configuration parameters used in the installation...&#10;Details of Virtual Switch or ESS settings...&#10;General comments about the installation that will help troubleshooting...">{{
                 client.general_comment if client.general_comment is not none else ""
             }}</textarea>
             <br>
             <button type="submit">Save Comment</button>
         </form>
-
     </div>
 </body>
 </html>
