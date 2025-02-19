@@ -26,11 +26,13 @@
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
             <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
             <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
-            <tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr>
+            <!--tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr-->
         </table>
 
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
             <table class="client-details">
+                <tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr>
+
                 <tr>
                     <th>Sales Person</th>
                     <td>
