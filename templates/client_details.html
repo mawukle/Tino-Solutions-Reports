@@ -31,7 +31,12 @@
 
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
             <table class="client-details">
-                <tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr>
+                <tr>
+                    <th>Google Location</th>
+                    <td>
+                        <input type="text" name="google_location" value="{{ client.google_location if client.google_location is not none else '' }}">
+                    </td>
+                </tr>
 
                 <tr>
                     <th>Sales Person</th>

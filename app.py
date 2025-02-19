@@ -1694,6 +1694,7 @@ def save_client_comment(client_id):
         client.lead_installer = None
     client.start_date = start_date if start_date else None
     client.commissioning_date = commissioning_date if commissioning_date else None
+    client.google_location = request.form.get("google_location", "").strip()  # Update Google Location
 
     try:
         # Fetch all inverter records for this client, ordered by client_item_id
