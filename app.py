@@ -1530,6 +1530,18 @@ def client_details(client_id):
         if installation_date_query.latest_installation_date else 'No installation date found'
     )
 
+    # Format Start Date
+    start_date = (
+        client.start_date.strftime('%d %B, %Y')
+        if client.start_date else 'No start date found'
+    )
+
+    # Format Commissioning Date
+    commissioning_date = (
+        client.commissioning_date.strftime('%d %B, %Y')
+        if client.commissioning_date else 'No commissioning date found'
+    )
+
     # Initialize component quantities
     component_quantities = {
         "Inverter": [],
@@ -1648,6 +1660,8 @@ def client_details(client_id):
         'client_details.html',
         client=client,
         installation_date=installation_date,
+        start_date=start_date,
+        commissioning_date=commissioning_date,
         team_members=team_members,  # Pass team members to template
         inverter_quantities=component_quantities["Inverter"],
         battery_quantities=component_quantities["Batteries"],
