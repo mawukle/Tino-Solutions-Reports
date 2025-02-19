@@ -1641,6 +1641,7 @@ def client_details(client_id):
                 positive_items[i]["negative_quantity"] = True  # Mark for strikethrough
 
         component_quantities[component].extend(status["positive"])  # Add all items
+    print(f"Client Sales Person: {client.sales_person}")
 
     # Render the template with the updated component_quantities
     return render_template(
@@ -1677,12 +1678,20 @@ def save_client_comment(client_id):
     print(f"Sales Person: {sales_person}")
     print(f"Lead Installer: {lead_installer}")
     print(f"Start Date: {start_date}")
-    print(f"Commissioning Date: {commissioning_date}")    
+    print(f"Commissioning Date: {commissioning_date}")
 
     # Update client details
     client.general_comment = general_comment
-    client.sales_person = sales_person if sales_person else None
-    client.lead_installer = lead_installer if lead_installer else None
+    #client.sales_person = sales_person if sales_person else None
+    if sales_person.strip():
+        client.sales_person = sales_person.strip()
+    else:
+        client.sales_person = None
+    #client.lead_installer = lead_installer if lead_installer else None
+    if lead_installer.strip():
+        client.lead_installer = lead_installer.strip()
+    else:
+        client.lead_installer = None
     client.start_date = start_date if start_date else None
     client.commissioning_date = commissioning_date if commissioning_date else None
 
