@@ -35,7 +35,7 @@
                         <option value="">-- Select Sales Person --</option>
                         {% for member in team_members %}
                             <option value="{{ member.Team_Member_Name }}"
-                                {% if client.sales_person == member.Team_Member_Name %} selected {% endif %}>
+                                {% if client.sales_person and client.sales_person.strip() == member.Team_Member_Name.strip() %} selected {% endif %}>
                                 {{ member.Team_Member_Name }}
                             </option>
                         {% endfor %}
@@ -50,7 +50,7 @@
                         <option value="">-- Select Lead Installer --</option>
                         {% for member in team_members %}
                             <option value="{{ member.Team_Member_Name }}"
-                                {% if client.lead_installer == member.Team_Member_Name %} selected {% endif %}>
+                                {% if client.lead_installer and client.lead_installer.strip() == member.Team_Member_Name.strip() %} selected {% endif %}>
                                 {{ member.Team_Member_Name }}
                             </option>
                         {% endfor %}
