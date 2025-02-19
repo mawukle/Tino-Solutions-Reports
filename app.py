@@ -1662,12 +1662,22 @@ def save_client_comment(client_id):
     if not client:
         return "Client not found", 404
 
+    # Print form values for debugging
+    print("Received Form Data:", request.form)
+
     # Get values from form
     general_comment = request.form.get('general_comment', '')
     sales_person = request.form.get('sales_person', '')
     lead_installer = request.form.get('lead_installer', '')
     start_date = request.form.get('start_date', None)
     commissioning_date = request.form.get('commissioning_date', None)
+
+    # Print extracted values
+    print(f"General Comment: {general_comment}")
+    print(f"Sales Person: {sales_person}")
+    print(f"Lead Installer: {lead_installer}")
+    print(f"Start Date: {start_date}")
+    print(f"Commissioning Date: {commissioning_date}")    
 
     # Update client details
     client.general_comment = general_comment
@@ -1757,6 +1767,7 @@ def save_client_comment(client_id):
         flash("Client details and comments saved successfully!", "success")
     except Exception as e:
         db.session.rollback()
+        print(f"Database Commit Error: {e}")  # Print the actual error
         logging.error(f"Error saving data for client {client.Client_Name}: {e}")
         flash("An error occurred while saving the data.", "danger")
 
