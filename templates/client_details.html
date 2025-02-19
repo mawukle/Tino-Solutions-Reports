@@ -20,7 +20,6 @@
         <a href="{{ url_for('client_list') }}" class="back-link">The Renewable Energy Experts</a>
 
         <h1>Client Details</h1>
-        <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
         <table class="client-details">
             <tr><th>Name</th><td>{{ client.Client_Name }}</td></tr>
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
