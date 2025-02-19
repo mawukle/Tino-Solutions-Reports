@@ -19,6 +19,12 @@ class Client_List(db.Model):
     Installer = db.Column(db.String(100), nullable=True)
     general_comment = db.Column(db.Text)  # New column to store installation comments
 
+    # Missing Columns
+    google_location = db.Column(db.String(255), nullable=True)
+    sales_person = db.Column(db.String(100), nullable=True)
+    lead_installer = db.Column(db.String(100), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    commissioning_date = db.Column(db.Date, nullable=True)  
 
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
