@@ -10,6 +10,18 @@
             text-decoration: line-through;
             color: red;
         }
+
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            transition: all 0.3s ease;
+        }
+
+        select.selected {
+            padding: 0;
+            border: none;
+            background-color: transparent;
+        }
     </style>
 </head>
 <body>
@@ -234,5 +246,33 @@
         </form>
 
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function checkSelection(selectElement) {
+                if (selectElement.value.trim() !== "") {
+                    selectElement.classList.add("selected");
+                } else {
+                    selectElement.classList.remove("selected");
+                }
+            }
+
+            let salesPersonSelect = document.querySelector('select[name="sales_person"]');
+            let leadInstallerSelect = document.querySelector('select[name="lead_installer"]');
+
+            if (salesPersonSelect) {
+                salesPersonSelect.addEventListener("change", function() {
+                    checkSelection(salesPersonSelect);
+                });
+                checkSelection(salesPersonSelect);
+            }
+
+            if (leadInstallerSelect) {
+                leadInstallerSelect.addEventListener("change", function() {
+                    checkSelection(leadInstallerSelect);
+                });
+                checkSelection(leadInstallerSelect);
+            }
+        });
+    </script>    
 </body>
 </html>
