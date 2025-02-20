@@ -71,37 +71,48 @@
                 <tr>
                     <th>Start Date</th>
                     <td>
+                        <span id="start_date_display" onclick="editDate('start_date')">
+                            {{ client.start_date.strftime('%d %B, %Y') if client.start_date else 'Click to select date' }}
+                        </span>
                         <input type="date" name="start_date" id="start_date"
                                value="{{ client.start_date.strftime('%Y-%m-%d') if client.start_date else '' }}"
-                               onchange="formatDateDisplay('start_date', 'start_date_display')">
-                        <span id="start_date_display">
-                            {{ client.start_date.strftime('%d %B, %Y') if client.start_date else '' }}
-                        </span>
+                               onchange="formatDateDisplay('start_date', 'start_date_display')"
+                               style="display: none;">
                     </td>
                 </tr>
                 <tr>
                     <th>Commissioning Date</th>
                     <td>
+                        <span id="commissioning_date_display" onclick="editDate('commissioning_date')">
+                            {{ client.commissioning_date.strftime('%d %B, %Y') if client.commissioning_date else 'Click to select date' }}
+                        </span>
                         <input type="date" name="commissioning_date" id="commissioning_date"
                                value="{{ client.commissioning_date.strftime('%Y-%m-%d') if client.commissioning_date else '' }}"
-                               onchange="formatDateDisplay('commissioning_date', 'commissioning_date_display')">
-                        <span id="commissioning_date_display">
-                            {{ client.commissioning_date.strftime('%d %B, %Y') if client.commissioning_date else '' }}
-                        </span>
+                               onchange="formatDateDisplay('commissioning_date', 'commissioning_date_display')"
+                               style="display: none;">
                     </td>
                 </tr>
 
                 <script>
+                    function editDate(inputId) {
+                        let input = document.getElementById(inputId);
+                        input.style.display = "inline-block";  // Show the date picker
+                        input.focus();  // Open the date picker
+                    }
+
                     function formatDateDisplay(inputId, displayId) {
                         let input = document.getElementById(inputId);
                         let display = document.getElementById(displayId);
+
                         if (input.value) {
                             let date = new Date(input.value);
                             let options = { day: '2-digit', month: 'long', year: 'numeric' };
                             display.textContent = date.toLocaleDateString('en-GB', options);
                         } else {
-                            display.textContent = '';
+                            display.textContent = 'Click to select date';
                         }
+
+                        input.style.display = "none";  // Hide the date input after selection
                     }
                 </script>
             </table>
