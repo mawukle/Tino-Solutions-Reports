@@ -10,6 +10,18 @@
             text-decoration: line-through;
             color: red;
         }
+
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            transition: all 0.3s ease;
+        }
+
+        select.selected {
+            padding: 0;
+            border: none;
+            background-color: transparent;
+        }
     </style>
 </head>
 <body>
@@ -26,7 +38,6 @@
             <tr><th>Town</th><td>{{ client.Town }}</td></tr>
             <tr><th>Phone Number</th><td>{{ client.Phone_Number if client.Phone_Number is not none else '' }}</td></tr>
             <tr><th>Email Address</th><td>{{ client.email_address if client.email_address is not none else '' }}</td></tr>
-            <!--tr><th>Google Location</th><td>{{ client.google_location if client.google_location is not none else '' }}</td></tr-->
         </table>
 
         <form method="POST" action="{{ url_for('save_client_comment', client_id=client.Client_Unique_ID) }}">
@@ -67,6 +78,7 @@
                         </select>
                     </td>
                 </tr>
+
                 <tr><th>Installation Date</th><td>{{ installation_date }}</td></tr>
                 <tr>
                     <th>Start Date</th>
@@ -92,138 +104,7 @@
                                style="display: none;">
                     </td>
                 </tr>
-
-                <script>
-                    function editDate(inputId) {
-                        let input = document.getElementById(inputId);
-                        input.style.display = "inline-block";  // Show the date picker
-                        input.focus();  // Open the date picker
-                    }
-
-                    function formatDateDisplay(inputId, displayId) {
-                        let input = document.getElementById(inputId);
-                        let display = document.getElementById(displayId);
-
-                        if (input.value) {
-                            let date = new Date(input.value);
-                            let options = { day: '2-digit', month: 'long', year: 'numeric' };
-                            display.textContent = date.toLocaleDateString('en-GB', options);
-                        } else {
-                            display.textContent = 'Click to select date';
-                        }
-
-                        input.style.display = "none";  // Hide the date input after selection
-                    }
-                </script>
             </table>
-
-            <h2>Component Details</h2>
-
-            <!-- Inverters -->
-            {% if inverter_quantities %}
-            <h3>Inverters</h3>
-            <table class="component-details">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th>Inverter ID</th>
-                        <th>Number of Solar Panels</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in inverter_quantities %}
-                    <tr {% if item.negative_quantity %} class="negative-item" {% endif %}>
-                        <td>{{ item.Item_Description }}</td>
-                        <td>{{ item.Inverter_ID }}</td>
-                        <td>
-                            <input
-                                type="number"
-                                name="number_of_solar_panels_{{ loop.index }}"
-                                value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
-                                min="0"
-                            />
-                            <input type="hidden" name="client_item_id_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-
-            <!-- Batteries -->
-            {% if battery_quantities %}
-            <h3>Batteries</h3>
-            <table class="component-details">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th>Total Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in battery_quantities %}
-                    <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
-                        <td>{{ item.Item_Description }}</td>
-                        <td>{{ item.total_quantity }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-
-            <!-- Solar Panels -->
-            {% if solar_panel_quantities %}
-            <h3>Solar Panels</h3>
-            <table class="component-details">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th>Total Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in solar_panel_quantities %}
-                    <tr {% if item.negative_quantity %} style="color: red;" {% endif %}>
-                        <td>{{ item.Item_Description }}</td>
-                        <td>{{ item.total_quantity }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-
-            <!-- Victron Charge Controllers -->
-            {% if victron_charge_controller_quantities %}
-            <h3>Victron Charge Controllers</h3>
-            <table class="component-details">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th>Controller ID</th>
-                        <th>Number of Solar Panels</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in victron_charge_controller_quantities %}
-                    <tr>
-                        <td {% if item.negative_quantity %} style="text-decoration: line-through;" {% endif %}>
-                            {{ item.Item_Description }}
-                        </td>
-                        <td>{{ item.Controller_ID }}</td>
-                        <td>
-                            <input
-                                type="number"
-                                name="number_of_solar_panels_victron_{{ loop.index }}"
-                                value="{{ item.Number_of_Solar_Panels if item.Number_of_Solar_Panels else '' }}"
-                                min="0"
-                            />
-                            <input type="hidden" name="client_item_id_victron_{{ loop.index }}" value="{{ item.Client_Item_ID }}" />
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
 
             <h2>General Comments</h2>
             <textarea name="general_comment" rows="5" cols="50" placeholder="Configuration parameters used in the installation...&#10;Details of Virtual Switch or ESS settings...&#10;General comments about the installation that will help troubleshooting...">{{
@@ -232,7 +113,56 @@
             <br>
             <button type="submit">Save Comment</button>
         </form>
-
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function checkSelection(selectElement) {
+                if (selectElement.value.trim() !== "") {
+                    selectElement.classList.add("selected");
+                } else {
+                    selectElement.classList.remove("selected");
+                }
+            }
+
+            let salesPersonSelect = document.querySelector('select[name="sales_person"]');
+            let leadInstallerSelect = document.querySelector('select[name="lead_installer"]');
+
+            if (salesPersonSelect) {
+                salesPersonSelect.addEventListener("change", function() {
+                    checkSelection(salesPersonSelect);
+                });
+                checkSelection(salesPersonSelect);
+            }
+
+            if (leadInstallerSelect) {
+                leadInstallerSelect.addEventListener("change", function() {
+                    checkSelection(leadInstallerSelect);
+                });
+                checkSelection(leadInstallerSelect);
+            }
+        });
+
+        function editDate(inputId) {
+            let input = document.getElementById(inputId);
+            input.style.display = "inline-block";
+            input.focus();
+        }
+
+        function formatDateDisplay(inputId, displayId) {
+            let input = document.getElementById(inputId);
+            let display = document.getElementById(displayId);
+
+            if (input.value) {
+                let date = new Date(input.value);
+                let options = { day: '2-digit', month: 'long', year: 'numeric' };
+                display.textContent = date.toLocaleDateString('en-GB', options);
+            } else {
+                display.textContent = 'Click to select date';
+            }
+
+            input.style.display = "none";
+        }
+    </script>
 </body>
 </html>
