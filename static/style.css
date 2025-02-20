@@ -736,3 +736,15 @@ textarea {
     text-decoration: line-through;
     color: grey;
 }
+
+.client-details td {
+    vertical-align: middle;
+}
+
+.client-details select {
+    display: block;
+    width: 100%;
+    padding: 0px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease;
+}
