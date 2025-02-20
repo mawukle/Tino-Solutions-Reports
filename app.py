@@ -1411,7 +1411,7 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Parse and format the latest installation date
+        # Parse and format the latest invoice date
         installation_date_data = {
             row.Client_Name: (
                 row.latest_installation_date.strftime('%d %B, %Y')
@@ -1445,7 +1445,7 @@ def client_list():
                 inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
                 battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
                 solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-                installation_date_data.get(client.Client_Name, ''),  # Installation Date
+                installation_date_data.get(client.Client_Name, ''),  # Invoice Date
                 inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
                 battery_data.get(client.Client_Name, {}).get("installed_by", '') or
                 solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
@@ -1457,7 +1457,7 @@ def client_list():
             elif client_row[12] == 'Client':
                 client_clients.append(client_row)
 
-        # Sort by Installation Date (descending)
+        # Sort by Invoice Date (descending)
         tino_clients.sort(
             key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
         )
@@ -1514,7 +1514,7 @@ def client_details(client_id):
     # Fetch team members for dropdown
     team_members = db.session.query(Team_Members).all()
 
-    # Fetch the latest installation date for the client
+    # Fetch the latest invoice date for the client
     installation_date_query = db.session.query(
         func.max(client_items.date).label('latest_installation_date')
     ).filter(
@@ -1527,7 +1527,7 @@ def client_details(client_id):
 
     installation_date = (
         installation_date_query.latest_installation_date.strftime('%d %B, %Y')
-        if installation_date_query.latest_installation_date else 'No installation date found'
+        if installation_date_query.latest_installation_date else 'No invoice date found'
     )
 
     # Format Start Date
