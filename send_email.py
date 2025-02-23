@@ -7,19 +7,28 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-23": "18:00",
-    "2025-02-23": "19:00",
+    "2025-02-23": "19:20",
+    "2025-02-23": "20:20",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
 
 def is_scheduled_time():
-    """Check if the current UTC time matches a scheduled date and time."""
+    """Check if the current UTC time is within a 2-minute window of a scheduled time."""
     utc_now = datetime.datetime.now(pytz.utc)
     current_date = utc_now.strftime("%Y-%m-%d")
-    current_time = utc_now.strftime("%H:%M")
 
-    return current_date in SCHEDULED_TIMES and current_time == SCHEDULED_TIMES[current_date]
+    if current_date in SCHEDULED_TIMES:
+        scheduled_time = datetime.datetime.strptime(SCHEDULED_TIMES[current_date], "%H:%M").time()
+        scheduled_datetime = datetime.datetime.combine(utc_now.date(), scheduled_time).replace(tzinfo=pytz.utc)
+
+        # Allow execution within 2 minutes of the scheduled time
+        time_difference = abs((utc_now - scheduled_datetime).total_seconds())
+
+        return time_difference <= 120  # 120 seconds = 2 minutes
+
+    return False
+
 
 def send_client_list_email():
     """Send an email with the client list if the current time matches a scheduled date and time."""
