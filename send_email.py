@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-23": "21:20",
-    "2025-02-23": "21:30",
+    "2025-02-23": "21:40",
+    "2025-02-23": "21:50",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -34,6 +34,15 @@ def is_scheduled_time():
     print("DEBUG: No matching schedule found for today.")
     return False
 
+def fetch_client_list_html():
+    """Retrieve the rendered HTML content from the /client_list route."""
+    with app.test_client() as client:
+        response = client.get('/client_list')
+        if response.status_code == 200:
+            return response.get_data(as_text=True)
+        else:
+            print(f"ERROR: Failed to fetch client list (HTTP {response.status_code})")
+            return None
 
 def send_client_list_email():
     """Send an email with the client list if the current time matches a scheduled date and time."""
@@ -41,21 +50,21 @@ def send_client_list_email():
         print(f"Not the scheduled time ({datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}). Exiting.")
         return
 
-    recipients = ["padiemmanuelkwesi@yahoo.com", "padiemmanuelkwesi@gmail.com"]  # Replace with actual emails
+    recipients = ["padiemmanuelkwesi@yahoo.com", "padiemmanuelkwesi@gmail.com"]
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
+        body = fetch_client_list_html()
 
-        # Manually construct the absolute URL for the stylesheet instead of using url_for
-        body = render_template("client_list.html", static_url="/static/style.css")
-
-        msg = Message(subject, recipients=recipients, html=body)
-
-        try:
-            mail.send(msg)
-            print("Email sent successfully!")
-        except Exception as e:
-            print(f"Error sending email: {e}")
+        if body:
+            msg = Message(subject, recipients=recipients, html=body)
+            try:
+                mail.send(msg)
+                print("Email sent successfully!")
+            except Exception as e:
+                print(f"ERROR: Failed to send email: {e}")
+        else:
+            print("ERROR: Client list HTML is empty. Email not sent.")
 
 if __name__ == "__main__":
     send_client_list_email()
