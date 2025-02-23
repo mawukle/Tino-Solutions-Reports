@@ -22,6 +22,7 @@ import io
 from sqlalchemy.sql.expression import true
 import decimal
 from urllib.parse import urlparse
+from flask_mail import Mail, Message
 
 
 pymysql.install_as_MySQLdb()
@@ -57,6 +58,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modificati
 # Initialize the database and migration tools
 # db = SQLAlchemy(app)  # This line has been removed to prevent multiple initializations
 migrate = Migrate(app, db)
+
+
+
+# Email configuration
+app.config['MAIL_SERVER'] = 'smtp.hostedemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')  # Store in Heroku environment variables
+app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')  # Store in Heroku environment variables
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('EMAIL_USER')
+
+mail = Mail(app)
+
+
 
 # Initialize the SQLAlchemy object with the app context
 db.init_app(app)
@@ -192,6 +207,8 @@ def delete_empty_rows():
         finally:
             cursor.close()
             connection.close()
+
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('index.html')
