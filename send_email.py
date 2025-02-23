@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-23": "20:20",
-    "2025-02-23": "20:30",
+    "2025-02-23": "20:40",
+    "2025-02-23": "20:50",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -45,7 +45,9 @@ def send_client_list_email():
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
-        body = render_template("client_list.html")  # Render the HTML page for email content
+
+        # Manually construct the absolute URL for the stylesheet instead of using url_for
+        body = render_template("client_list.html", static_url="/static/style.css")
 
         msg = Message(subject, recipients=recipients, html=body)
 

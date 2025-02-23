@@ -1513,7 +1513,9 @@ def client_list():
         tino_clients=tino_clients,
         client_clients=client_clients,
         other_clients=other_clients,
-        message=message
+        message=message,
+        static_url="/static/style.css"  # Pass static_url explicitly
+
     )
 
 from collections import defaultdict
