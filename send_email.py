@@ -7,7 +7,7 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-23": "19:20",
+    "2025-02-23": "20:00",
     "2025-02-23": "20:20",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
@@ -22,10 +22,10 @@ def is_scheduled_time():
         scheduled_time = datetime.datetime.strptime(SCHEDULED_TIMES[current_date], "%H:%M").time()
         scheduled_datetime = datetime.datetime.combine(utc_now.date(), scheduled_time).replace(tzinfo=pytz.utc)
 
-        # Allow execution within 2 minutes of the scheduled time
+        # Allow execution within 5 minutes of the scheduled time
         time_difference = abs((utc_now - scheduled_datetime).total_seconds())
 
-        return time_difference <= 120  # 120 seconds = 2 minutes
+        return time_difference <= 300  # 300 seconds = 5 minutes
 
     return False
 
