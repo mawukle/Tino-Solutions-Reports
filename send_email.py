@@ -7,7 +7,7 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "19:00",
+    "2025-02-24": "19:10",
     "2025-02-28": "08:00",
     "2025-03-31": "08:00",
     "2025-04-30": "08:00",
@@ -54,13 +54,19 @@ def send_client_list_email():
         return
 
     recipient = "padiemmanuelkwesi@yahoo.com"  # Main recipient
-    cc_recipients = ["padiemmanuelkwesi@gmail.com","emmanuel@tinosolutions.com"]  # CC recipient
+    cc_recipients = ["padiemmanuelkwesi@gmail.com", "emmanuel@tinosolutions.com"]  # CC recipients
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
         body_content = fetch_client_list_html()
 
         if body_content:
+            # Ensure the table has no border by injecting inline styles
+            soup = BeautifulSoup(body_content, 'html.parser')
+            table = soup.find("table")
+            if table:
+                table["style"] = "border: none; border-collapse: collapse; width: 100%;"
+
             # Email content with introductory message
             styled_body = f"""
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
@@ -77,8 +83,8 @@ def send_client_list_email():
                 <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
 
                 <h2 style="color: #004085; text-align: center;">Client List Report</h2>
-                <div style="border: 1px solid #ddd; padding: 15px;">
-                    {body_content}
+                <div style="padding: 15px;">  <!-- Removed border -->
+                    {str(soup)}
                 </div>
                 <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
                     This is an automated email from the Tino Solutions System Database.
@@ -96,6 +102,7 @@ def send_client_list_email():
                 print(f"ERROR: Failed to send email: {e}")
         else:
             print("ERROR: Client list HTML is empty. Email not sent.")
+
 
 if __name__ == "__main__":
     send_client_list_email()
