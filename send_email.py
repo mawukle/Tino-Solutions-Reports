@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import os
 import datetime
 import pytz
 from flask_mail import Message
@@ -29,9 +28,9 @@ def is_scheduled_time():
     return False
 
 def fetch_client_list_html():
-    """Retrieve the rendered HTML content from the /client_list route and extract only the Tino Team table."""
+    """Retrieve the rendered HTML content from the /client_list route with the email_mode filter applied."""
     with app.test_client() as client:
-        response = client.get('/client_list')
+        response = client.get('/client_list?email_mode=1')  # Use the email mode filter
         if response.status_code == 200:
             full_html = response.get_data(as_text=True)
 
@@ -67,9 +66,10 @@ def send_client_list_email():
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
                 <p>Dear Team,</p>
                 <p>
-                    Please find below details of installed systems for the past 1 year.
+                    Please find below details of installed systems for the past 7 months.
                     Kindly click on any of the client names in
-                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list" style="color: #004085; text-decoration: none; font-weight: bold;">
+                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list?email_mode=1"
+                    style="color: #004085; text-decoration: none; font-weight: bold;">
                         our client list
                     </a>
                     if you need further details about a given client.

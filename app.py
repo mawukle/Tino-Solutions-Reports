@@ -1351,13 +1351,27 @@ class Client(db.Model):
 # Route for displaying the client list sorted by Client_Unique_ID
 from datetime import datetime
 
+from flask import request, render_template  # Import request to check query parameters
+from datetime import datetime, timedelta
+from sqlalchemy import and_, func, text, or_
+import logging
+
 @app.route('/client_list', methods=['GET'])
 def client_list():
     message = request.args.get('message', '')  # Retrieve the message from query params if available
+    email_mode = request.args.get("email_mode", default=0, type=int)  # Check for email mode
 
     try:
-        # Query the clients
-        clients = Client_List.query.all()
+        # Base query: Fetch all clients
+        clients_query = Client_List.query
+
+        # If email_mode is active, filter clients based on the last 7 months
+        if email_mode:
+            seven_months_ago = datetime.utcnow() - timedelta(days=30 * 7)
+            clients_query = clients_query.filter(Client_List.start_date >= seven_months_ago)
+
+        # Execute the query
+        clients = clients_query.all()
 
         # Query for Inverter data
         inverter_data = {
@@ -1515,8 +1529,8 @@ def client_list():
         other_clients=other_clients,
         message=message,
         static_url="/static/style.css"  # Pass static_url explicitly
-
     )
+
 
 from collections import defaultdict
 
