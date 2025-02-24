@@ -1367,8 +1367,8 @@ def client_list():
 
         # If email_mode is active, filter clients based on the last 7 months
         if email_mode:
-            seven_months_ago = datetime.utcnow() - timedelta(days=30 * 7)
-            clients_query = clients_query.filter(Client_List.start_date >= seven_months_ago)
+            fourteen_months_ago = datetime.utcnow() - timedelta(days=30 * 14)
+            clients_query = clients_query.filter(Client_List.start_date >= fourteen_months_ago)
 
         # Execute the query
         clients = clients_query.all()

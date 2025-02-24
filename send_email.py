@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "18:00",
-    "2025-02-24": "18:10",
+    "2025-02-24": "18:20",
+    "2025-02-24": "18:30",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -66,7 +66,7 @@ def send_client_list_email():
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
                 <p>Dear Team,</p>
                 <p>
-                    Please find below details of installed systems for the past 7 months.
+                    Please find below details of installed systems for the past 12 months.
                     Kindly click on any of the client names in
                     <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list"
                     style="color: #004085; text-decoration: none; font-weight: bold;">
