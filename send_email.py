@@ -8,8 +8,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "12:00",
-    "2025-02-24": "12:10",
+    "2025-02-24": "12:30",
+    "2025-02-24": "12:40",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -49,32 +49,46 @@ def fetch_client_list_html():
             return None
 
 def send_client_list_email():
-    """Send an email with only the 'Installed by Tino Team' table."""
+    """Send an email with only the 'Installed by Tino Team' table and an introductory message."""
     if not is_scheduled_time():
         print(f"Not the scheduled time ({datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}). Exiting.")
         return
 
-    recipients = ["padiemmanuelkwesi@yahoo.com", "padiemmanuelkwesi@gmail.com"]
+    recipient = "padiemmanuelkwesi@yahoo.com"  # Main recipient
+    cc_recipients = ["padiemmanuelkwesi@gmail.com"]  # CC recipient
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
         body_content = fetch_client_list_html()
 
         if body_content:
-            # Apply inline styles
+            # Email content with introductory message
             styled_body = f"""
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
+                <p>Dear Team,</p>
+                <p>
+                    Please find below details of installed systems for the past 1 year.
+                    Kindly click on any of the client names in
+                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list" style="color: #004085; text-decoration: none; font-weight: bold;">
+                        our client list
+                    </a>
+                    if you need further details about a given client.
+                </p>
+                <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+
                 <h2 style="color: #004085; text-align: center;">Client List Report</h2>
                 <div style="border: 1px solid #ddd; padding: 15px; background-color: #fff;">
                     {body_content}
                 </div>
                 <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
-                    This is an automated email from the Tino Solutions system.
+                    This is an automated email from the Tino Solutions System Database.
                 </p>
             </div>
             """
 
-            msg = Message(subject, recipients=recipients, html=styled_body)
+            # Create the email message
+            msg = Message(subject, recipients=[recipient], cc=cc_recipients, html=styled_body)
+
             try:
                 mail.send(msg)
                 print("Email sent successfully!")
