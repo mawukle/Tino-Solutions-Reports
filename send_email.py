@@ -68,7 +68,7 @@ def send_client_list_email():
                 <p>
                     Please find below details of installed systems for the past 7 months.
                     Kindly click on any of the client names in
-                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list?email_mode=1"
+                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list"
                     style="color: #004085; text-decoration: none; font-weight: bold;">
                         our client list
                     </a>
