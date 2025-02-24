@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "10:40",
-    "2025-02-24": "10:50",
+    "2025-02-24": "11:00",
+    "2025-02-24": "11:10",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -57,11 +57,13 @@ def send_client_list_email():
         body_content = fetch_client_list_html()
 
         if body_content:
-            # Apply inline styles
+            # Apply improved inline styles
             styled_body = f"""
-            <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
-                <h2 style="color: #004085; text-align: center;">Client List Report</h2>
-                <div style="border: 1px solid #ddd; padding: 15px; background-color: #fff;">
+            <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f4f4f4;">
+                <h2 style="color: #ffffff; background-color: #004085; padding: 10px; text-align: center; border-radius: 5px;">
+                    Client List Report
+                </h2>
+                <div style="border: 1px solid #ddd; padding: 15px; background-color: #ffffff; border-radius: 5px;">
                     {body_content}
                 </div>
                 <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
