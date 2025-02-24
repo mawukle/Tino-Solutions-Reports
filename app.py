@@ -1350,14 +1350,37 @@ class Client(db.Model):
 
 # Route for displaying the client list sorted by Client_Unique_ID
 from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func, text, or_
+from flask import render_template, request
+from app import db
+import logging
 
 @app.route('/client_list', methods=['GET'])
 def client_list():
-    message = request.args.get('message', '')  # Retrieve the message from query params if available
+    message = request.args.get('message', '')  # Retrieve any optional message
+    email_mode = request.args.get('email_mode', '0') == '1'  # Check if we should filter the last 7 months
 
     try:
+        # Get the date range for email mode (last 7 months excluding current month)
+        today = datetime.utcnow()
+        if email_mode:
+            start_date = (today.replace(day=1) - timedelta(days=1)).replace(day=1) - timedelta(days=6 * 30)
+            end_date = today.replace(day=1) - timedelta(days=1)
+        else:
+            start_date, end_date = None, None  # No date filtering for full data
+
         # Query the clients
-        clients = Client_List.query.all()
+        clients_query = Client_List.query
+
+        # Apply date filtering only if `email_mode` is active
+        if email_mode:
+            clients_query = clients_query.join(client_items).filter(
+                client_items.component.in_(['Inverter', 'Batteries', 'Solar Panels']),
+                client_items.date.between(start_date, end_date)
+            )
+
+        clients = clients_query.all()
 
         # Query for Inverter data
         inverter_data = {
@@ -1428,7 +1451,7 @@ def client_list():
             ).filter(client_items.component == 'Solar Panels').group_by(Client_List.Client_Name).all()
         }
 
-        # Parse and format the latest invoice date
+        # Parse and format the latest installation date
         installation_date_data = {
             row.Client_Name: (
                 row.latest_installation_date.strftime('%d %B, %Y')
@@ -1462,7 +1485,7 @@ def client_list():
                 inverter_data.get(client.Client_Name, {}).get("total_inverter_capacity", ''),
                 battery_data.get(client.Client_Name, {}).get("total_battery_capacity", ''),
                 solar_panel_data.get(client.Client_Name, {}).get("total_solar_panel_capacity", ''),
-                installation_date_data.get(client.Client_Name, ''),  # Invoice Date
+                installation_date_data.get(client.Client_Name, ''),  # Installation Date
                 inverter_data.get(client.Client_Name, {}).get("installed_by", '') or
                 battery_data.get(client.Client_Name, {}).get("installed_by", '') or
                 solar_panel_data.get(client.Client_Name, {}).get("installed_by", '')
@@ -1474,7 +1497,7 @@ def client_list():
             elif client_row[12] == 'Client':
                 client_clients.append(client_row)
 
-        # Sort by Invoice Date (descending)
+        # Sort by Installation Date (descending)
         tino_clients.sort(
             key=lambda x: datetime.strptime(x[11], '%d %B, %Y') if x[11] else datetime.min, reverse=True
         )
@@ -1515,8 +1538,8 @@ def client_list():
         other_clients=other_clients,
         message=message,
         static_url="/static/style.css"  # Pass static_url explicitly
-
     )
+
 
 from collections import defaultdict
 

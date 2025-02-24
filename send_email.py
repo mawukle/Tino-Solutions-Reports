@@ -8,8 +8,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "12:30",
-    "2025-02-24": "12:40",
+    "2025-02-24": "14:50",
+    "2025-02-24": "15:00",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -28,10 +28,10 @@ def is_scheduled_time():
         return time_difference <= 600  # 600 seconds = 10 minutes
     return False
 
-def fetch_client_list_html():
+def fetch_client_list_html(email_mode=False):
     """Retrieve the rendered HTML content from the /client_list route and extract only the Tino Team table."""
     with app.test_client() as client:
-        response = client.get('/client_list')
+        response = client.get(f'/client_list?email_mode={"1" if email_mode else "0"}')
         if response.status_code == 200:
             full_html = response.get_data(as_text=True)
 
@@ -58,8 +58,8 @@ def send_client_list_email():
     cc_recipients = ["padiemmanuelkwesi@gmail.com"]  # CC recipient
 
     with app.app_context():  # Ensure Flask context is available
-        subject = "Client List Report"
-        body_content = fetch_client_list_html()
+        subject = "Client List Report (Last 7 Months)"
+        body_content = fetch_client_list_html(email_mode=True)  # Fetch data for last 7 months
 
         if body_content:
             # Email content with introductory message
@@ -67,7 +67,7 @@ def send_client_list_email():
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
                 <p>Dear Team,</p>
                 <p>
-                    Please find below details of installed systems for the past 1 year.
+                    Please find below details of installed systems for the past 7 months.
                     Kindly click on any of the client names in
                     <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list" style="color: #004085; text-decoration: none; font-weight: bold;">
                         our client list
@@ -76,7 +76,7 @@ def send_client_list_email():
                 </p>
                 <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
 
-                <h2 style="color: #004085; text-align: center;">Client List Report</h2>
+                <h2 style="color: #004085; text-align: center;">Client List Report (Last 7 Months)</h2>
                 <div style="border: 1px solid #ddd; padding: 15px; background-color: #fff;">
                     {body_content}
                 </div>
