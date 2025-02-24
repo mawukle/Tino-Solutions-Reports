@@ -18,37 +18,39 @@
 
         <!-- Table for Tino Team Installations -->
         <h2>Installed by Tino Team</h2>
-        <form action="/update_client" method="post">
-            <div class="table-container">
-                <table>
-                  <thead>
-                      <tr>
-                          <th>Client Name</th>
-                          <th>Town</th>
-                          <th>Phone Number</th>
-                          <th>Inverter Capacity (kVA/kW)</th>
-                          <th>Battery Capacity (kWh)</th>
-                          <th>Solar Panel Capacity (kVA/kW)</th>
-                          <th>Installation Date</th>
-                      </tr>
-                  </thead>
+        <div id="tino_team_table">  <!-- Unique identifier added -->
+            <form action="/update_client" method="post">
+                <div class="table-container">
+                    <table>
+                      <thead>
+                          <tr>
+                              <th>Client Name</th>
+                              <th>Town</th>
+                              <th>Phone Number</th>
+                              <th>Inverter Capacity (kVA/kW)</th>
+                              <th>Battery Capacity (kWh)</th>
+                              <th>Solar Panel Capacity (kVA/kW)</th>
+                              <th>Installation Date</th>
+                          </tr>
+                      </thead>
 
-                  <tbody>
-                      {% for client in tino_clients %}
-                      <tr class="clickable-row" data-href="/client_details/{{ client[0] }}">
-                          <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
-                          <td><input type="text" name="towns" value="{{ client[2] }}"></td>
-                          <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
-                          <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
-                          <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
-                          <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
-                          <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
-                      </tr>
-                      {% endfor %}
-                  </tbody>
-                </table>
-            </div>
-        </form>
+                      <tbody>
+                          {% for client in tino_clients %}
+                          <tr class="clickable-row" data-href="/client_details/{{ client[0] }}">
+                              <td><input type="text" name="client_names" value="{{ client[1] }}"></td>
+                              <td><input type="text" name="towns" value="{{ client[2] }}"></td>
+                              <td><input type="text" name="phone_numbers" value="{{ client[4] }}"></td>
+                              <td><input type="text" name="inverter_capacities" value="{{ client[8] }}"></td>
+                              <td><input type="text" name="battery_capacities" value="{{ client[9] }}"></td>
+                              <td><input type="text" name="solar_panel_capacities" value="{{ client[10] }}"></td>
+                              <td><input type="text" name="installation_dates" value="{{ client[11] }}"></td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </form>
+        </div> <!-- End of tino_team_table -->
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
