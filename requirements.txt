@@ -1,6 +1,7 @@
 alembic==1.13.3
 arabic-reshaper==3.0.0
 asn1crypto==1.5.1
+beautifulsoup4==4.13.3
 blinker==1.8.2
 boto3==1.35.34
 botocore==1.35.34
@@ -46,6 +47,7 @@ reportlab==4.2.5
 requests==2.32.3
 s3transfer==0.10.2
 six==1.16.0
+soupsieve==2.6
 SQLAlchemy==2.0.35
 svglib==1.5.1
 tinycss2==1.4.0
