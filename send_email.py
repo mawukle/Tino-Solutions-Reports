@@ -7,9 +7,9 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "18:40",
     "2025-02-24": "18:50",
-    "2025-03-29": "08:00",
+    "2025-02-28": "08:00",
+    "2025-03-28": "08:00",
     "2025-04-30": "08:00",
 }
 
@@ -54,7 +54,7 @@ def send_client_list_email():
         return
 
     recipient = "padiemmanuelkwesi@yahoo.com"  # Main recipient
-    cc_recipients = ["padiemmanuelkwesi@gmail.com","emmanuel@tinosolutions.com"]  # CC recipient
+    cc_recipients = ["padiemmanuelkwesi@gmail.com", "emmanuel@tinosolutions.com"]  # CC recipient
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
@@ -77,8 +77,10 @@ def send_client_list_email():
                 <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
 
                 <h2 style="color: #004085; text-align: center;">Client List Report</h2>
-                <div style="border: 1px solid #ddd; padding: 15px; background-color: #fff;">
-                    {body_content}
+                <div style="border: 1px solid #ddd; padding: 15px; background-color: #fff; max-width: 100%; overflow: auto;">
+                    <div style="padding: 10px; margin: 0 auto;">
+                        {body_content}
+                    </div>
                 </div>
                 <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
                     This is an automated email from the Tino Solutions System Database.
