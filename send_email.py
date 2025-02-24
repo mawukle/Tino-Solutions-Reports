@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-24": "18:20",
-    "2025-02-24": "18:30",
+    "2025-02-24": "18:40",
+    "2025-02-24": "18:50",
     "2025-03-29": "08:00",
     "2025-04-30": "08:00",
 }
@@ -54,7 +54,7 @@ def send_client_list_email():
         return
 
     recipient = "padiemmanuelkwesi@yahoo.com"  # Main recipient
-    cc_recipients = ["padiemmanuelkwesi@gmail.com"]  # CC recipient
+    cc_recipients = ["padiemmanuelkwesi@gmail.com","emmanuel@tinosolutions.com"]  # CC recipient
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
