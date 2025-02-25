@@ -3814,7 +3814,7 @@ def get_projects():
 
         # Sort projects by Start Date in descending order
         project_list.sort(
-            key=lambda x: datetime.strptime(x[5], '%d %B, %Y') if x[6] else datetime.min, reverse=True
+            key=lambda x: datetime.strptime(x[6], '%d %B, %Y') if x[6] else datetime.min, reverse=True
         )
 
     except Exception as e:
