@@ -142,14 +142,14 @@ class sales_by_item(db.Model):
 class projects(db.Model):
     __tablename__ = 'projects'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Client_Name = db.Column(db.String(255), nullable=False)
-    Town = db.Column(db.String(255), nullable=True)
-    Phone_Number = db.Column(db.String(50), nullable=True)
-    Sales_Person = db.Column(db.String(255), nullable=True)
-    Lead_Installer = db.Column(db.String(255), nullable=True)
-    Start_Date = db.Column(db.Date, nullable=True)
-    Commissioning_Date = db.Column(db.Date, nullable=True)
+    project_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    client_name = db.Column(db.String(255), nullable=False)
+    town = db.Column(db.String(255), nullable=True)
+    phone_number = db.Column(db.String(50), nullable=True)
+    sales_person = db.Column(db.String(255), nullable=True)
+    lead_installer = db.Column(db.String(255), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    commissioning_date = db.Column(db.Date, nullable=True)
 
     def __repr__(self):
         return f"<projects(Client_Name={self.Client_Name}, Town={self.Town}, Start_Date={self.Start_Date})>"
