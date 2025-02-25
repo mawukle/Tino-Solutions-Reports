@@ -3786,13 +3786,13 @@ def get_projects():
         # Fetch all projects
         projects_query = db.session.query(
             projects.project_id,  # Include project_id as the first column
-            projects.Client_Name,
-            projects.Town,
-            projects.Phone_Number,
-            projects.Sales_Person,
-            projects.Lead_Installer,
-            projects.Start_Date,
-            projects.Commissioning_Date
+            projects.client_name,
+            projects.town,
+            projects.phone_number,
+            projects.sales_person,
+            projects.lead_installer,
+            projects.start_date,
+            projects.commissioning_date
         ).distinct()
 
         projects_list = projects_query.all()  # Rename variable to 'projects_list' to avoid further conflicts
@@ -3801,13 +3801,13 @@ def get_projects():
         project_list = [
             [
                 project.project_id,  # Ensure this is the first element
-                project.Client_Name or '',
-                project.Town or '',
-                project.Phone_Number or '',
-                project.Sales_Person or '',
-                project.Lead_Installer or '',
-                project.Start_Date.strftime('%d %B, %Y') if project.Start_Date else '',
-                project.Commissioning_Date.strftime('%d %B, %Y') if project.Commissioning_Date else ''
+                project.client_name or '',
+                project.town or '',
+                project.phone_number or '',
+                project.sales_person or '',
+                project.lead_installer or '',
+                project.start_date.strftime('%d %B, %Y') if project.start_date else '',
+                project.commissioning_date.strftime('%d %B, %Y') if project.commissioning_date else ''
             ]
             for project in projects_list
         ]

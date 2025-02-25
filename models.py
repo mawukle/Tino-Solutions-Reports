@@ -152,4 +152,4 @@ class projects(db.Model):
     commissioning_date = db.Column(db.Date, nullable=True)
 
     def __repr__(self):
-        return f"<projects(Client_Name={self.Client_Name}, Town={self.Town}, Start_Date={self.Start_Date})>"
+        return f"<projects(client_name={self.client_name}, town={self.Town}, start_date={self.start_date})>"
