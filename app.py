@@ -1362,13 +1362,20 @@ def client_list():
     email_mode = request.args.get("email_mode", default=0, type=int)  # Check for email mode
 
     try:
-        # Base query: Fetch all clients
-        clients_query = Client_List.query
+        # Define the date threshold (14 months ago)
+        fourteen_months_ago = datetime.utcnow() - timedelta(days=30 * 14)
 
-        # If email_mode is active, filter clients based on the last 7 months
+        # Base query: Fetch all clients
+        clients_query = db.session.query(Client_List).distinct()
+
+        # If email_mode is active, filter clients based on the last 14 months using installation date
         if email_mode:
-            fourteen_months_ago = datetime.utcnow() - timedelta(days=30 * 14)
-            clients_query = clients_query.filter(Client_List.start_date >= fourteen_months_ago)
+            clients_query = clients_query.join(
+                client_items, or_(
+                    client_items.client_name == Client_List.Client_Name,
+                    client_items.client_name == Client_List.Alias_Name
+                )
+            ).filter(client_items.date >= fourteen_months_ago)
 
         # Execute the query
         clients = clients_query.all()
