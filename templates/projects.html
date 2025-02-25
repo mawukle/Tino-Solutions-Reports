@@ -6,6 +6,7 @@
     <title>Projects</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Include flatpickr -->
     <style>
         .table-container {
             overflow-x: auto;
@@ -65,8 +66,8 @@
                         <td contenteditable="true">{{ project[3] }}</td>
                         <td contenteditable="true">{{ project[4] }}</td>
                         <td contenteditable="true">{{ project[5] }}</td>
-                        <td contenteditable="true">{{ project[6] }}</td>
-                        <td contenteditable="true">{{ project[7] }}</td>
+                        <td contenteditable="true" class="date-picker">{{ project[6] }}</td>
+                        <td contenteditable="true" class="date-picker">{{ project[7] }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -88,6 +89,24 @@
             const saveButton = document.getElementById("save-changes");
             const addRowButton = document.getElementById("add-row");
             const tableBody = document.getElementById("projects-table-body");
+
+            // Initialize date picker for Start Date and Commissioning Date
+            function initializeDatePickers() {
+                document.querySelectorAll(".date-picker").forEach(cell => {
+                    cell.addEventListener("click", function () {
+                        flatpickr(this, {
+                            dateFormat: "d F, Y",
+                            defaultDate: this.innerText.trim() || null,
+                            onClose: function (selectedDates, dateStr) {
+                                if (dateStr) {
+                                    cell.innerText = dateStr; // Ensure selected date is formatted correctly
+                                }
+                            }
+                        }).open();
+                    });
+                });
+            }
+            initializeDatePickers();
 
             // Save changes
             saveButton.addEventListener("click", () => {
@@ -132,10 +151,11 @@
                     <td contenteditable="true"></td>
                     <td contenteditable="true"></td>
                     <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
+                    <td contenteditable="true" class="date-picker"></td>
+                    <td contenteditable="true" class="date-picker"></td>
                 `;
                 tableBody.appendChild(newRow);
+                initializeDatePickers(); // Reinitialize date picker for new rows
             });
         });
     </script>
