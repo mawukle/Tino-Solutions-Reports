@@ -3785,13 +3785,13 @@ def projects():
     try:
         # Fetch all projects
         projects_query = db.session.query(
-            Projects.Client_Name,
-            Projects.Town,
-            Projects.Phone_Number,
-            Projects.Sales_Person,
-            Projects.Lead_Installer,
-            Projects.Start_Date,
-            Projects.Commissioning_Date
+            projects.Client_Name,
+            projects.Town,
+            projects.Phone_Number,
+            projects.Sales_Person,
+            projects.Lead_Installer,
+            projects.Start_Date,
+            projects.Commissioning_Date
         ).distinct()
 
         projects = projects_query.all()

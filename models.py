@@ -139,7 +139,7 @@ class sales_by_item(db.Model):
     def __repr__(self):
         return f"<sales_by_item {self.id}, {self.item_description}, {self.date}, {self.document_no}, {self.customer}, {self.qty_sold}>"
 
-class Projects(db.Model):
+class projects(db.Model):
     __tablename__ = 'projects'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -152,4 +152,4 @@ class Projects(db.Model):
     Commissioning_Date = db.Column(db.Date, nullable=True)
 
     def __repr__(self):
-        return f"<Projects(Client_Name={self.Client_Name}, Town={self.Town}, Start_Date={self.Start_Date})>"
+        return f"<projects(Client_Name={self.Client_Name}, Town={self.Town}, Start_Date={self.Start_Date})>"
