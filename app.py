@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items, sales_by_item  # Import db only once from models
+from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items, sales_by_item, projects  # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text, or_
