@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container_1">
+        <img src="/static/logo.png" alt="Logo" class="logo">
+        <a href="/" class="back-link">The Renewable Energy Experts</a>
+
+        <h1>TINO SOLUTIONS LIMITED<br>PROJECTS</h1>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Town</th>
+                        <th>Phone Number</th>
+                        <th>Sales Person</th>
+                        <th>Lead Installer</th>
+                        <th>Start Date</th>
+                        <th>Commissioning Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for project in projects %}
+                    <tr class="clickable-row" data-href="/project_details/{{ project[0] }}">
+                        <td>{{ project[1] }}</td>
+                        <td>{{ project[2] }}</td>
+                        <td>{{ project[3] }}</td>
+                        <td>{{ project[4] }}</td>
+                        <td>{{ project[5] }}</td>
+                        <td>{{ project[6] }}</td>
+                        <td>{{ project[7] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const rows = document.querySelectorAll('.clickable-row');
+                rows.forEach(row => {
+                    row.addEventListener('click', () => {
+                        const href = row.getAttribute('data-href');
+                        if (href) {
+                            window.location.href = href;
+                        }
+                    });
+                });
+            });
+        </script>
+
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

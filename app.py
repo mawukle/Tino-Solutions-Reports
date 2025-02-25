@@ -3778,6 +3778,12 @@ def serialize_row(row):
 
 
 
+@app.route('/projects')
+def projects():
+    query = "SELECT * FROM projects"
+    cursor.execute(query)
+    projects = cursor.fetchall()
+    return render_template('projects.html', projects=projects)
 
 
 
