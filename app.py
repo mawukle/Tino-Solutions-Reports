@@ -3779,7 +3779,7 @@ def serialize_row(row):
 
 
 @app.route('/projects', methods=['GET'])
-def projects():
+def get_projects():
     message = request.args.get('message', '')  # Retrieve message from query params if available
 
     try:
@@ -3794,7 +3794,7 @@ def projects():
             projects.Commissioning_Date
         ).distinct()
 
-        projects = projects_query.all()
+        projects_list = projects_query.all()  # Rename variable to 'projects_list' to avoid further conflicts
 
         # Convert project data into a structured list
         project_list = [
@@ -3807,7 +3807,7 @@ def projects():
                 project.Start_Date.strftime('%d %B, %Y') if project.Start_Date else '',
                 project.Commissioning_Date.strftime('%d %B, %Y') if project.Commissioning_Date else ''
             ]
-            for project in projects
+            for project in projects_list
         ]
 
         # Sort projects by Start Date in descending order
@@ -3822,9 +3822,9 @@ def projects():
 
     return render_template(
         'projects.html',
-        projects=project_list,
+        projects=project_list,  # Pass renamed variable
         message=message,
-        static_url="/static/style.css"  # Pass static_url explicitly
+        static_url="/static/style.css"
     )
 
 
