@@ -3830,6 +3830,46 @@ def get_projects():
     )
 
 
+@app.route('/update_projects', methods=['POST'])
+def update_projects():
+    data = request.json  # Get JSON data from the request
+    updated_projects = data.get("projects", [])
+
+    try:
+        for project in updated_projects:
+            project_id = project.get("project_id")
+
+            if project_id:  # Update existing project
+                existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
+                if existing_project:
+                    existing_project.client_name = project["client_name"]
+                    existing_project.town = project["town"]
+                    existing_project.phone_number = project["phone_number"]
+                    existing_project.sales_person = project["sales_person"]
+                    existing_project.lead_installer = project["lead_installer"]
+                    existing_project.start_date = datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None
+                    existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+            else:  # Add new project
+                new_project = projects(
+                    client_name=project["client_name"],
+                    town=project["town"],
+                    phone_number=project["phone_number"],
+                    sales_person=project["sales_person"],
+                    lead_installer=project["lead_installer"],
+                    start_date=datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None,
+                    commissioning_date=datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+                )
+                db.session.add(new_project)
+
+        db.session.commit()
+        return jsonify({"message": "Projects updated successfully"})
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating projects: {e}")
+        return jsonify({"message": "Error updating projects"}), 500
+
+
 
 if __name__ == '__main__':
 
