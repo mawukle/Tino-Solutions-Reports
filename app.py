@@ -3785,6 +3785,7 @@ def get_projects():
     try:
         # Fetch all projects
         projects_query = db.session.query(
+            projects.id,  # Include project_id as the first column
             projects.Client_Name,
             projects.Town,
             projects.Phone_Number,
@@ -3799,6 +3800,7 @@ def get_projects():
         # Convert project data into a structured list
         project_list = [
             [
+                project.id,  # Ensure this is the first element
                 project.Client_Name or '',
                 project.Town or '',
                 project.Phone_Number or '',
