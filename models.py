@@ -24,7 +24,7 @@ class Client_List(db.Model):
     sales_person = db.Column(db.String(100), nullable=True)
     lead_installer = db.Column(db.String(100), nullable=True)
     start_date = db.Column(db.Date, nullable=True)
-    commissioning_date = db.Column(db.Date, nullable=True)  
+    commissioning_date = db.Column(db.Date, nullable=True)
 
     jobs = relationship('Job_Tracking', backref='client', lazy=True)
 
@@ -138,3 +138,18 @@ class sales_by_item(db.Model):
 
     def __repr__(self):
         return f"<sales_by_item {self.id}, {self.item_description}, {self.date}, {self.document_no}, {self.customer}, {self.qty_sold}>"
+
+class Projects(db.Model):
+    __tablename__ = 'projects'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Client_Name = db.Column(db.String(255), nullable=False)
+    Town = db.Column(db.String(255), nullable=True)
+    Phone_Number = db.Column(db.String(50), nullable=True)
+    Sales_Person = db.Column(db.String(255), nullable=True)
+    Lead_Installer = db.Column(db.String(255), nullable=True)
+    Start_Date = db.Column(db.Date, nullable=True)
+    Commissioning_Date = db.Column(db.Date, nullable=True)
+
+    def __repr__(self):
+        return f"<Projects(Client_Name={self.Client_Name}, Town={self.Town}, Start_Date={self.Start_Date})>"

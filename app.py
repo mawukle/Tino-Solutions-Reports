@@ -3778,12 +3778,54 @@ def serialize_row(row):
 
 
 
-@app.route('/projects')
+@app.route('/projects', methods=['GET'])
 def projects():
-    query = "SELECT * FROM projects"
-    cursor.execute(query)
-    projects = cursor.fetchall()
-    return render_template('projects.html', projects=projects)
+    message = request.args.get('message', '')  # Retrieve message from query params if available
+
+    try:
+        # Fetch all projects
+        projects_query = db.session.query(
+            Projects.Client_Name,
+            Projects.Town,
+            Projects.Phone_Number,
+            Projects.Sales_Person,
+            Projects.Lead_Installer,
+            Projects.Start_Date,
+            Projects.Commissioning_Date
+        ).distinct()
+
+        projects = projects_query.all()
+
+        # Convert project data into a structured list
+        project_list = [
+            [
+                project.Client_Name or '',
+                project.Town or '',
+                project.Phone_Number or '',
+                project.Sales_Person or '',
+                project.Lead_Installer or '',
+                project.Start_Date.strftime('%d %B, %Y') if project.Start_Date else '',
+                project.Commissioning_Date.strftime('%d %B, %Y') if project.Commissioning_Date else ''
+            ]
+            for project in projects
+        ]
+
+        # Sort projects by Start Date in descending order
+        project_list.sort(
+            key=lambda x: datetime.strptime(x[5], '%d %B, %Y') if x[5] else datetime.min, reverse=True
+        )
+
+    except Exception as e:
+        logging.error(f"Error fetching projects: {e}")
+        message = 'Database query failed'
+        project_list = []
+
+    return render_template(
+        'projects.html',
+        projects=project_list,
+        message=message,
+        static_url="/static/style.css"  # Pass static_url explicitly
+    )
 
 
 
