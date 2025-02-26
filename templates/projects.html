@@ -68,6 +68,7 @@
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
+                                <option value="" selected>Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}">{{ member }}</option>
                                 {% endfor %}
@@ -102,6 +103,7 @@
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
+                                <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
                                     {{ member }}
@@ -112,6 +114,7 @@
 
                         <td>
                             <select class="lead-installer">
+                                <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
                                     {{ member }}
@@ -149,6 +152,7 @@
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
+                                <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
                                     {{ member }}
@@ -159,6 +163,7 @@
 
                         <td>
                             <select class="lead-installer">
+                                <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
                                     {{ member }}
