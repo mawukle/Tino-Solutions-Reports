@@ -3800,14 +3800,14 @@ def get_projects():
         # Convert project data into a structured list
         project_list = [
             [
-                project.project_id,  # Ensure this is the first element
+                project.project_id,
                 project.client_name or '',
                 project.town or '',
                 project.phone_number or '',
                 project.sales_person or '',
                 project.lead_installer or '',
-                project.start_date.strftime('%d %B, %Y') if project.start_date else '',
-                project.commissioning_date.strftime('%d %B, %Y') if project.commissioning_date else ''
+                project.start_date.strftime('%Y-%m-%d') if project.start_date else '',  # Convert to YYYY-MM-DD
+                project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
             ]
             for project in projects_list
         ]

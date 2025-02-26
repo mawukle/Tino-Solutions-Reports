@@ -66,12 +66,8 @@
                         <td contenteditable="true">{{ project[3] }}</td>
                         <td contenteditable="true">{{ project[4] }}</td>
                         <td contenteditable="true">{{ project[5] }}</td>
-                        <td>
-                            <input type="text" class="date-picker" value="{{ project[6] }}" />
-                        </td>
-                        <td>
-                            <input type="text" class="date-picker" value="{{ project[7] }}" />
-                        </td>
+                        <td><input type="date" class="date-input" value="{{ project[6] }}" /></td>
+                        <td><input type="date" class="date-input" value="{{ project[7] }}" /></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -114,7 +110,7 @@
                 tableBody.querySelectorAll("tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
                     const cells = row.querySelectorAll("td:not(:has(input))"); // Select non-input cells
-                    const inputs = row.querySelectorAll(".date-picker");
+                    const inputs = row.querySelectorAll(".date-input");
 
                     let projectData = {
                         project_id: projectID,
@@ -123,8 +119,8 @@
                         phone_number: cells[2]?.innerText.trim() || "",
                         sales_person: cells[3]?.innerText.trim() || "",
                         lead_installer: cells[4]?.innerText.trim() || "",
-                        start_date: inputs[0]?.value.trim() || "",
-                        commissioning_date: inputs[1]?.value.trim() || ""
+                        start_date: inputs[0]?.value || "",  // No need for custom formatting
+                        commissioning_date: inputs[1]?.value || ""
                     };
 
                     updatedProjects.push(projectData);
