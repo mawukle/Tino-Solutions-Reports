@@ -3780,7 +3780,7 @@ def serialize_row(row):
 
 @app.route('/projects', methods=['GET'])
 def get_projects():
-    message = request.args.get('message', '')  # Retrieve message if available
+    message = request.args.get('message', '')
 
     try:
         # Fetch all projects
@@ -3796,6 +3796,10 @@ def get_projects():
         ).distinct()
 
         projects_list = projects_query.all()
+
+        # Fetch all team members for dropdown
+        team_members = db.session.query(Team_Members.Team_Member_Name).all()
+        team_members = [member.Team_Member_Name for member in team_members]  # Convert to list of names
 
         # Categorize projects
         new_projects = []
@@ -3817,7 +3821,7 @@ def get_projects():
             # Categorization logic
             if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
-            elif project_data["commissioning_date"]:  # Check for completion first
+            elif project_data["commissioning_date"]:  # Completed projects
                 completed_projects.append(project_data)
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
@@ -3827,65 +3831,50 @@ def get_projects():
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
+            team_members=team_members,  # Pass team members to template
             message=message
         )
 
     except Exception as e:
         logging.error(f"Error fetching projects: {e}")
-        return render_template('projects.html', message='Database query failed', new_projects=[], ongoing_projects=[], completed_projects=[])
+        return render_template('projects.html', message='Database query failed', new_projects=[], ongoing_projects=[], completed_projects=[], team_members=[])
 
 
 
 @app.route('/update_projects', methods=['POST'])
 def update_projects():
-    data = request.json
-    updated_projects = data.get("projects", [])
-
     try:
-        for project in updated_projects:
-            project_id = project.get("project_id")
+        data = request.json.get('projects', [])
 
-            if project_id:  # If an existing project ID is provided, update it
+        for project in data:
+            project_id = project.get('project_id')
+            if project_id:  # Update existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
-                    existing_project.client_name = project["client_name"]
-                    existing_project.town = project["town"]
-                    existing_project.phone_number = project["phone_number"]
-                    existing_project.sales_person = project["sales_person"]
-                    existing_project.lead_installer = project["lead_installer"]
-
-                    try:
-                        existing_project.start_date = datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None
-                        existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None
-                    except ValueError as e:
-                        return jsonify({"message": f"Invalid date format: {e}"}), 400
-
-            else:  # Insert new project only if it does not already exist
-                existing_project = db.session.query(projects).filter_by(
-                    client_name=project["client_name"],
-                    town=project["town"],
-                    phone_number=project["phone_number"],
-                    sales_person=project["sales_person"]
-                ).first()
-
-                if not existing_project:  # Prevent duplicates
-                    new_project = projects(
-                        client_name=project["client_name"],
-                        town=project["town"],
-                        phone_number=project["phone_number"],
-                        sales_person=project["sales_person"],
-                        lead_installer=project["lead_installer"],
-                        start_date=datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None,
-                        commissioning_date=datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None
-                    )
-                    db.session.add(new_project)
+                    existing_project.client_name = project.get('client_name', '')
+                    existing_project.town = project.get('town', '')
+                    existing_project.phone_number = project.get('phone_number', '')
+                    existing_project.sales_person = project.get('sales_person', '')
+                    existing_project.lead_installer = project.get('lead_installer', '')
+                    existing_project.start_date = project.get('start_date', None)
+                    existing_project.commissioning_date = project.get('commissioning_date', None)
+            else:  # Insert new project
+                new_project = projects(
+                    client_name=project.get('client_name', ''),
+                    town=project.get('town', ''),
+                    phone_number=project.get('phone_number', ''),
+                    sales_person=project.get('sales_person', ''),
+                    lead_installer=project.get('lead_installer', ''),
+                    start_date=project.get('start_date', None),
+                    commissioning_date=project.get('commissioning_date', None)
+                )
+                db.session.add(new_project)
 
         db.session.commit()
-        return jsonify({"message": "Projects updated successfully"}), 200
-
+        return jsonify({"message": "Projects updated successfully"})
     except Exception as e:
         logging.error(f"Error updating projects: {e}")
-        return jsonify({"message": "Database update failed"}), 500
+        return jsonify({"message": "Error updating projects"}), 500
 
 
 
