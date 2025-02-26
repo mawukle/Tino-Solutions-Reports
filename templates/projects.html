@@ -143,7 +143,6 @@
         document.addEventListener("DOMContentLoaded", () => {
             const saveButton = document.getElementById("save-changes");
             const addRowButton = document.getElementById("add-row");
-            const tableBody = document.querySelector("tbody");
 
             // Save changes
             saveButton.addEventListener("click", () => {
@@ -154,7 +153,7 @@
                     const inputs = row.querySelectorAll(".date-input");
 
                     let projectData = {
-                        project_id: projectID,
+                        project_id: projectID,  // Will be null for new rows
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
                         phone_number: cells[2]?.innerText.trim() || "",
@@ -164,7 +163,10 @@
                         commissioning_date: inputs[1]?.value || ""
                     };
 
-                    updatedProjects.push(projectData);
+                    // Only include the row if it's a new entry (project_id is null) or modified
+                    if (projectID || projectData.client_name || projectData.town || projectData.phone_number) {
+                        updatedProjects.push(projectData);
+                    }
                 });
 
                 fetch("/update_projects", {
@@ -176,7 +178,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.message === "Projects updated successfully") {
-                        location.reload();
+                        location.reload();  // Reload page to fetch correct data
                     }
                 })
                 .catch(error => {
@@ -197,7 +199,7 @@
                     <td><input type="date" class="date-input"></td>
                     <td><input type="date" class="date-input"></td>
                 `;
-                tableBody.appendChild(newRow);
+                document.querySelector("tbody").appendChild(newRow);
             });
         });
     </script>
