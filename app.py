@@ -3830,6 +3830,7 @@ def get_projects():
     )
 
 
+
 @app.route('/update_projects', methods=['POST'])
 def update_projects():
     data = request.json  # Get JSON data from the request
@@ -3847,8 +3848,14 @@ def update_projects():
                     existing_project.phone_number = project["phone_number"]
                     existing_project.sales_person = project["sales_person"]
                     existing_project.lead_installer = project["lead_installer"]
-                    existing_project.start_date = datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None
-                    existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+
+                    # Ensure correct date parsing
+                    try:
+                        existing_project.start_date = datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None
+                        existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+                    except ValueError as e:
+                        return jsonify({"message": f"Invalid date format: {e}"}), 400
+
             else:  # Add new project
                 new_project = projects(
                     client_name=project["client_name"],
@@ -3867,7 +3874,7 @@ def update_projects():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error updating projects: {e}")
-        return jsonify({"message": "Error updating projects"}), 500
+        return jsonify({"message": f"Error updating projects: {str(e)}"}), 500
 
 
 

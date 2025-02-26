@@ -94,15 +94,15 @@
             const addRowButton = document.getElementById("add-row");
             const tableBody = document.getElementById("projects-table-body");
 
-            // Initialize date pickers properly
+            // Ensure date pickers are properly initialized
             function initializeDatePickers() {
                 document.querySelectorAll(".date-picker").forEach(input => {
-                    if (!input.dataset.flatpickr) {
+                    if (!input.classList.contains("flatpickr-initialized")) {
                         flatpickr(input, {
                             dateFormat: "d F, Y",
                             allowInput: true
                         });
-                        input.dataset.flatpickr = "true";
+                        input.classList.add("flatpickr-initialized");
                     }
                 });
             }
@@ -113,18 +113,18 @@
                 let updatedProjects = [];
                 tableBody.querySelectorAll("tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td");
+                    const cells = row.querySelectorAll("td:not(:has(input))"); // Select non-input cells
                     const inputs = row.querySelectorAll(".date-picker");
 
                     let projectData = {
                         project_id: projectID,
-                        client_name: cells[0].innerText.trim(),
-                        town: cells[1].innerText.trim(),
-                        phone_number: cells[2].innerText.trim(),
-                        sales_person: cells[3].innerText.trim(),
-                        lead_installer: cells[4].innerText.trim(),
-                        start_date: inputs[0].value.trim(),
-                        commissioning_date: inputs[1].value.trim()
+                        client_name: cells[0]?.innerText.trim() || "",
+                        town: cells[1]?.innerText.trim() || "",
+                        phone_number: cells[2]?.innerText.trim() || "",
+                        sales_person: cells[3]?.innerText.trim() || "",
+                        lead_installer: cells[4]?.innerText.trim() || "",
+                        start_date: inputs[0]?.value.trim() || "",
+                        commissioning_date: inputs[1]?.value.trim() || ""
                     };
 
                     updatedProjects.push(projectData);
@@ -138,9 +138,14 @@
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    location.reload();  // Refresh page after saving
+                    if (data.message === "Projects updated successfully") {
+                        location.reload();  // Refresh page after saving
+                    }
                 })
-                .catch(error => console.error("Error:", error));
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("An error occurred while saving.");
+                });
             });
 
             // Add a new row
@@ -156,7 +161,7 @@
                     <td><input type="text" class="date-picker"></td>
                 `;
                 tableBody.appendChild(newRow);
-                initializeDatePickers(); // Reinitialize date picker for new rows
+                initializeDatePickers(); // Ensure date pickers are initialized for new rows
             });
         });
     </script>
