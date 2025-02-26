@@ -93,17 +93,18 @@
             // Initialize date picker for Start Date and Commissioning Date
             function initializeDatePickers() {
                 document.querySelectorAll(".date-picker").forEach(cell => {
-                    cell.addEventListener("click", function () {
-                        flatpickr(this, {
+                    if (!cell.dataset.flatpickr) { // Prevent re-initializing
+                        flatpickr(cell, {
                             dateFormat: "d F, Y",
-                            defaultDate: this.innerText.trim() || null,
+                            allowInput: true,
                             onClose: function (selectedDates, dateStr) {
                                 if (dateStr) {
-                                    cell.innerText = dateStr; // Ensure selected date is formatted correctly
+                                    cell.innerText = dateStr; // Ensure the date stays correctly in the clicked cell
                                 }
                             }
-                        }).open();
-                    });
+                        });
+                        cell.dataset.flatpickr = "true"; // Mark as initialized
+                    }
                 });
             }
             initializeDatePickers();
