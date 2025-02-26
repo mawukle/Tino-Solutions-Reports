@@ -49,6 +49,8 @@ class Team_Members(db.Model):
     __tablename__ = 'Team_Members'
     Team_Member_ID = db.Column(db.Integer, primary_key=True)
     Team_Member_Name = db.Column(db.String(255), nullable=False)
+    Team_Member_Email = db.Column(db.String(255), nullable=True)
+
 
     # Relationships
     job_teams = relationship('job_team_members', backref='team_member', lazy=True)
