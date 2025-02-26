@@ -3797,10 +3797,6 @@ def get_projects():
 
         projects_list = projects_query.all()
 
-        # Fetch team members for dropdown
-        team_members = db.session.query(Team_Members.Team_Member_Name).all()
-        team_member_names = [member.Team_Member_Name for member in team_members]
-
         # Categorize projects
         new_projects = []
         ongoing_projects = []
@@ -3831,13 +3827,12 @@ def get_projects():
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
-            team_members=team_member_names,  # Pass team members for dropdown
             message=message
         )
 
     except Exception as e:
-        logging.error(f"Error fetching projects: {str(e)}")
-        return render_template('projects.html', message="Error fetching projects.")
+        logging.error(f"Error fetching projects: {e}")
+        return render_template('projects.html', message='Database query failed', new_projects=[], ongoing_projects=[], completed_projects=[])
 
 
 

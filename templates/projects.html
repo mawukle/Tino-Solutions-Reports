@@ -94,27 +94,6 @@
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select Sales Person</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select Lead Installer</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                     </tr>
                     {% endfor %}
@@ -143,27 +122,8 @@
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select Sales Person</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select Lead Installer</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
+                        <td contenteditable="true">{{ project.sales_person }}</td>
+                        <td contenteditable="true">{{ project.lead_installer }}</td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
                     </tr>
@@ -232,16 +192,7 @@
                     <td contenteditable="true"></td>  <!-- Client Name -->
                     <td contenteditable="true"></td>  <!-- Town -->
                     <td contenteditable="true"></td>  <!-- Phone Number -->
-                    <td>
-                        <select class="sales-person">
-                            <option value="">Select Sales Person</option>
-                            {% for member in team_members %}
-                            <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                {{ member }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </td>
+                    <td contenteditable="true"></td>  <!-- Sales Person -->
                     <!--td contenteditable="true"></td>  <!-- Lead Installer -->
                     <!--td><input type="date" class="date-input"></td>  <!-- Start Date -->
                     <!--td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
