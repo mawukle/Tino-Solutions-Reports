@@ -62,7 +62,7 @@
                 </thead>
                 <tbody>
                     {% for project in new_projects %}
-                    <tr>
+                    <tr data-id="{{ project.project_id }}">
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
@@ -150,20 +150,19 @@
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
                     const cells = row.querySelectorAll("td[contenteditable='true']");
-                    const inputs = row.querySelectorAll(".date-input");
+                    const inputs = row.querySelectorAll("input.date-input");
 
                     let projectData = {
-                        project_id: projectID,  // Will be null for new rows
+                        project_id: projectID,  // Keep track of existing IDs
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
                         phone_number: cells[2]?.innerText.trim() || "",
                         sales_person: cells[3]?.innerText.trim() || "",
-                        lead_installer: cells[4]?.innerText.trim() || "",
-                        start_date: inputs[0]?.value || "",
+                        lead_installer: cells[4]?.innerText.trim() || "", // Capture dynamically added column
+                        start_date: inputs[0]?.value || "", // Capture date field
                         commissioning_date: inputs[1]?.value || ""
                     };
 
-                    // Only include the row if it's a new entry (project_id is null) or modified
                     if (projectID || projectData.client_name || projectData.town || projectData.phone_number) {
                         updatedProjects.push(projectData);
                     }
@@ -178,7 +177,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.message === "Projects updated successfully") {
-                        location.reload();  // Reload page to fetch correct data
+                        location.reload();  // Refresh to load updated data
                     }
                 })
                 .catch(error => {
@@ -195,6 +194,9 @@
                     <td contenteditable="true"></td>  <!-- Town -->
                     <td contenteditable="true"></td>  <!-- Phone Number -->
                     <td contenteditable="true"></td>  <!-- Sales Person -->
+                    <td contenteditable="true"></td>  <!-- Lead Installer -->
+                    <td><input type="date" class="date-input"></td>  <!-- Start Date -->
+                    <td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
                 `;
                 document.querySelector("tbody").appendChild(newRow);
             });
@@ -220,6 +222,10 @@
                 startDateHeader.textContent = "Start Date";
                 thead.appendChild(startDateHeader);
 
+                const commissioningDateHeader = document.createElement("th");
+                commissioningDateHeader.textContent = "Commissioning Date";
+                thead.appendChild(commissioningDateHeader);
+
                 // Append new cells to each row
                 tbody.querySelectorAll("tr").forEach(row => {
                     const leadInstallerCell = document.createElement("td");
@@ -229,6 +235,10 @@
                     const startDateCell = document.createElement("td");
                     startDateCell.innerHTML = '<input type="date" class="date-input">';
                     row.appendChild(startDateCell);
+
+                    const commissioningDateCell = document.createElement("td");
+                    commissioningDateCell.innerHTML = '<input type="date" class="date-input">';
+                    row.appendChild(commissioningDateCell);
                 });
 
                 columnsAdded = true;

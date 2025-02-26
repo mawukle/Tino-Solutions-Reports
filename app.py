@@ -3838,14 +3838,14 @@ def get_projects():
 
 @app.route('/update_projects', methods=['POST'])
 def update_projects():
-    data = request.json  # Get JSON data from the request
+    data = request.json
     updated_projects = data.get("projects", [])
 
     try:
         for project in updated_projects:
             project_id = project.get("project_id")
 
-            if project_id:  # Update existing project
+            if project_id:  # If an existing project ID is provided, update it
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
                     existing_project.client_name = project["client_name"]
@@ -3854,14 +3854,13 @@ def update_projects():
                     existing_project.sales_person = project["sales_person"]
                     existing_project.lead_installer = project["lead_installer"]
 
-                    # Ensure correct date parsing (expect "YYYY-MM-DD" format)
                     try:
                         existing_project.start_date = datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None
                         existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None
                     except ValueError as e:
                         return jsonify({"message": f"Invalid date format: {e}"}), 400
 
-            else:  # Add new project if it does NOT already exist
+            else:  # Insert new project only if it does not already exist
                 existing_project = db.session.query(projects).filter_by(
                     client_name=project["client_name"],
                     town=project["town"],
@@ -3882,12 +3881,11 @@ def update_projects():
                     db.session.add(new_project)
 
         db.session.commit()
-        return jsonify({"message": "Projects updated successfully"})
+        return jsonify({"message": "Projects updated successfully"}), 200
 
     except Exception as e:
-        db.session.rollback()
         logging.error(f"Error updating projects: {e}")
-        return jsonify({"message": f"Error updating projects: {str(e)}"}), 500
+        return jsonify({"message": "Database update failed"}), 500
 
 
 
