@@ -191,13 +191,10 @@
             addRowButton.addEventListener("click", () => {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td><input type="date" class="date-input"></td>
-                    <td><input type="date" class="date-input"></td>
+                    <td contenteditable="true"></td>  <!-- Client Name -->
+                    <td contenteditable="true"></td>  <!-- Town -->
+                    <td contenteditable="true"></td>  <!-- Phone Number -->
+                    <td contenteditable="true"></td>  <!-- Sales Person -->
                 `;
                 document.querySelector("tbody").appendChild(newRow);
             });
