@@ -3780,12 +3780,12 @@ def serialize_row(row):
 
 @app.route('/projects', methods=['GET'])
 def get_projects():
-    message = request.args.get('message', '')  # Retrieve message from query params if available
+    message = request.args.get('message', '')  # Retrieve message if available
 
     try:
         # Fetch all projects
         projects_query = db.session.query(
-            projects.project_id,  # Include project_id as the first column
+            projects.project_id,
             projects.client_name,
             projects.town,
             projects.phone_number,
@@ -3795,39 +3795,44 @@ def get_projects():
             projects.commissioning_date
         ).distinct()
 
-        projects_list = projects_query.all()  # Rename variable to 'projects_list' to avoid further conflicts
+        projects_list = projects_query.all()
 
-        # Convert project data into a structured list
-        project_list = [
-            [
-                project.project_id,
-                project.client_name or '',
-                project.town or '',
-                project.phone_number or '',
-                project.sales_person or '',
-                project.lead_installer or '',
-                project.start_date.strftime('%Y-%m-%d') if project.start_date else '',  # Convert to YYYY-MM-DD
-                project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
-            ]
-            for project in projects_list
-        ]
+        # Categorize projects
+        new_projects = []
+        ongoing_projects = []
+        completed_projects = []
 
-        # Sort projects by Start Date in descending order
-        project_list.sort(
-            key=lambda x: datetime.strptime(x[6], '%Y-%m-%d') if x[6] else datetime.min, reverse=True
+        for project in projects_list:
+            project_data = {
+                "project_id": project.project_id,
+                "client_name": project.client_name or '',
+                "town": project.town or '',
+                "phone_number": project.phone_number or '',
+                "sales_person": project.sales_person or '',
+                "lead_installer": project.lead_installer or '',
+                "start_date": project.start_date.strftime('%Y-%m-%d') if project.start_date else '',
+                "commissioning_date": project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
+            }
+
+            # Categorization logic
+            if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
+                new_projects.append(project_data)
+            elif project_data["lead_installer"] and project_data["start_date"] and not project_data["commissioning_date"]:
+                ongoing_projects.append(project_data)
+            elif project_data["commissioning_date"]:
+                completed_projects.append(project_data)
+
+        return render_template(
+            'projects.html',
+            new_projects=new_projects,
+            ongoing_projects=ongoing_projects,
+            completed_projects=completed_projects,
+            message=message
         )
 
     except Exception as e:
         logging.error(f"Error fetching projects: {e}")
-        message = 'Database query failed'
-        project_list = []
-
-    return render_template(
-        'projects.html',
-        projects=project_list,  # Pass renamed variable
-        message=message,
-        static_url="/static/style.css"
-    )
+        return render_template('projects.html', message='Database query failed', new_projects=[], ongoing_projects=[], completed_projects=[])
 
 
 

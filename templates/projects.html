@@ -6,11 +6,10 @@
     <title>Projects</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Include flatpickr -->
     <style>
         .table-container {
             overflow-x: auto;
-            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -22,8 +21,7 @@
             text-align: left;
         }
         th {
-            background-color: #85BB65; /* Green header */
-            color: white;
+            background-color: #85BB65;
         }
         td[contenteditable="true"] {
             background-color: #f9f9f9;
@@ -46,6 +44,10 @@
 
         <h1>TINO SOLUTIONS LIMITED<br>PROJECTS</h1>
 
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
+
         <!-- New Projects -->
         <h2>New Projects</h2>
         <div class="table-container">
@@ -59,15 +61,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for project in projects %}
-                        {% if project[1] and project[2] and project[3] and project[4] and not project[5] and not project[6] and not project[7] %}
-                        <tr data-id="{{ project[0] }}">
-                            <td contenteditable="true">{{ project[1] }}</td>
-                            <td contenteditable="true">{{ project[2] }}</td>
-                            <td contenteditable="true">{{ project[3] }}</td>
-                            <td contenteditable="true">{{ project[4] }}</td>
-                        </tr>
-                        {% endif %}
+                    {% for project in new_projects %}
+                    <tr>
+                        <td contenteditable="true">{{ project.client_name }}</td>
+                        <td contenteditable="true">{{ project.town }}</td>
+                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true">{{ project.sales_person }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -88,17 +88,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for project in projects %}
-                        {% if project[1] and project[2] and project[3] and project[4] and project[5] and project[6] and not project[7] %}
-                        <tr data-id="{{ project[0] }}">
-                            <td contenteditable="true">{{ project[1] }}</td>
-                            <td contenteditable="true">{{ project[2] }}</td>
-                            <td contenteditable="true">{{ project[3] }}</td>
-                            <td contenteditable="true">{{ project[4] }}</td>
-                            <td contenteditable="true">{{ project[5] }}</td>
-                            <td><input type="date" class="date-input" value="{{ project[6] }}" /></td>
-                        </tr>
-                        {% endif %}
+                    {% for project in ongoing_projects %}
+                    <tr>
+                        <td contenteditable="true">{{ project.client_name }}</td>
+                        <td contenteditable="true">{{ project.town }}</td>
+                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true">{{ project.sales_person }}</td>
+                        <td contenteditable="true">{{ project.lead_installer }}</td>
+                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -120,18 +118,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for project in projects %}
-                        {% if project[1] and project[2] and project[3] and project[4] and project[5] and project[6] and project[7] %}
-                        <tr data-id="{{ project[0] }}">
-                            <td contenteditable="true">{{ project[1] }}</td>
-                            <td contenteditable="true">{{ project[2] }}</td>
-                            <td contenteditable="true">{{ project[3] }}</td>
-                            <td contenteditable="true">{{ project[4] }}</td>
-                            <td contenteditable="true">{{ project[5] }}</td>
-                            <td><input type="date" class="date-input" value="{{ project[6] }}" /></td>
-                            <td><input type="date" class="date-input" value="{{ project[7] }}" /></td>
-                        </tr>
-                        {% endif %}
+                    {% for project in completed_projects %}
+                    <tr>
+                        <td contenteditable="true">{{ project.client_name }}</td>
+                        <td contenteditable="true">{{ project.town }}</td>
+                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true">{{ project.sales_person }}</td>
+                        <td contenteditable="true">{{ project.lead_installer }}</td>
+                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
+                        <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -141,22 +137,22 @@
             <button id="add-row">Add New Row</button>
             <button id="save-changes">Save Changes</button>
         </div>
-
-        {% if message %}
-        <p class="message">{{ message }}</p>
-        {% endif %}
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const saveButton = document.getElementById("save-changes");
             const addRowButton = document.getElementById("add-row");
+            const tableBody = document.getElementById("projects-table-body");
 
             // Ensure date pickers are properly initialized
             function initializeDatePickers() {
-                document.querySelectorAll(".date-input").forEach(input => {
+                document.querySelectorAll(".date-picker").forEach(input => {
                     if (!input.classList.contains("flatpickr-initialized")) {
-                        flatpickr(input, { dateFormat: "Y-m-d", allowInput: true });
+                        flatpickr(input, {
+                            dateFormat: "d F, Y",
+                            allowInput: true
+                        });
                         input.classList.add("flatpickr-initialized");
                     }
                 });
@@ -166,7 +162,7 @@
             // Save changes
             saveButton.addEventListener("click", () => {
                 let updatedProjects = [];
-                document.querySelectorAll("tr[data-id]").forEach(row => {
+                tableBody.querySelectorAll("tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
                     const cells = row.querySelectorAll("td:not(:has(input))"); // Select non-input cells
                     const inputs = row.querySelectorAll(".date-input");
@@ -178,7 +174,7 @@
                         phone_number: cells[2]?.innerText.trim() || "",
                         sales_person: cells[3]?.innerText.trim() || "",
                         lead_installer: cells[4]?.innerText.trim() || "",
-                        start_date: inputs[0]?.value || "",
+                        start_date: inputs[0]?.value || "",  // No need for custom formatting
                         commissioning_date: inputs[1]?.value || ""
                     };
 
@@ -201,6 +197,21 @@
                     console.error("Error:", error);
                     alert("An error occurred while saving.");
                 });
+            });
+
+            // Add a new row
+            addRowButton.addEventListener("click", () => {
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td><input type="date" class="date-input"></td>
+                    <td><input type="date" class="date-input"></td>
+                `;
+                tableBody.appendChild(newRow);
             });
         });
     </script>
