@@ -3849,7 +3849,7 @@ def update_projects():
                     existing_project.sales_person = project["sales_person"]
                     existing_project.lead_installer = project["lead_installer"]
 
-                    # Ensure correct date parsing
+                    # Ensure correct date parsing (expect "YYYY-MM-DD" format)
                     try:
                         existing_project.start_date = datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None
                         existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None
@@ -3863,8 +3863,8 @@ def update_projects():
                     phone_number=project["phone_number"],
                     sales_person=project["sales_person"],
                     lead_installer=project["lead_installer"],
-                    start_date=datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None,
-                    commissioning_date=datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+                    start_date=datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None,  # Fixed format
+                    commissioning_date=datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None  # Fixed format
                 )
                 db.session.add(new_project)
 
