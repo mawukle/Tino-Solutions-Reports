@@ -194,9 +194,9 @@
                     <td contenteditable="true"></td>  <!-- Town -->
                     <td contenteditable="true"></td>  <!-- Phone Number -->
                     <td contenteditable="true"></td>  <!-- Sales Person -->
-                    <td contenteditable="true"></td>  <!-- Lead Installer -->
-                    <td><input type="date" class="date-input"></td>  <!-- Start Date -->
-                    <td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
+                    <!--td contenteditable="true"></td>  <!-- Lead Installer -->
+                    <!--td><input type="date" class="date-input"></td>  <!-- Start Date -->
+                    <!--td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
                 `;
                 document.querySelector("tbody").appendChild(newRow);
             });
@@ -222,9 +222,9 @@
                 startDateHeader.textContent = "Start Date";
                 thead.appendChild(startDateHeader);
 
-                const commissioningDateHeader = document.createElement("th");
-                commissioningDateHeader.textContent = "Commissioning Date";
-                thead.appendChild(commissioningDateHeader);
+                //const commissioningDateHeader = document.createElement("th");
+                //commissioningDateHeader.textContent = "Commissioning Date";
+                //thead.appendChild(commissioningDateHeader);
 
                 // Append new cells to each row
                 tbody.querySelectorAll("tr").forEach(row => {
@@ -236,9 +236,9 @@
                     startDateCell.innerHTML = '<input type="date" class="date-input">';
                     row.appendChild(startDateCell);
 
-                    const commissioningDateCell = document.createElement("td");
-                    commissioningDateCell.innerHTML = '<input type="date" class="date-input">';
-                    row.appendChild(commissioningDateCell);
+                    //const commissioningDateCell = document.createElement("td");
+                    //commissioningDateCell.innerHTML = '<input type="date" class="date-input">';
+                    //row.appendChild(commissioningDateCell);
                 });
 
                 columnsAdded = true;
