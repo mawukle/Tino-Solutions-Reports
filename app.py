@@ -3817,7 +3817,7 @@ def get_projects():
             # Categorization logic
             if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
-            elif project_data["lead_installer"] and project_data["start_date"] and not project_data["commissioning_date"]:
+            elif project_data["lead_installer"] and project_data["start_date"]:  # Allow commissioning_date to be initially blank
                 ongoing_projects.append(project_data)
             elif project_data["commissioning_date"]:
                 completed_projects.append(project_data)

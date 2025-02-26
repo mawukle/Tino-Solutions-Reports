@@ -85,6 +85,7 @@
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
+                        <th class="commissioning-column" style="display: none;">Commissioning Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -251,6 +252,39 @@
                 }
             });
         });
+        document.addEventListener("DOMContentLoaded", () => {
+            const ongoingProjectsTable = document.querySelector("h2:nth-of-type(2) + .table-container table");
+            let ongoingColumnsAdded = false;
+
+            function addCommissioningDateColumn() {
+                if (ongoingColumnsAdded) return;
+
+                const thead = ongoingProjectsTable.querySelector("thead tr");
+                const tbody = ongoingProjectsTable.querySelector("tbody");
+
+                // Create new header column
+                const commissioningDateHeader = document.createElement("th");
+                commissioningDateHeader.textContent = "Commissioning Date";
+                thead.appendChild(commissioningDateHeader);
+
+                // Append new cells to each row
+                tbody.querySelectorAll("tr").forEach(row => {
+                    const commissioningDateCell = document.createElement("td");
+                    commissioningDateCell.innerHTML = '<input type="date" class="date-input">';
+                    row.appendChild(commissioningDateCell);
+                });
+
+                ongoingColumnsAdded = true;
+            }
+
+            // Attach click event listener to the "Ongoing Projects" table rows
+            ongoingProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
+                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
+                    addCommissioningDateColumn();
+                }
+            });
+        });
+
     </script>
 
 
