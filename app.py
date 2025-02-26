@@ -3851,8 +3851,8 @@ def update_projects():
 
                     # Ensure correct date parsing
                     try:
-                        existing_project.start_date = datetime.strptime(project["start_date"], "%d %B, %Y") if project["start_date"] else None
-                        existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%d %B, %Y") if project["commissioning_date"] else None
+                        existing_project.start_date = datetime.strptime(project["start_date"], "%Y-%m-%d") if project["start_date"] else None
+                        existing_project.commissioning_date = datetime.strptime(project["commissioning_date"], "%Y-%m-%d") if project["commissioning_date"] else None
                     except ValueError as e:
                         return jsonify({"message": f"Invalid date format: {e}"}), 400
 
