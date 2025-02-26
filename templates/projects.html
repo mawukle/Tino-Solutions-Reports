@@ -89,7 +89,7 @@
                 </thead>
                 <tbody>
                     {% for project in ongoing_projects %}
-                    <tr>
+                    <tr data-id="{{ project.project_id }}">
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
