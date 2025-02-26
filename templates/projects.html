@@ -133,41 +133,6 @@
             </table>
         </div>
 
-        <!-- Modal for Editing Project Details -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Edit Project</h2>
-                <form id="editForm">
-                    <input type="hidden" id="project_id">
-
-                    <label>Client Name:</label>
-                    <input type="text" id="client_name" required>
-
-                    <label>Town:</label>
-                    <input type="text" id="town" required>
-
-                    <label>Phone Number:</label>
-                    <input type="text" id="phone_number" required>
-
-                    <label>Sales Person:</label>
-                    <input type="text" id="sales_person" required>
-
-                    <label>Lead Installer:</label>
-                    <input type="text" id="lead_installer">
-
-                    <label>Start Date:</label>
-                    <input type="date" id="start_date">
-
-                    <label>Commissioning Date:</label>
-                    <input type="date" id="commissioning_date">
-
-                    <button type="submit">Save Changes</button>
-                </form>
-            </div>
-        </div>
-
-
         <div class="buttons">
             <button id="add-row">Add New Row</button>
             <button id="save-changes">Save Changes</button>
@@ -237,69 +202,6 @@
                 document.querySelector("tbody").appendChild(newRow);
             });
         });
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const modal = document.getElementById("editModal");
-        const closeModal = document.querySelector(".close");
-        const editForm = document.getElementById("editForm");
-
-        // Open Modal when a row is clicked
-        document.querySelectorAll("tbody tr").forEach(row => {
-            row.addEventListener("click", () => {
-                modal.style.display = "block";
-
-                // Get row data
-                const cells = row.querySelectorAll("td");
-                document.getElementById("client_name").value = cells[0].innerText.trim();
-                document.getElementById("town").value = cells[1].innerText.trim();
-                document.getElementById("phone_number").value = cells[2].innerText.trim();
-                document.getElementById("sales_person").value = cells[3].innerText.trim();
-                document.getElementById("lead_installer").value = cells[4]?.innerText.trim() || "";
-                document.getElementById("start_date").value = row.querySelector("input[type='date']").value || "";
-                document.getElementById("commissioning_date").value = row.querySelectorAll("input[type='date']")[1]?.value || "";
-
-                // Store project ID for updating later
-                document.getElementById("project_id").value = row.getAttribute("data-id") || "";
-            });
-        });
-
-        // Close Modal
-        closeModal.addEventListener("click", () => {
-            modal.style.display = "none";
-        });
-
-        // Handle Save Changes
-        editForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-
-            const projectData = {
-                project_id: document.getElementById("project_id").value,
-                client_name: document.getElementById("client_name").value,
-                town: document.getElementById("town").value,
-                phone_number: document.getElementById("phone_number").value,
-                sales_person: document.getElementById("sales_person").value,
-                lead_installer: document.getElementById("lead_installer").value,
-                start_date: document.getElementById("start_date").value,
-                commissioning_date: document.getElementById("commissioning_date").value
-            };
-
-            // Send Data to Flask
-            fetch("/update_projects", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ projects: [projectData] })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                if (data.message === "Projects updated successfully") {
-                    location.reload();
-                }
-            })
-            .catch(error => console.error("Error:", error));
-        });
-    });
     </script>
-
 </body>
 </html>
