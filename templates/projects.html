@@ -6,7 +6,7 @@
     <title>Projects</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Include flatpickr -->
+
     <style>
         .table-container {
             overflow-x: auto;
@@ -143,28 +143,14 @@
         document.addEventListener("DOMContentLoaded", () => {
             const saveButton = document.getElementById("save-changes");
             const addRowButton = document.getElementById("add-row");
-            const tableBody = document.getElementById("projects-table-body");
-
-            // Ensure date pickers are properly initialized
-            function initializeDatePickers() {
-                document.querySelectorAll(".date-picker").forEach(input => {
-                    if (!input.classList.contains("flatpickr-initialized")) {
-                        flatpickr(input, {
-                            dateFormat: "d F, Y",
-                            allowInput: true
-                        });
-                        input.classList.add("flatpickr-initialized");
-                    }
-                });
-            }
-            initializeDatePickers();
+            const tableBody = document.querySelector("tbody");
 
             // Save changes
             saveButton.addEventListener("click", () => {
                 let updatedProjects = [];
-                tableBody.querySelectorAll("tr").forEach(row => {
+                document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td:not(:has(input))"); // Select non-input cells
+                    const cells = row.querySelectorAll("td[contenteditable='true']");
                     const inputs = row.querySelectorAll(".date-input");
 
                     let projectData = {
@@ -174,7 +160,7 @@
                         phone_number: cells[2]?.innerText.trim() || "",
                         sales_person: cells[3]?.innerText.trim() || "",
                         lead_installer: cells[4]?.innerText.trim() || "",
-                        start_date: inputs[0]?.value || "",  // No need for custom formatting
+                        start_date: inputs[0]?.value || "",
                         commissioning_date: inputs[1]?.value || ""
                     };
 
@@ -190,7 +176,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.message === "Projects updated successfully") {
-                        location.reload();  // Refresh page after saving
+                        location.reload();
                     }
                 })
                 .catch(error => {
