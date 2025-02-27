@@ -4003,7 +4003,7 @@ def send_completed_project_email_notification(project):
         msg = Message(
             subject,
             recipients=[sales_person_email],
-            cc=["marketing@tinosolutions.com", "gorden@tinosolutions.com"],
+            cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
             html=body
         )
 
