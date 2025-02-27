@@ -268,7 +268,12 @@
 
                 tbody.querySelectorAll("tr").forEach(row => {
                     row.innerHTML += `
-                        <td contenteditable="true" class="lead-installer"></td>
+                        <td>
+                            <select class="lead-installer">
+                                <option value="">Select a Team Member</option>
+                                ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
+                            </select>
+                        </td>
                         <td><input type="date" class="date-input"></td>
                     `;
                 });
