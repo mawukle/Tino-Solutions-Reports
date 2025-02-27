@@ -3950,7 +3950,8 @@ def send_project_email_notification(project):
             <li>Start Date: {project.start_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
-        <p>Please reach out to me if you need further information.</p>
+        <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
+        <p>Please reach out if you need further information.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
         <hr>
         <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
@@ -3994,6 +3995,7 @@ def send_completed_project_email_notification(project):
             <li>Commissioning Date: {project.commissioning_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
+        <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
         <hr>
