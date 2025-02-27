@@ -7,7 +7,7 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-27": "16:00",
+    "2025-02-27": "16:00", #trial 
     "2025-02-27": "16:10", #note that the 10 minutes extra is added to get the code to work even if there are delays with Heroku
     "2025-02-28": "08:00",
     "2025-02-28": "08:10",
@@ -57,8 +57,8 @@ def send_client_list_email():
         print(f"Not the scheduled time ({datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}). Exiting.")
         return
 
-    recipient = ["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"] # Main recipient
-    cc_recipients = ["emmanuel@tinosolutions.com", "padiemmanuelkwesi@yahoo.com"]  # CC recipients
+    recipient = ["hippolite@tinosolutions.com", "support@tinosolutions.com", "service@tinosolutions.com"] # Main recipient
+    cc_recipients = ["gorden@tinosolutions.com", "augustine@tinosolutions.com", "philip@tinosolutions.com", "solal@tinosolutions.com", "kwame@tinosolutions.com", "naalenuo@tinosolutions.com", "patrick@tinosolutions.com", "reports@tinosolutions.com", "marketing@tinosolutions.com", "sales@tinosolutions.com"]  # CC recipients
 
     with app.app_context():  # Ensure Flask context is available
         subject = "Client List Report"
