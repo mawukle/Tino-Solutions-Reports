@@ -3847,7 +3847,8 @@ def get_projects():
 def update_projects():
     try:
         data = request.json.get('projects', [])
-        ongoing_projects = []  # To track projects that just moved to "Ongoing"
+        ongoing_projects = []  # Track projects that just moved to "Ongoing"
+        completed_projects = []  # Track projects that just moved to "Completed"
 
         for project in data:
             project_id = project.get('project_id')
@@ -3861,6 +3862,7 @@ def update_projects():
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
                     previously_ongoing = existing_project.lead_installer and existing_project.start_date
+                    previously_completed = existing_project.commissioning_date is not None
 
                     existing_project.client_name = project.get('client_name', '')
                     existing_project.town = project.get('town', '')
@@ -3873,6 +3875,10 @@ def update_projects():
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
                         ongoing_projects.append(existing_project)
+
+                    # Check if project just moved to "Completed"
+                    if not previously_completed and existing_project.commissioning_date:
+                        completed_projects.append(existing_project)
 
             else:
                 # Check if project already exists before inserting a new one
@@ -3899,11 +3905,19 @@ def update_projects():
                     if new_project.lead_installer and new_project.start_date:
                         ongoing_projects.append(new_project)
 
+                    # If the new project is "Completed," add to notifications
+                    if new_project.commissioning_date:
+                        completed_projects.append(new_project)
+
         db.session.commit()
 
-        # Send email notifications only for newly ongoing projects
+        # Send email notifications for newly ongoing projects
         for project in ongoing_projects:
             send_project_email_notification(project)
+
+        # Send email notifications for newly completed projects
+        for project in completed_projects:
+            send_completed_project_email_notification(project)
 
         return jsonify({"message": "Projects updated successfully"})
 
@@ -3924,7 +3938,7 @@ def send_project_email_notification(project):
             print(f"ERROR: No email found for sales person {project.sales_person}")
             return
 
-        subject = f"Project Update: {project.client_name} is now Ongoing"
+        subject = f"Project Update: {project.client_name} installation is now Ongoing"
 
         body = f"""
         <p>Dear {project.sales_person},</p>
@@ -3955,6 +3969,49 @@ def send_project_email_notification(project):
         except Exception as e:
             print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
+def send_completed_project_email_notification(project):
+    """Sends an email notification when a project moves to Completed status."""
+    with app.app_context():
+        # Fetch the sales person's email from the Team_Members table
+        sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
+            Team_Members.Team_Member_Name == project.sales_person
+        ).scalar()
+
+        if not sales_person_email:
+            print(f"ERROR: No email found for sales person {project.sales_person}")
+            return
+
+        subject = f"Project Completion Notification: {project.client_name} installation has been Completed"
+
+        body = f"""
+        <p>Dear {project.sales_person},</p>
+        <p>Your project for <b>{project.client_name}</b> in <b>{project.town}</b> has now been marked as <b>Completed</b>.</p>
+        <p><b>Project Details:</b></p>
+        <ul>
+            <li>Client Name: {project.client_name}</li>
+            <li>Town: {project.town}</li>
+            <li>Start Date: {project.start_date}</li>
+            <li>Commissioning Date: {project.commissioning_date}</li>
+            <li>Lead Installer: {project.lead_installer}</li>
+        </ul>
+        <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
+        <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+        <hr>
+        <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
+        """
+
+        msg = Message(
+            subject,
+            recipients=[sales_person_email],
+            cc=["marketing@tinosolutions.com", "gorden@tinosolutions.com"],
+            html=body
+        )
+
+        try:
+            mail.send(msg)
+            print(f"Email sent to {sales_person_email} for completed project {project.client_name}")
+        except Exception as e:
+            print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
 
 if __name__ == '__main__':
