@@ -3936,11 +3936,18 @@ def send_project_email_notification(project):
             <li>Start Date: {project.start_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
-        <p>Please follow up as necessary.</p>
-        <p>Best regards,<br>Tino Solutions</p>
+        <p>Please reach out to me if you need further information.</p>
+        <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+        <hr>
+        <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
         """
 
-        msg = Message(subject, recipients=[sales_person_email], html=body)
+        msg = Message(
+            subject,
+            recipients=[sales_person_email],
+            cc=["padiemmanuelkwesi@yahoo.com", "emmanuel@tinosolutions.com"],
+            html=body
+        )
 
         try:
             mail.send(msg)
