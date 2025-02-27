@@ -3854,13 +3854,14 @@ def update_projects():
             start_date = project.get('start_date', '').strip()
             commissioning_date = project.get('commissioning_date', '').strip()
 
-            # Convert empty strings to None
             start_date = start_date if start_date else None
             commissioning_date = commissioning_date if commissioning_date else None
 
             if project_id:  # Update existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
+                    previously_ongoing = existing_project.lead_installer and existing_project.start_date
+
                     existing_project.client_name = project.get('client_name', '')
                     existing_project.town = project.get('town', '')
                     existing_project.phone_number = project.get('phone_number', '')
@@ -3869,8 +3870,8 @@ def update_projects():
                     existing_project.start_date = start_date
                     existing_project.commissioning_date = commissioning_date
 
-                    # Check if the project just moved to "Ongoing"
-                    if existing_project.lead_installer and existing_project.start_date and not existing_project.commissioning_date:
+                    # Check if project just moved to "Ongoing"
+                    if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
                         ongoing_projects.append(existing_project)
 
             else:
@@ -3895,12 +3896,12 @@ def update_projects():
                     db.session.add(new_project)
 
                     # If the new project is "Ongoing," add to notifications
-                    if new_project.lead_installer and new_project.start_date and not new_project.commissioning_date:
+                    if new_project.lead_installer and new_project.start_date:
                         ongoing_projects.append(new_project)
 
         db.session.commit()
 
-        # Send email notifications for new ongoing projects
+        # Send email notifications only for newly ongoing projects
         for project in ongoing_projects:
             send_project_email_notification(project)
 
