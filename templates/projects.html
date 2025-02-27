@@ -243,10 +243,12 @@
                     <td contenteditable="true"></td>  <!-- Client Name -->
                     <td contenteditable="true"></td>  <!-- Town -->
                     <td contenteditable="true"></td>  <!-- Phone Number -->
-                    <td contenteditable="true"></td>  <!-- Sales Person -->
-                    <!--td contenteditable="true"></td>  <!-- Lead Installer -->
-                    <!--td><input type="date" class="date-input"></td>  <!-- Start Date -->
-                    <!--td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
+                    <td>
+                        <select class="sales-person">
+                            <option value="">Select a Team Member</option>
+                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
+                        </select>
+                    </td>
                 `;
                 document.querySelector("tbody").appendChild(newRow);
             });
