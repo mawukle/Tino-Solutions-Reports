@@ -7,8 +7,8 @@ from flask import render_template
 
 # Define scheduled email times (UTC)
 SCHEDULED_TIMES = {
-    "2025-02-27": "15:50",
     "2025-02-27": "16:00",
+    "2025-02-27": "16:10",
     "2025-02-28": "08:00",
     "2025-03-31": "08:00",
     "2025-04-30": "08:00",
