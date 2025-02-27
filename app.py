@@ -3801,8 +3801,9 @@ def get_projects():
         ongoing_projects = []
         completed_projects = []
 
+        one_month_ago = datetime.now() - timedelta(days=30)  # Get date one month ago
+
         for project in projects_list:
-            # Convert invalid date values to empty strings
             start_date = project.start_date.strftime('%Y-%m-%d') if project.start_date and project.start_date != '0000-00-00' else ''
             commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date and project.commissioning_date != '0000-00-00' else ''
 
@@ -3821,7 +3822,9 @@ def get_projects():
             if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
             elif project_data["commissioning_date"] and project_data["start_date"]:
-                completed_projects.append(project_data)
+                commissioning_dt = datetime.strptime(project_data["commissioning_date"], '%Y-%m-%d')
+                if commissioning_dt >= one_month_ago:  # Only include projects within the last month
+                    completed_projects.append(project_data)
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
 
