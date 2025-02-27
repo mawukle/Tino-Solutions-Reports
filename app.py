@@ -3847,13 +3847,14 @@ def get_projects():
 def update_projects():
     try:
         data = request.json.get('projects', [])
+        ongoing_projects = []  # To track projects that just moved to "Ongoing"
 
         for project in data:
             project_id = project.get('project_id')
             start_date = project.get('start_date', '').strip()
             commissioning_date = project.get('commissioning_date', '').strip()
 
-            # Convert empty string to None
+            # Convert empty strings to None
             start_date = start_date if start_date else None
             commissioning_date = commissioning_date if commissioning_date else None
 
@@ -3867,6 +3868,11 @@ def update_projects():
                     existing_project.lead_installer = project.get('lead_installer', '')
                     existing_project.start_date = start_date
                     existing_project.commissioning_date = commissioning_date
+
+                    # Check if the project just moved to "Ongoing"
+                    if existing_project.lead_installer and existing_project.start_date and not existing_project.commissioning_date:
+                        ongoing_projects.append(existing_project)
+
             else:
                 # Check if project already exists before inserting a new one
                 existing_project = db.session.query(projects).filter_by(
@@ -3888,11 +3894,58 @@ def update_projects():
                     )
                     db.session.add(new_project)
 
+                    # If the new project is "Ongoing," add to notifications
+                    if new_project.lead_installer and new_project.start_date and not new_project.commissioning_date:
+                        ongoing_projects.append(new_project)
+
         db.session.commit()
+
+        # Send email notifications for new ongoing projects
+        for project in ongoing_projects:
+            send_project_email_notification(project)
+
         return jsonify({"message": "Projects updated successfully"})
+
     except Exception as e:
         logging.error(f"Error updating projects: {e}")
         return jsonify({"message": "Error updating projects"}), 500
+
+
+def send_project_email_notification(project):
+    """Sends an email notification to the sales person when their project becomes ongoing."""
+    with app.app_context():
+        # Fetch the sales person's email from Team_Members table
+        sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
+            Team_Members.Team_Member_Name == project.sales_person
+        ).scalar()
+
+        if not sales_person_email:
+            print(f"ERROR: No email found for sales person {project.sales_person}")
+            return
+
+        subject = f"Project Update: {project.client_name} is now Ongoing"
+
+        body = f"""
+        <p>Dear {project.sales_person},</p>
+        <p>Your project for <b>{project.client_name}</b> in <b>{project.town}</b> has now moved to the <b>Ongoing</b> stage.</p>
+        <p><b>Project Details:</b></p>
+        <ul>
+            <li>Client Name: {project.client_name}</li>
+            <li>Town: {project.town}</li>
+            <li>Start Date: {project.start_date}</li>
+            <li>Lead Installer: {project.lead_installer}</li>
+        </ul>
+        <p>Please follow up as necessary.</p>
+        <p>Best regards,<br>Tino Solutions</p>
+        """
+
+        msg = Message(subject, recipients=[sales_person_email], html=body)
+
+        try:
+            mail.send(msg)
+            print(f"Email sent to {sales_person_email} for project {project.client_name}")
+        except Exception as e:
+            print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
 
 
