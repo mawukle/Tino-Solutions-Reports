@@ -73,7 +73,7 @@ def send_client_list_email():
             <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
                 <p>Dear Team,</p>
                 <p>
-                    Please find below details of installed systems for the past 12 months.
+                    Please find below details of installed systems within the past 12 months.
                     Kindly click on any of the client names in
                     <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list"
                     style="color: #004085; text-decoration: none; font-weight: bold;">
@@ -88,13 +88,13 @@ def send_client_list_email():
                     {str(soup)}
                 </div>
                 <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
-                    This is an automated email from the Tino Solutions System Database.
+                    This is a monthly automated email from the Tino Solutions System Database.
                 </p>
             </div>
             """
 
             # Create the email message
-            msg = Message(subject, recipients=[recipient], cc=cc_recipients, html=styled_body)
+            msg = Message(subject, recipients=recipient, cc=cc_recipients, html=styled_body)
 
             try:
                 mail.send(msg)
