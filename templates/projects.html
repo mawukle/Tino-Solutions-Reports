@@ -68,9 +68,11 @@
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
-                                <option value="" selected>Select a Team Member</option>
+                                <option value="" {% if not project.sales_person %}selected{% endif %}>Select a Team Member</option>
                                 {% for member in team_members %}
-                                <option value="{{ member }}">{{ member }}</option>
+                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
+                                    {{ member }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </td>
