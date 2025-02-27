@@ -148,7 +148,7 @@
                 </thead>
                 <tbody>
                     {% for project in completed_projects %}
-                    <tr>
+                    <tr data-id="{{ project.project_id }}"> <!-- Add data-id here -->
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
@@ -162,7 +162,6 @@
                                 {% endfor %}
                             </select>
                         </td>
-
                         <td>
                             <select class="lead-installer">
                                 <option value="">Select a Team Member</option>
