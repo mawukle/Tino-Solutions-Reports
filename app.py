@@ -3783,8 +3783,7 @@ def get_projects():
     message = request.args.get('message', '')
 
     try:
-        # Fetch all projects
-        projects_query = db.session.query(
+        projects_list = db.session.query(
             projects.project_id,
             projects.client_name,
             projects.town,
@@ -3793,20 +3792,20 @@ def get_projects():
             projects.lead_installer,
             projects.start_date,
             projects.commissioning_date
-        ).distinct()
+        ).distinct().all()
 
-        projects_list = projects_query.all()
-
-        # Fetch all team members for dropdown
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
-        team_members = [member.Team_Member_Name for member in team_members]  # Convert to list of names
+        team_members = [member.Team_Member_Name for member in team_members]
 
-        # Categorize projects
         new_projects = []
         ongoing_projects = []
         completed_projects = []
 
         for project in projects_list:
+            # Convert invalid date values to empty strings
+            start_date = project.start_date.strftime('%Y-%m-%d') if project.start_date and project.start_date != '0000-00-00' else ''
+            commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date and project.commissioning_date != '0000-00-00' else ''
+
             project_data = {
                 "project_id": project.project_id,
                 "client_name": project.client_name or '',
@@ -3814,14 +3813,14 @@ def get_projects():
                 "phone_number": project.phone_number or '',
                 "sales_person": project.sales_person or '',
                 "lead_installer": project.lead_installer or '',
-                "start_date": project.start_date.strftime('%Y-%m-%d') if project.start_date else '',
-                "commissioning_date": project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
+                "start_date": start_date,
+                "commissioning_date": commissioning_date
             }
 
             # Categorization logic
             if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
-            elif project_data["commissioning_date"]:  # Completed projects
+            elif project_data["commissioning_date"]:
                 completed_projects.append(project_data)
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
@@ -3831,7 +3830,7 @@ def get_projects():
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
-            team_members=team_members,  # Pass team members to template
+            team_members=team_members,
             message=message
         )
 
@@ -3848,6 +3847,13 @@ def update_projects():
 
         for project in data:
             project_id = project.get('project_id')
+            start_date = project.get('start_date', '').strip()
+            commissioning_date = project.get('commissioning_date', '').strip()
+
+            # Convert empty string to None
+            start_date = start_date if start_date else None
+            commissioning_date = commissioning_date if commissioning_date else None
+
             if project_id:  # Update existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
@@ -3856,8 +3862,8 @@ def update_projects():
                     existing_project.phone_number = project.get('phone_number', '')
                     existing_project.sales_person = project.get('sales_person', '')
                     existing_project.lead_installer = project.get('lead_installer', '')
-                    existing_project.start_date = project.get('start_date', None)
-                    existing_project.commissioning_date = project.get('commissioning_date', None)
+                    existing_project.start_date = start_date
+                    existing_project.commissioning_date = commissioning_date
             else:  # Insert new project
                 new_project = projects(
                     client_name=project.get('client_name', ''),
@@ -3865,8 +3871,8 @@ def update_projects():
                     phone_number=project.get('phone_number', ''),
                     sales_person=project.get('sales_person', ''),
                     lead_installer=project.get('lead_installer', ''),
-                    start_date=project.get('start_date', None),
-                    commissioning_date=project.get('commissioning_date', None)
+                    start_date=start_date,
+                    commissioning_date=commissioning_date
                 )
                 db.session.add(new_project)
 
