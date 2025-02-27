@@ -3820,7 +3820,7 @@ def get_projects():
             # Categorization logic
             if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
-            elif project_data["commissioning_date"]:
+            elif project_data["commissioning_date"] and project_data["start_date"]:
                 completed_projects.append(project_data)
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
@@ -3864,17 +3864,26 @@ def update_projects():
                     existing_project.lead_installer = project.get('lead_installer', '')
                     existing_project.start_date = start_date
                     existing_project.commissioning_date = commissioning_date
-            else:  # Insert new project
-                new_project = projects(
+            else:
+                # Check if project already exists before inserting a new one
+                existing_project = db.session.query(projects).filter_by(
                     client_name=project.get('client_name', ''),
                     town=project.get('town', ''),
                     phone_number=project.get('phone_number', ''),
-                    sales_person=project.get('sales_person', ''),
-                    lead_installer=project.get('lead_installer', ''),
-                    start_date=start_date,
-                    commissioning_date=commissioning_date
-                )
-                db.session.add(new_project)
+                    sales_person=project.get('sales_person', '')
+                ).first()
+
+                if not existing_project:  # Add only if it does not exist
+                    new_project = projects(
+                        client_name=project.get('client_name', ''),
+                        town=project.get('town', ''),
+                        phone_number=project.get('phone_number', ''),
+                        sales_person=project.get('sales_person', ''),
+                        lead_installer=project.get('lead_installer', ''),
+                        start_date=start_date,
+                        commissioning_date=commissioning_date
+                    )
+                    db.session.add(new_project)
 
         db.session.commit()
         return jsonify({"message": "Projects updated successfully"})
