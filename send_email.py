@@ -54,7 +54,7 @@ def send_client_list_email():
         print(f"Not the scheduled time ({datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}). Exiting.")
         return
 
-    recipient = "padiemmanuelkwesi@gmail.com" # Main recipient
+    recipient = ["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"] # Main recipient
     cc_recipients = ["emmanuel@tinosolutions.com", "padiemmanuelkwesi@yahoo.com"]  # CC recipients
 
     with app.app_context():  # Ensure Flask context is available
