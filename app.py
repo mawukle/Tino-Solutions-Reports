@@ -3828,6 +3828,12 @@ def get_projects():
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
 
+        # Sort Ongoing Projects by most recent Start Date
+        ongoing_projects.sort(key=lambda x: x["start_date"], reverse=True)
+
+        # Sort Completed Projects by most recent Commissioning Date
+        completed_projects.sort(key=lambda x: x["commissioning_date"], reverse=True)
+
         return render_template(
             'projects.html',
             new_projects=new_projects,
