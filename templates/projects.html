@@ -35,6 +35,9 @@
         .message {
             color: red;
         }
+        .upload-container {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -48,37 +51,57 @@
         <p class="message">{{ message }}</p>
         {% endif %}
 
+        <!-- Invoice Upload Form -->
+        <div class="upload-container">
+            <h2>Upload Invoice Image</h2>
+            <form id="upload-form">
+                <label for="invoice_image">Choose a file:</label>
+                <input type="file" id="invoice_image" name="invoice_image" accept="image/*">
+                <button type="submit">Upload</button>
+            </form>
+            <p id="upload-status"></p>
+        </div>
+
+
         <!-- New Projects -->
         <h2>New Projects</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Town</th>
-                        <th>Phone Number</th>
-                        <th>Sales Person</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for project in new_projects %}
-                    <tr data-id="{{ project.project_id }}">
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="" {% if not project.sales_person %}selected{% endif %}>Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+              <thead>
+                  <tr>
+                      <th>Invoice</th> <!-- New column for invoice image -->
+                      <th>Client Name</th>
+                      <th>Town</th>
+                      <th>Phone Number</th>
+                      <th>Sales Person</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for project in new_projects %}
+                  <tr data-id="{{ project.project_id }}">
+                      <td>
+                          {% if project.invoice_image_url %}
+                              <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
+                          {% else %}
+                              No Invoice
+                          {% endif %}
+                      </td>
+                      <td contenteditable="true">{{ project.client_name }}</td>
+                      <td contenteditable="true">{{ project.town }}</td>
+                      <td contenteditable="true">{{ project.phone_number }}</td>
+                      <td>
+                          <select class="sales-person">
+                              <option value="" {% if not project.sales_person %}selected{% endif %}>Select a Team Member</option>
+                              {% for member in team_members %}
+                              <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
+                                  {{ member }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
             </table>
         </div>
 
@@ -86,48 +109,55 @@
         <h2>Ongoing Projects</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Town</th>
-                        <th>Phone Number</th>
-                        <th>Sales Person</th>
-                        <th>Lead Installer</th>
-                        <th>Start Date</th>
-                        <th class="commissioning-column" style="display: none;">Commissioning Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for project in ongoing_projects %}
-                    <tr data-id="{{ project.project_id }}">
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+              <thead>
+                  <tr>
+                      <th>Invoice</th> <!-- New column for invoice image -->
+                      <th>Client Name</th>
+                      <th>Town</th>
+                      <th>Phone Number</th>
+                      <th>Sales Person</th>
+                      <th>Lead Installer</th>
+                      <th>Start Date</th>
+                      <th class="commissioning-column" style="display: none;">Commissioning Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for project in ongoing_projects %}
+                  <tr data-id="{{ project.project_id }}">
+                      <td>
+                          {% if project.invoice_image_url %}
+                              <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
+                          {% else %}
+                              No Invoice
+                          {% endif %}
+                      </td>
+                      <td contenteditable="true">{{ project.client_name }}</td>
+                      <td contenteditable="true">{{ project.town }}</td>
+                      <td contenteditable="true">{{ project.phone_number }}</td>
+                      <td>
+                          <select class="sales-person">
+                              <option value="">Select a Team Member</option>
+                              {% for member in team_members %}
+                              <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
+                                  {{ member }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </td>
+                      <td>
+                          <select class="lead-installer">
+                              <option value="">Select a Team Member</option>
+                              {% for member in team_members %}
+                              <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
+                                  {{ member }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </td>
+                      <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
             </table>
         </div>
 
@@ -135,48 +165,56 @@
         <h2>Completed Projects</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Town</th>
-                        <th>Phone Number</th>
-                        <th>Sales Person</th>
-                        <th>Lead Installer</th>
-                        <th>Start Date</th>
-                        <th>Commissioning Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for project in completed_projects %}
-                    <tr data-id="{{ project.project_id }}"> <!-- Add data-id here -->
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
-                        <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+              <thead>
+                  <tr>
+                      <th>Invoice</th> <!-- New column for invoice image -->
+                      <th>Client Name</th>
+                      <th>Town</th>
+                      <th>Phone Number</th>
+                      <th>Sales Person</th>
+                      <th>Lead Installer</th>
+                      <th>Start Date</th>
+                      <th>Commissioning Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for project in completed_projects %}
+                  <tr data-id="{{ project.project_id }}">
+                      <td>
+                          {% if project.invoice_image_url %}
+                              <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
+                          {% else %}
+                              No Invoice
+                          {% endif %}
+                      </td>
+                      <td contenteditable="true">{{ project.client_name }}</td>
+                      <td contenteditable="true">{{ project.town }}</td>
+                      <td contenteditable="true">{{ project.phone_number }}</td>
+                      <td>
+                          <select class="sales-person">
+                              <option value="">Select a Team Member</option>
+                              {% for member in team_members %}
+                              <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
+                                  {{ member }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </td>
+                      <td>
+                          <select class="lead-installer">
+                              <option value="">Select a Team Member</option>
+                              {% for member in team_members %}
+                              <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
+                                  {{ member }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </td>
+                      <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
+                      <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
             </table>
         </div>
 
@@ -310,8 +348,41 @@
                     addCommissioningDateColumn();
                 }
             });
-        });
 
+            // Invoice Upload
+            document.getElementById("upload-form").addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                let formData = new FormData();
+                let fileInput = document.getElementById("invoice_image");
+
+                if (fileInput.files.length === 0) {
+                    document.getElementById("upload-status").innerText = "Please select a file.";
+                    return;
+                }
+
+                formData.append("invoice_image", fileInput.files[0]);
+
+                fetch("/upload_invoice", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.file_url) {
+                        document.getElementById("upload-status").innerText = "Upload successful!";
+                        console.log("Invoice Image URL:", data.file_url);
+                    } else {
+                        document.getElementById("upload-status").innerText = "Upload failed.";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("upload-status").innerText = "Error uploading file.";
+                    console.error(error);
+                });
+            });
+
+        });
     </script>
 
 

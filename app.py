@@ -23,6 +23,7 @@ from sqlalchemy.sql.expression import true
 import decimal
 from urllib.parse import urlparse
 from flask_mail import Mail, Message
+from drive_uploader import upload_to_drive
 
 
 pymysql.install_as_MySQLdb()
@@ -48,7 +49,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  # Correctly reference the upload folder
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 MB
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'pdf'}
 
 # Database configuration from environment variables
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('JAWSDB_USER')}:{os.getenv('JAWSDB_PASSWORD')}@{os.getenv('JAWSDB_HOST')}/{os.getenv('JAWSDB_DB')}"
@@ -3860,6 +3861,7 @@ def update_projects():
             project_id = project.get('project_id')
             start_date = project.get('start_date', '').strip()
             commissioning_date = project.get('commissioning_date', '').strip()
+            invoice_image_url = project.get('invoice_image_url', '').strip()
 
             start_date = start_date if start_date else None
             commissioning_date = commissioning_date if commissioning_date else None
@@ -3877,6 +3879,7 @@ def update_projects():
                     existing_project.lead_installer = project.get('lead_installer', '')
                     existing_project.start_date = start_date
                     existing_project.commissioning_date = commissioning_date
+                    existing_project.invoice_image_url = invoice_image_url  # Save invoice image URL
 
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
@@ -3903,7 +3906,8 @@ def update_projects():
                         sales_person=project.get('sales_person', ''),
                         lead_installer=project.get('lead_installer', ''),
                         start_date=start_date,
-                        commissioning_date=commissioning_date
+                        commissioning_date=commissioning_date,
+                        invoice_image_url=invoice_image_url  # Save invoice image URL for new project
                     )
                     db.session.add(new_project)
 
@@ -4020,6 +4024,35 @@ def send_completed_project_email_notification(project):
             print(f"Email sent to {sales_person_email} for completed project {project.client_name}")
         except Exception as e:
             print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
+
+# --- NEW: Upload Invoice Route ---
+@app.route("/upload_invoice", methods=["POST"])
+def upload_invoice():
+    if "invoice_image" not in request.files:
+        return jsonify({"message": "No file uploaded"}), 400
+
+    file = request.files["invoice_image"]
+    if file.filename == "":
+        return jsonify({"message": "No selected file"}), 400
+
+    # Save file temporarily
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(file_path)
+
+    try:
+        # Upload to Google Drive
+        file_url = upload_to_drive(file_path, file.filename)
+
+        # Remove the temporary file
+        os.remove(file_path)
+
+        return jsonify({"file_url": file_url})
+
+    except Exception as e:
+        logging.error(f"Error uploading file: {e}")
+        return jsonify({"message": "Error uploading file"}), 500
+
+
 
 
 if __name__ == '__main__':
