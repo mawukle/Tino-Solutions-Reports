@@ -3948,7 +3948,7 @@ def send_project_email_notification(project):
 
         body = f"""
         <p>Dear {project.sales_person},</p>
-        <p>Your project for <b>{project.client_name}</b> in <b>{project.town}</b> has now moved to the <b>Ongoing</b> stage.</p>
+        <p>Your installation for <b>{project.client_name}</b> in <b>{project.town}</b> has now moved to the <b>Ongoing</b> stage.</p>
         <p><b>Project Details:</b></p>
         <ul>
             <li>Client Name: {project.client_name}</li>
@@ -3992,7 +3992,7 @@ def send_completed_project_email_notification(project):
 
         body = f"""
         <p>Dear {project.sales_person},</p>
-        <p>Your project for <b>{project.client_name}</b> in <b>{project.town}</b> has now been marked as <b>Completed</b>.</p>
+        <p>Your installation for <b>{project.client_name}</b> in <b>{project.town}</b> has now been marked as <b>Completed</b>.</p>
         <p><b>Project Details:</b></p>
         <ul>
             <li>Client Name: {project.client_name}</li>
