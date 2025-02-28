@@ -3819,7 +3819,7 @@ def get_projects():
             }
 
             # Categorization logic
-            if project_data["client_name"] and project_data["town"] and project_data["phone_number"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
+            if project_data["client_name"] and project_data["town"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
             elif project_data["commissioning_date"] and project_data["start_date"]:
                 commissioning_dt = datetime.strptime(project_data["commissioning_date"], '%Y-%m-%d')
