@@ -4027,31 +4027,41 @@ def send_completed_project_email_notification(project):
 
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
+    project_id = request.form.get("project_id")  # Get project_id from form data
+
+    if not project_id:
+        return jsonify({"message": "Project ID is required"}), 400
+
+    if "invoice_image" not in request.files:
+        return jsonify({"message": "No file uploaded"}), 400
+
+    file = request.files["invoice_image"]
+    if file.filename == "":
+        return jsonify({"message": "No selected file"}), 400
+
+    # Save file temporarily
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(file_path)
+
     try:
-        project_id = request.form.get("project_id")
-        image_file = request.files.get("invoice_image")
+        # Upload to Google Drive
+        file_url = upload_to_drive(file_path, file.filename)
 
-        if not project_id:
-            return jsonify({"message": "Project ID is required"}), 400
-
-        if not image_file or image_file.filename == "":
-            return jsonify({"message": "No file uploaded or selected"}), 400
-
-        # Upload image to Google Drive and get the URL
-        invoice_url = upload_to_google_drive(image_file)
+        # Remove the temporary file
+        os.remove(file_path)
 
         # Update the project in the database with the invoice URL
         project = db.session.query(projects).filter_by(project_id=project_id).first()
         if project:
-            project.invoice_image_url = invoice_url
+            project.invoice_image_url = file_url
             db.session.commit()
-            return jsonify({"message": "Invoice uploaded successfully", "file_url": invoice_url})
+            return jsonify({"message": "Invoice uploaded successfully", "file_url": file_url})
         else:
             return jsonify({"message": "Project not found"}), 404
 
     except Exception as e:
-        logging.error(f"Error uploading invoice: {e}")
-        return jsonify({"message": "Error uploading invoice"}), 500
+        logging.error(f"Error uploading file: {e}")
+        return jsonify({"message": "Error uploading file"}), 500
 
 
 import os
