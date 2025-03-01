@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # Load credentials from JSON file
-GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-144d63518003.json"  # Change to your actual JSON file name
+GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"  # Change to your actual JSON file name
 
 # Set the Google Drive folder ID where images will be stored
 GOOGLE_DRIVE_FOLDER_ID = "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9"  # Change this to your folder ID
