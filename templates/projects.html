@@ -38,6 +38,33 @@
         .upload-container {
             margin-bottom: 20px;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .modal-content {
+            display: block;
+            margin: 10% auto;
+            max-width: 90%;
+            max-height: 80%;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
@@ -223,6 +250,12 @@
         </div>
     </div>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="fullImage">
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const saveButton = document.getElementById("save-changes");
@@ -379,6 +412,32 @@
                 .catch(error => {
                     document.getElementById("upload-status").innerText = "Error uploading file.";
                     console.error(error);
+                });
+            });
+            document.addEventListener("DOMContentLoaded", () => {
+                // Get modal elements
+                const modal = document.getElementById("imageModal");
+                const modalImg = document.getElementById("fullImage");
+                const closeBtn = document.querySelector(".close");
+
+                // Open modal when an image is clicked
+                document.querySelectorAll(".invoice-image").forEach(img => {
+                    img.addEventListener("click", function() {
+                        modal.style.display = "block";
+                        modalImg.src = this.src;
+                    });
+                });
+
+                // Close modal when the close button is clicked
+                closeBtn.addEventListener("click", () => {
+                    modal.style.display = "none";
+                });
+
+                // Close modal when clicking outside the image
+                modal.addEventListener("click", (event) => {
+                    if (event.target === modal) {
+                        modal.style.display = "none";
+                    }
                 });
             });
 
