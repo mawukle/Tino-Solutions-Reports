@@ -100,11 +100,11 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" style="cursor:pointer;">
                                 </a>
                             {% else %}
-                                <div class="upload-container">
-                                    <input type="file" class="invoice-upload" data-project-id="{{ project.project_id }}" accept="image/*">
-                                    <button class="upload-btn" data-project-id="{{ project.project_id }}">Upload</button>
-                                    <span class="upload-status" id="upload-status-{{ project.project_id }}"></span>
-                                </div>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
                             {% endif %}
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
@@ -150,11 +150,11 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" style="cursor:pointer;">
                                 </a>
                             {% else %}
-                                <div class="upload-container">
-                                    <input type="file" class="invoice-upload" data-project-id="{{ project.project_id }}" accept="image/*">
-                                    <button class="upload-btn" data-project-id="{{ project.project_id }}">Upload</button>
-                                    <span class="upload-status" id="upload-status-{{ project.project_id }}"></span>
-                                </div>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
                             {% endif %}
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
@@ -212,11 +212,11 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" style="cursor:pointer;">
                                 </a>
                             {% else %}
-                                <div class="upload-container">
-                                    <input type="file" class="invoice-upload" data-project-id="{{ project.project_id }}" accept="image/*">
-                                    <button class="upload-btn" data-project-id="{{ project.project_id }}">Upload</button>
-                                    <span class="upload-status" id="upload-status-{{ project.project_id }}"></span>
-                                </div>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
                             {% endif %}
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
@@ -444,46 +444,6 @@
                     if (event.target === modal) {
                         modal.style.display = "none";
                     }
-                });
-            });
-            document.addEventListener("DOMContentLoaded", () => {
-                document.querySelectorAll(".upload-btn").forEach(button => {
-                    button.addEventListener("click", function () {
-                        let projectId = this.getAttribute("data-project-id");
-                        let fileInput = document.querySelector(`.invoice-upload[data-project-id='${projectId}']`);
-                        let statusMessage = document.getElementById(`upload-status-${projectId}`);
-
-                        if (!fileInput.files.length) {
-                            statusMessage.textContent = "Please select a file.";
-                            return;
-                        }
-
-                        let formData = new FormData();
-                        formData.append("project_id", projectId);
-                        formData.append("invoice_image", fileInput.files[0]);
-
-                        fetch("/upload_invoice", {
-                            method: "POST",
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.file_url) {
-                                statusMessage.textContent = "Upload successful!";
-                                fileInput.parentElement.innerHTML = `
-                                    <a href="${data.file_url}" target="_blank">
-                                        <img src="${data.file_url}" alt="Invoice" width="100" style="cursor:pointer;">
-                                    </a>
-                                `;
-                            } else {
-                                statusMessage.textContent = "Upload failed.";
-                            }
-                        })
-                        .catch(error => {
-                            statusMessage.textContent = "Error uploading file.";
-                            console.error("Upload error:", error);
-                        });
-                    });
                 });
             });
 
