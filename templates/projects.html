@@ -54,10 +54,10 @@
         <!-- Invoice Upload Form -->
         <div class="upload-container">
             <h2>Upload Invoice Image</h2>
-            <form id="upload-form">
-                <label for="invoice_image">Choose a file:</label>
-                <input type="file" id="invoice_image" name="invoice_image" accept="image/*">
-                <button type="submit">Upload</button>
+            <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                <input type="file" name="invoice_image" accept="image/*">
+                <button type="submit">Upload Invoice</button>
             </form>
             <p id="upload-status"></p>
         </div>
@@ -83,7 +83,11 @@
                           {% if project.invoice_image_url %}
                               <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                           {% else %}
-                              No Invoice
+                              <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                  <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                  <input type="file" name="invoice_image" accept="image/*">
+                                  <button type="submit">Upload Invoice</button>
+                              </form>
                           {% endif %}
                       </td>
                       <td contenteditable="true">{{ project.client_name }}</td>
@@ -128,7 +132,11 @@
                           {% if project.invoice_image_url %}
                               <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                           {% else %}
-                              No Invoice
+                              <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                  <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                  <input type="file" name="invoice_image" accept="image/*">
+                                  <button type="submit">Upload Invoice</button>
+                              </form>
                           {% endif %}
                       </td>
                       <td contenteditable="true">{{ project.client_name }}</td>
@@ -184,7 +192,11 @@
                           {% if project.invoice_image_url %}
                               <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                           {% else %}
-                              No Invoice
+                              <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                  <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                  <input type="file" name="invoice_image" accept="image/*">
+                                  <button type="submit">Upload Invoice</button>
+                              </form>
                           {% endif %}
                       </td>
                       <td contenteditable="true">{{ project.client_name }}</td>
