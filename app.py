@@ -3816,7 +3816,8 @@ def get_projects():
                 "sales_person": project.sales_person or '',
                 "lead_installer": project.lead_installer or '',
                 "start_date": start_date,
-                "commissioning_date": commissioning_date
+                "commissioning_date": commissioning_date,
+                "invoice_image_url": project.invoice_image_url or ''  # Add this line
             }
 
             # Categorization logic
