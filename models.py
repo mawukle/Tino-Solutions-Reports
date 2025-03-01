@@ -152,6 +152,8 @@ class projects(db.Model):
     lead_installer = db.Column(db.String(255), nullable=True)
     start_date = db.Column(db.Date, nullable=True)
     commissioning_date = db.Column(db.Date, nullable=True)
+    invoice_image_url = db.Column(db.String(500), nullable=True)
+
 
     def __repr__(self):
         return f"<projects(client_name={self.client_name}, town={self.Town}, start_date={self.start_date})>"

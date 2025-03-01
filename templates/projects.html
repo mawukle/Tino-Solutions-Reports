@@ -78,6 +78,9 @@
               </thead>
               <tbody>
                   {% for project in new_projects %}
+                      <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                  {% endfor %}
+
                   <tr data-id="{{ project.project_id }}">
                       <td>
                           {% if project.invoice_image_url %}
@@ -127,6 +130,9 @@
               </thead>
               <tbody>
                   {% for project in ongoing_projects %}
+                      <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                  {% endfor %}
+
                   <tr data-id="{{ project.project_id }}">
                       <td>
                           {% if project.invoice_image_url %}
@@ -187,6 +193,9 @@
               </thead>
               <tbody>
                   {% for project in completed_projects %}
+                      <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                  {% endfor %}
+
                   <tr data-id="{{ project.project_id }}">
                       <td>
                           {% if project.invoice_image_url %}
