@@ -71,9 +71,10 @@
                             {% if project.invoice_image_url %}
                                 <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                             {% else %}
-                                <form class="invoice-upload-form" data-project-id="{{ project.project_id }}" enctype="multipart/form-data">
-                                    <input type="file" name="invoice_image" class="invoice-file-input" accept="image/*">
-                                    <button type="button" class="upload-button">Upload</button>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
                                 </form>
                             {% endif %}
                         </td>
@@ -118,9 +119,10 @@
                             {% if project.invoice_image_url %}
                                 <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                             {% else %}
-                                <form class="invoice-upload-form" data-project-id="{{ project.project_id }}" enctype="multipart/form-data">
-                                    <input type="file" name="invoice_image" class="invoice-file-input" accept="image/*">
-                                    <button type="button" class="upload-button">Upload</button>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
                                 </form>
                             {% endif %}
                         </td>
@@ -177,9 +179,10 @@
                             {% if project.invoice_image_url %}
                                 <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                             {% else %}
-                                <form class="invoice-upload-form" data-project-id="{{ project.project_id }}" enctype="multipart/form-data">
-                                    <input type="file" name="invoice_image" class="invoice-file-input" accept="image/*">
-                                    <button type="button" class="upload-button">Upload</button>
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
                                 </form>
                             {% endif %}
                         </td>
@@ -213,7 +216,7 @@
                 </tbody>
             </table>
         </div>
-
+        
         <div class="buttons">
             <button id="add-row">Add New Row</button>
             <button id="save-changes">Save Changes</button>
@@ -375,46 +378,6 @@
                 .catch(error => {
                     document.getElementById("upload-status").innerText = "Error uploading file.";
                     console.error(error);
-                });
-            });
-            document.addEventListener("DOMContentLoaded", () => {
-                document.querySelectorAll(".upload-button").forEach(button => {
-                    button.addEventListener("click", function (event) {
-                        event.preventDefault(); // Prevent default form submission
-
-                        let form = this.closest(".invoice-upload-form");
-                        let projectId = form.getAttribute("data-project-id");
-                        let fileInput = form.querySelector(".invoice-file-input");
-                        let file = fileInput.files[0];
-
-                        if (!file) {
-                            alert("Please select a file to upload.");
-                            return;
-                        }
-
-                        let formData = new FormData();
-                        formData.append("project_id", projectId);
-                        formData.append("invoice_image", file);
-
-                        fetch("/upload_invoice", {
-                            method: "POST",
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert("Upload successful!");
-                                // Replace form with the uploaded image
-                                form.outerHTML = `<img src="${data.file_url}" alt="Invoice" width="100">`;
-                            } else {
-                                alert("Upload failed: " + (data.error || "Unknown error"));
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Upload error:", error);
-                            alert("An error occurred while uploading.");
-                        });
-                    });
                 });
             });
 
