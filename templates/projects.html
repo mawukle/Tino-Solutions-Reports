@@ -379,7 +379,9 @@
             });
             document.addEventListener("DOMContentLoaded", () => {
                 document.querySelectorAll(".upload-button").forEach(button => {
-                    button.addEventListener("click", function () {
+                    button.addEventListener("click", function (event) {
+                        event.preventDefault(); // Prevent default form submission
+
                         let form = this.closest(".invoice-upload-form");
                         let projectId = form.getAttribute("data-project-id");
                         let fileInput = form.querySelector(".invoice-file-input");
@@ -400,7 +402,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            if (data.file_url) {
+                            if (data.success) {
                                 alert("Upload successful!");
                                 // Replace form with the uploaded image
                                 form.outerHTML = `<img src="${data.file_url}" alt="Invoice" width="100">`;

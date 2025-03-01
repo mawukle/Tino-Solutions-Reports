@@ -4030,17 +4030,14 @@ def upload_invoice():
     project_id = request.form.get("project_id")
 
     if not project_id:
-        flash("Project ID is required", "error")
-        return redirect(url_for("projects"))
+        return jsonify({"success": False, "error": "Project ID is required"}), 400
 
     if "invoice_image" not in request.files:
-        flash("No file uploaded", "error")
-        return redirect(url_for("projects"))
+        return jsonify({"success": False, "error": "No file uploaded"}), 400
 
     file = request.files["invoice_image"]
     if file.filename == "":
-        flash("No selected file", "error")
-        return redirect(url_for("projects"))
+        return jsonify({"success": False, "error": "No selected file"}), 400
 
     # Save file temporarily
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
@@ -4058,15 +4055,13 @@ def upload_invoice():
         if project:
             project.invoice_image_url = file_url
             db.session.commit()
-            flash("Invoice uploaded successfully", "success")
+            return jsonify({"success": True, "file_url": file_url})
         else:
-            flash("Project not found", "error")
+            return jsonify({"success": False, "error": "Project not found"}), 404
 
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
-        flash("Error uploading file", "error")
-
-    return redirect(url_for("projects"))
+        return jsonify({"success": False, "error": "Error uploading file"}), 500
 
 
 import os
