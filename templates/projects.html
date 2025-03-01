@@ -216,7 +216,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <div class="buttons">
             <button id="add-row">Add New Row</button>
             <button id="save-changes">Save Changes</button>
@@ -247,7 +247,8 @@
                         sales_person: salesPersonSelect ? salesPersonSelect.value : "",
                         lead_installer: leadInstallerSelect ? leadInstallerSelect.value : "",
                         start_date: inputs[0]?.value || "",
-                        commissioning_date: inputs[1]?.value || ""
+                        commissioning_date: inputs[1]?.value || "",
+                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
                     };
 
                     if (projectID || projectData.client_name || projectData.town || projectData.phone_number) {
