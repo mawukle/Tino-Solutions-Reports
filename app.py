@@ -4027,6 +4027,7 @@ def send_completed_project_email_notification(project):
         except Exception as e:
             print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
+
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
     project_id = request.form.get("project_id")  # Get project_id from form data
@@ -4057,7 +4058,8 @@ def upload_invoice():
         if project:
             project.invoice_image_url = file_url
             db.session.commit()
-            return jsonify({"message": "Invoice uploaded successfully", "file_url": file_url})
+            return redirect(url_for("projects"))  # Redirect to the projects page
+
         else:
             return jsonify({"message": "Project not found"}), 404
 
