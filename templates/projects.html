@@ -339,18 +339,35 @@
             const thead = newProjectsTable.querySelector("thead tr");
             const tbody = newProjectsTable.querySelector("tbody");
 
-            thead.innerHTML += `<th>Lead Installer</th><th>Start Date</th>`;
+            // Add headers if missing
+            if (!thead.querySelector(".lead-installer-header")) {
+                let th1 = document.createElement("th");
+                th1.classList.add("lead-installer-header");
+                th1.textContent = "Lead Installer";
+                let th2 = document.createElement("th");
+                th2.classList.add("start-date-header");
+                th2.textContent = "Start Date";
+                thead.appendChild(th1);
+                thead.appendChild(th2);
+            }
 
+            // Add missing columns to rows
             tbody.querySelectorAll("tr").forEach(row => {
-                row.innerHTML += `
-                    <td>
+                if (!row.querySelector(".lead-installer")) {
+                    let td1 = document.createElement("td");
+                    td1.innerHTML = `
                         <select class="lead-installer">
                             <option value="">Select a Team Member</option>
                             ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
                         </select>
-                    </td>
-                    <td><input type="date" class="date-input"></td>
-                `;
+                    `;
+                    row.appendChild(td1);
+                }
+                if (!row.querySelector(".date-input")) {
+                    let td2 = document.createElement("td");
+                    td2.innerHTML = `<input type="date" class="date-input">`;
+                    row.appendChild(td2);
+                }
             });
 
             columnsAdded = true;
