@@ -3792,7 +3792,8 @@ def get_projects():
             projects.sales_person,
             projects.lead_installer,
             projects.start_date,
-            projects.commissioning_date
+            projects.commissioning_date,
+            projects.invoice_image_url  # <-- Add this field
         ).distinct().all()
 
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
@@ -3817,7 +3818,7 @@ def get_projects():
                 "lead_installer": project.lead_installer or '',
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
-                "invoice_image_url": getattr(project, 'invoice_image_url', '')  # Avoid KeyError
+                "invoice_image_url": project.invoice_image_url or ''  # Direct access
             }
 
             # Categorization logic
