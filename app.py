@@ -4053,6 +4053,36 @@ def upload_invoice():
         return jsonify({"message": "Error uploading file"}), 500
 
 
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
+# Load your credentials file
+SERVICE_ACCOUNT_FILE = "/Users/tinosolutionslimited/Desktop/LENOVO/TINO/DOCUMENTS/PYTHON/TINO_Invoice-online/Tino-Solutions-Reports/tinosolutions-invoices-144d63518003.json"
+SCOPES = ["https://www.googleapis.com/auth/drive"]
+
+# Authenticate and build the service
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+)
+service = build("drive", "v3", credentials=credentials)
+
+# Folder ID to check
+FOLDER_ID = "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9"
+
+# List files in the folder
+def list_files_in_folder(service, folder_id):
+    query = f"'{folder_id}' in parents"
+    results = service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get("files", [])
+
+    if not files:
+        print("No files found or no access to folder.")
+    else:
+        print("Files in folder:")
+        for file in files:
+            print(f"{file['name']} ({file['id']})")
+
+list_files_in_folder(service, FOLDER_ID)
 
 
 if __name__ == '__main__':
