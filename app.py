@@ -4053,23 +4053,30 @@ def upload_invoice():
         return jsonify({"message": "Error uploading file"}), 500
 
 
+import os
+import json
+import base64
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
-# Load your credentials file
-SERVICE_ACCOUNT_FILE = "/Users/tinosolutionslimited/Desktop/LENOVO/TINO/DOCUMENTS/PYTHON/TINO_Invoice-online/Tino-Solutions-Reports/tinosolutions-invoices-d422558b4d05.json"
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+# Load credentials from Heroku environment variable
+GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
 
-# Authenticate and build the service
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
-)
+if GOOGLE_CREDENTIALS:
+    credentials_json = json.loads(base64.b64decode(GOOGLE_CREDENTIALS).decode("utf-8"))
+    credentials = service_account.Credentials.from_service_account_info(credentials_json)
+else:
+    raise ValueError("GOOGLE_CREDENTIALS environment variable not set.")
+
+# Authenticate and build the Google Drive service
+SCOPES = ["https://www.googleapis.com/auth/drive"]
+credentials = credentials.with_scopes(SCOPES)
 service = build("drive", "v3", credentials=credentials)
 
 # Folder ID to check
 FOLDER_ID = "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9"
 
-# List files in the folder
+# Function to list files in the folder
 def list_files_in_folder(service, folder_id):
     query = f"'{folder_id}' in parents"
     results = service.files().list(q=query, fields="files(id, name)").execute()
@@ -4082,6 +4089,7 @@ def list_files_in_folder(service, folder_id):
         for file in files:
             print(f"{file['name']} ({file['id']})")
 
+# Call the function to list files
 list_files_in_folder(service, FOLDER_ID)
 
 
