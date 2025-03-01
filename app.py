@@ -3817,7 +3817,7 @@ def get_projects():
                 "lead_installer": project.lead_installer or '',
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
-                "invoice_image_url": project.invoice_image_url or ''  # Add this line
+                "invoice_image_url": getattr(project, 'invoice_image_url', '')  # Avoid KeyError
             }
 
             # Categorization logic
