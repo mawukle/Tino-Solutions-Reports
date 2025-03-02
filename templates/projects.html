@@ -319,6 +319,13 @@
             addRowButton.addEventListener("click", () => {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
+                    <td>
+                        <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="project_id" value="">
+                            <input type="file" name="invoice_image" accept="image/*">
+                            <button type="submit">Upload</button>
+                        </form>
+                    </td>
                     <td contenteditable="true"></td>  <!-- Client Name -->
                     <td contenteditable="true"></td>  <!-- Town -->
                     <td contenteditable="true"></td>  <!-- Phone Number -->
