@@ -3941,7 +3941,6 @@ def update_projects():
 def send_project_email_notification(project):
     """Sends an email notification to the sales person when their project becomes ongoing."""
     with app.app_context():
-        # Fetch the sales person's email from Team_Members table
         sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
             Team_Members.Team_Member_Name == project.sales_person
         ).scalar()
@@ -3949,6 +3948,8 @@ def send_project_email_notification(project):
         if not sales_person_email:
             print(f"ERROR: No email found for sales person {project.sales_person}")
             return
+
+        invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
         subject = f"Project Update: {project.client_name} installation is now Ongoing"
 
@@ -3962,8 +3963,8 @@ def send_project_email_notification(project):
             <li>Start Date: {project.start_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
+        {invoice_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
-        <p>Please reach out if you need further information.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
         <hr>
         <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
@@ -3973,7 +3974,6 @@ def send_project_email_notification(project):
             subject,
             recipients=[sales_person_email],
             cc=["padiemmanuelkwesi@gmail.com", "emmanuel@tinosolutions"],
-            #cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com"],
             html=body
         )
 
@@ -3986,7 +3986,6 @@ def send_project_email_notification(project):
 def send_completed_project_email_notification(project):
     """Sends an email notification when a project moves to Completed status."""
     with app.app_context():
-        # Fetch the sales person's email from the Team_Members table
         sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
             Team_Members.Team_Member_Name == project.sales_person
         ).scalar()
@@ -3994,6 +3993,8 @@ def send_completed_project_email_notification(project):
         if not sales_person_email:
             print(f"ERROR: No email found for sales person {project.sales_person}")
             return
+
+        invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
         subject = f"Project Completion Notification: {project.client_name} installation has been Completed"
 
@@ -4008,6 +4009,7 @@ def send_completed_project_email_notification(project):
             <li>Commissioning Date: {project.commissioning_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
+        {invoice_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
@@ -4019,7 +4021,6 @@ def send_completed_project_email_notification(project):
             subject,
             recipients=[sales_person_email],
             cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
-            #cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com", "hippolite@tinosolutions.com", "support@tinosolutions.com", "solal@tinosolutions.com", "accounts@tinosolutions.com", "gorden@tinosolutions.com", "postino@tinosolutions.com"],
             html=body
         )
 
