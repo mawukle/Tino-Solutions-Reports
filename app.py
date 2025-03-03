@@ -3972,7 +3972,7 @@ def send_project_email_notification(project):
         msg = Message(
             subject,
             recipients=[sales_person_email],
-            cc=["padimmanuelkwesi@gmail.com", "emmanuel@tinosolutions"],
+            cc=["padiemmanuelkwesi@gmail.com", "emmanuel@tinosolutions"],
             #cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com"],
             html=body
         )
