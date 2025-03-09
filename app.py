@@ -3983,7 +3983,8 @@ def send_project_email_notification(project):
         msg = Message(
             subject,
             recipients=[sales_person_email],
-            #cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com"],
+            cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com"],
+            bcc=["emmanuel@tinosolutions.com"],  # Add BCC recipients
             html=body
         )
 
@@ -4030,7 +4031,8 @@ def send_completed_project_email_notification(project):
         msg = Message(
             subject,
             recipients=[sales_person_email],
-            #cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com", "hippolite@tinosolutions.com", "support@tinosolutions.com", "solal@tinosolutions.com", "accounts@tinosolutions.com", "gorden@tinosolutions.com", "postino@tinosolutions.com"],
+            cc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com", "hippolite@tinosolutions.com", "support@tinosolutions.com", "solal@tinosolutions.com", "accounts@tinosolutions.com", "gorden@tinosolutions.com", "postino@tinosolutions.com"],
+            bcc=["emmanuel@tinosolutions.com"],  # Add BCC recipients
             html=body
         )
 
