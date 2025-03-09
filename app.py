@@ -3871,17 +3871,27 @@ def update_projects():
             if project_id:  # Update existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
-                    previously_ongoing = existing_project.lead_installer and existing_project.start_date
-                    previously_completed = existing_project.commissioning_date is not None
+                    # Track previous statuses
+                    previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
+                    previously_completed = bool(existing_project.commissioning_date)
 
-                    existing_project.client_name = project.get('client_name', '')
-                    existing_project.town = project.get('town', '')
-                    existing_project.phone_number = project.get('phone_number', '')
-                    existing_project.sales_person = project.get('sales_person', '')
-                    existing_project.lead_installer = project.get('lead_installer', '')
-                    existing_project.start_date = start_date
-                    existing_project.commissioning_date = commissioning_date
-                    existing_project.invoice_image_url = invoice_image_url  # Save invoice image URL
+                    # Only update fields that exist in the request data
+                    if 'client_name' in project:
+                        existing_project.client_name = project['client_name']
+                    if 'town' in project:
+                        existing_project.town = project['town']
+                    if 'phone_number' in project:
+                        existing_project.phone_number = project['phone_number']
+                    if 'sales_person' in project:
+                        existing_project.sales_person = project['sales_person']
+                    if 'lead_installer' in project:
+                        existing_project.lead_installer = project['lead_installer']
+                    if 'start_date' in project:
+                        existing_project.start_date = start_date
+                    if 'commissioning_date' in project:
+                        existing_project.commissioning_date = commissioning_date
+                    if 'invoice_image_url' in project:
+                        existing_project.invoice_image_url = invoice_image_url
 
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
