@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDU Report</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script>
+        var teamMembers = {{ team_members | tojson }};
+    </script>
+
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #85BB65;
+        }
+        td[contenteditable="true"] {
+            background-color: #f9f9f9;
+            outline: none;
+        }
+        .message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container_1">
+        <img src="/static/logo.png" alt="Logo" class="logo">
+        <a href="/" class="back-link">The Renewable Energy Experts</a>
+
+        <h1>TINO SOLUTIONS LIMITED<br>BDU REPORT</h1>
+
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
+
+        <!-- Closed Deals -->
+        <h2>Closed Deals</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Client Name</th>
+                        <th>Town</th>
+                        <th>Google Coordinates</th>
+                        <th>Phone Number</th>
+                        <th>Sales Person</th>
+                        <th>Currency</th>
+                        <th>Invoice Amount</th>
+                        <th>Amount Paid</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for deal in closed_deals %}
+                    <tr data-id="{{ deal.project_id }}">
+                        <td>{{ deal.invoice }}</td>
+                        <td contenteditable="true">{{ deal.client_name }}</td>
+                        <td contenteditable="true">{{ deal.town }}</td>
+                        <td contenteditable="true">{{ deal.google_coordinates }}</td>
+                        <td contenteditable="true">{{ deal.phone_number }}</td>
+                        <td>
+                            <select class="sales-person">
+                                <option value="">Select</option>
+                                {% for member in team_members %}
+                                <option value="{{ member }}" {% if deal.sales_person == member %}selected{% endif %}>
+                                    {{ member }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td contenteditable="true">{{ deal.currency }}</td>
+                        <td contenteditable="true">{{ deal.invoice_amount }}</td>
+                        <td contenteditable="true">{{ deal.amount_paid }}</td>
+                        <td contenteditable="true">{{ deal.comment }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Clients in Debt -->
+        <h2>Clients in Debt</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Client Name</th>
+                        <th>Town</th>
+                        <th>Phone Number</th>
+                        <th>Sales Person</th>
+                        <th>Currency</th>
+                        <th>Invoice Amount</th>
+                        <th>Amount Paid</th>
+                        <th>Expected Final Payment Date</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for debt in clients_in_debt %}
+                    <tr data-id="{{ debt.project_id }}">
+                        <td>{{ debt.invoice }}</td>
+                        <td contenteditable="true">{{ debt.client_name }}</td>
+                        <td contenteditable="true">{{ debt.town }}</td>
+                        <td contenteditable="true">{{ debt.phone_number }}</td>
+                        <td>
+                            <select class="sales-person">
+                                <option value="">Select</option>
+                                {% for member in team_members %}
+                                <option value="{{ member }}" {% if debt.sales_person == member %}selected{% endif %}>
+                                    {{ member }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td contenteditable="true">{{ debt.currency }}</td>
+                        <td contenteditable="true">{{ debt.invoice_amount }}</td>
+                        <td contenteditable="true">{{ debt.amount_paid }}</td>
+                        <td><input type="date" class="date-input" value="{{ debt.expected_final_payment_date }}"></td>
+                        <td contenteditable="true">{{ debt.comment }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Clients in Good Standing -->
+        <h2>Clients in Good Standing</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Client Name</th>
+                        <th>Town</th>
+                        <th>Phone Number</th>
+                        <th>Sales Person</th>
+                        <th>Currency</th>
+                        <th>Invoice Amount</th>
+                        <th>Outstanding Balance</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for good in clients_in_good_standing %}
+                    <tr data-id="{{ good.project_id }}">
+                        <td>{{ good.invoice }}</td>
+                        <td contenteditable="true">{{ good.client_name }}</td>
+                        <td contenteditable="true">{{ good.town }}</td>
+                        <td contenteditable="true">{{ good.phone_number }}</td>
+                        <td>
+                            <select class="sales-person">
+                                <option value="">Select</option>
+                                {% for member in team_members %}
+                                <option value="{{ member }}" {% if good.sales_person == member %}selected{% endif %}>
+                                    {{ member }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td contenteditable="true">{{ good.currency }}</td>
+                        <td contenteditable="true">{{ good.invoice_amount }}</td>
+                        <td contenteditable="true">{{ good.outstanding_balance }}</td>
+                        <td contenteditable="true">{{ good.comment }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="buttons">
+            <button id="save-changes">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const saveButton = document.getElementById("save-changes");
+        if (saveButton) {
+            saveButton.addEventListener("click", () => {
+                let updatedRecords = [];
+                document.querySelectorAll("tbody tr").forEach(row => {
+                    const projectID = row.getAttribute("data-id") || null;
+                    const cells = row.querySelectorAll("td[contenteditable='true']");
+                    const inputs = row.querySelectorAll("input.date-input");
+                    const salesPersonSelect = row.querySelector(".sales-person");
+
+                    let recordData = {
+                        project_id: projectID,
+                        client_name: cells[0]?.innerText.trim() || "",
+                        town: cells[1]?.innerText.trim() || "",
+                        phone_number: cells[2]?.innerText.trim() || "",
+                        sales_person: salesPersonSelect?.value || "",
+                        currency: cells[3]?.innerText.trim() || "",
+                        invoice_amount: cells[4]?.innerText.trim() || "",
+                        amount_paid: cells[5]?.innerText.trim() || "",
+                        expected_final_payment_date: inputs[0]?.value || "",
+                        outstanding_balance: cells[6]?.innerText.trim() || "",
+                        comment: cells[7]?.innerText.trim() || ""
+                    };
+
+                    if (projectID || recordData.client_name || recordData.town || recordData.phone_number) {
+                        updatedRecords.push(recordData);
+                    }
+                });
+
+                fetch("/update_bdu", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ records: updatedRecords })
+                }).then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.message === "BDU records updated successfully") {
+                        location.reload();
+                    }
+                }).catch(error => console.error("Error:", error));
+            });
+        }
+    });
+    </script>
+</body>
+</html>
