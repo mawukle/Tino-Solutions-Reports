@@ -4158,6 +4158,125 @@ def list_files_in_folder(service, folder_id):
 # list_files_in_folder(service, FOLDER_ID)
 
 
+@app.route('/bdu', methods=['GET'])
+def get_bdu():
+    message = request.args.get('message', '')
+
+    try:
+        # Fetch all relevant project data
+        projects_list = db.session.query(
+            projects.project_id,
+            projects.client_name,
+            projects.town,
+            projects.phone_number,
+            projects.sales_person,
+            projects.google_coordinates,
+            projects.currency,
+            projects.invoice_amount,
+            projects.amount_paid,
+            projects.outstanding_balance,
+            projects.expected_final_payment_date,
+            projects.comment
+        ).all()
+
+        team_members = db.session.query(Team_Members.Team_Member_Name).all()
+        team_members = [member.Team_Member_Name for member in team_members]
+
+        closed_deals = []
+        clients_in_debt = []
+        clients_in_good_standing = []
+
+        for project in projects_list:
+            outstanding_balance = project.outstanding_balance or 0.00
+            amount_paid = project.amount_paid or 0.00
+            expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
+
+            project_data = {
+                "project_id": project.project_id,
+                "invoice": f"INV-{project.project_id}",  # Example invoice format
+                "client_name": project.client_name or '',
+                "town": project.town or '',
+                "phone_number": project.phone_number or '',
+                "sales_person": project.sales_person or '',
+                "google_coordinates": project.google_coordinates or '',
+                "currency": project.currency or '',
+                "invoice_amount": project.invoice_amount or 0.00,
+                "amount_paid": amount_paid,
+                "outstanding_balance": outstanding_balance,
+                "expected_final_payment_date": expected_payment_date,
+                "comment": project.comment or ''
+            }
+
+            # Categorization logic
+            if outstanding_balance == 0:
+                closed_deals.append(project_data)
+            elif outstanding_balance > 0 and expected_payment_date:
+                clients_in_debt.append(project_data)
+            else:
+                clients_in_good_standing.append(project_data)
+
+        return render_template(
+            'bdu.html',
+            closed_deals=closed_deals,
+            clients_in_debt=clients_in_debt,
+            clients_in_good_standing=clients_in_good_standing,
+            team_members=team_members,
+            message=message
+        )
+
+    except Exception as e:
+        logging.error(f"Error fetching BDU data: {e}")
+        return render_template('bdu.html', message='Database query failed', closed_deals=[], clients_in_debt=[], clients_in_good_standing=[], team_members=[])
+
+
+@app.route('/update_bdu', methods=['POST'])
+def update_bdu():
+    try:
+        data = request.json.get('records', [])
+
+        for record in data:
+            project_id = record.get('project_id')
+            expected_payment_date = record.get('expected_final_payment_date', '').strip()
+
+            expected_payment_date = expected_payment_date if expected_payment_date else None
+
+            if project_id:
+                existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
+                if existing_project:
+                    # Update only relevant fields
+                    if 'client_name' in record:
+                        existing_project.client_name = record['client_name']
+                    if 'town' in record:
+                        existing_project.town = record['town']
+                    if 'phone_number' in record:
+                        existing_project.phone_number = record['phone_number']
+                    if 'sales_person' in record:
+                        existing_project.sales_person = record['sales_person']
+                    if 'google_coordinates' in record:
+                        existing_project.google_coordinates = record['google_coordinates']
+                    if 'currency' in record:
+                        existing_project.currency = record['currency']
+                    if 'invoice_amount' in record:
+                        existing_project.invoice_amount = record['invoice_amount']
+                    if 'amount_paid' in record:
+                        existing_project.amount_paid = record['amount_paid']
+                    if 'outstanding_balance' in record:
+                        existing_project.outstanding_balance = record['outstanding_balance']
+                    if 'expected_final_payment_date' in record:
+                        existing_project.expected_final_payment_date = expected_payment_date
+                    if 'comment' in record:
+                        existing_project.comment = record['comment']
+
+        db.session.commit()
+        return jsonify({"message": "BDU records updated successfully"})
+
+    except Exception as e:
+        logging.error(f"Error updating BDU records: {e}")
+        return jsonify({"message": "Error updating BDU records"}), 500
+
+
+
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
