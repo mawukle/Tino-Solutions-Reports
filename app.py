@@ -3793,7 +3793,14 @@ def get_projects():
             projects.lead_installer,
             projects.start_date,
             projects.commissioning_date,
-            projects.invoice_image_url  # <-- Add this field
+            projects.invoice_image_url,
+            projects.google_coordinates,
+            projects.currency,
+            projects.invoice_amount,
+            projects.amount_paid,
+            projects.outstanding_balance,
+            projects.expected_final_payment_date,
+            projects.comment
         ).distinct().all()
 
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
@@ -3806,8 +3813,9 @@ def get_projects():
         one_month_ago = datetime.now() - timedelta(days=30)  # Get date one month ago
 
         for project in projects_list:
-            start_date = project.start_date.strftime('%Y-%m-%d') if project.start_date and project.start_date != '0000-00-00' else ''
-            commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date and project.commissioning_date != '0000-00-00' else ''
+            start_date = project.start_date.strftime('%Y-%m-%d') if project.start_date else ''
+            commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
+            expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
                 "project_id": project.project_id,
@@ -3818,7 +3826,14 @@ def get_projects():
                 "lead_installer": project.lead_installer or '',
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
-                "invoice_image_url": project.invoice_image_url or ''  # Direct access
+                "invoice_image_url": project.invoice_image_url or '',
+                "google_coordinates": project.google_coordinates or '',
+                "currency": project.currency or '',
+                "invoice_amount": project.invoice_amount or 0.00,
+                "amount_paid": project.amount_paid or 0.00,
+                "outstanding_balance": project.outstanding_balance or 0.00,
+                "expected_final_payment_date": expected_payment_date,
+                "comment": project.comment or ''
             }
 
             # Categorization logic
@@ -3826,7 +3841,7 @@ def get_projects():
                 new_projects.append(project_data)
             elif project_data["commissioning_date"] and project_data["start_date"]:
                 commissioning_dt = datetime.strptime(project_data["commissioning_date"], '%Y-%m-%d')
-                if commissioning_dt >= one_month_ago:  # Only include projects within the last month
+                if commissioning_dt >= one_month_ago:
                     completed_projects.append(project_data)
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
@@ -3863,10 +3878,12 @@ def update_projects():
             project_id = project.get('project_id')
             start_date = project.get('start_date', '').strip()
             commissioning_date = project.get('commissioning_date', '').strip()
+            expected_payment_date = project.get('expected_final_payment_date', '').strip()
             invoice_image_url = project.get('invoice_image_url', '').strip()
 
             start_date = start_date if start_date else None
             commissioning_date = commissioning_date if commissioning_date else None
+            expected_payment_date = expected_payment_date if expected_payment_date else None
 
             if project_id:  # Update existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
@@ -3891,7 +3908,21 @@ def update_projects():
                     if 'commissioning_date' in project:
                         existing_project.commissioning_date = commissioning_date
                     if 'invoice_image_url' in project:
-                        existing_project.invoice_image_url = invoice_image_url
+                        existing_project.invoice_image_url = project['invoice_image_url']
+                    if 'google_coordinates' in project:
+                        existing_project.google_coordinates = project['google_coordinates']
+                    if 'currency' in project:
+                        existing_project.currency = project['currency']
+                    if 'invoice_amount' in project:
+                        existing_project.invoice_amount = project['invoice_amount']
+                    if 'amount_paid' in project:
+                        existing_project.amount_paid = project['amount_paid']
+                    if 'outstanding_balance' in project:
+                        existing_project.outstanding_balance = project['outstanding_balance']
+                    if 'expected_final_payment_date' in project:
+                        existing_project.expected_final_payment_date = expected_payment_date
+                    if 'comment' in project:
+                        existing_project.comment = project['comment']
 
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
@@ -3902,7 +3933,6 @@ def update_projects():
                         completed_projects.append(existing_project)
 
             else:
-                # Check if project already exists before inserting a new one
                 existing_project = db.session.query(projects).filter_by(
                     client_name=project.get('client_name', ''),
                     town=project.get('town', ''),
@@ -3919,25 +3949,28 @@ def update_projects():
                         lead_installer=project.get('lead_installer', ''),
                         start_date=start_date,
                         commissioning_date=commissioning_date,
-                        invoice_image_url=invoice_image_url  # Save invoice image URL for new project
+                        invoice_image_url=project.get('invoice_image_url', ''),
+                        google_coordinates=project.get('google_coordinates', ''),
+                        currency=project.get('currency', ''),
+                        invoice_amount=project.get('invoice_amount', 0.00),
+                        amount_paid=project.get('amount_paid', 0.00),
+                        outstanding_balance=project.get('outstanding_balance', 0.00),
+                        expected_final_payment_date=expected_payment_date,
+                        comment=project.get('comment', '')
                     )
                     db.session.add(new_project)
 
-                    # If the new project is "Ongoing," add to notifications
                     if new_project.lead_installer and new_project.start_date:
                         ongoing_projects.append(new_project)
 
-                    # If the new project is "Completed," add to notifications
                     if new_project.commissioning_date:
                         completed_projects.append(new_project)
 
         db.session.commit()
 
-        # Send email notifications for newly ongoing projects
         for project in ongoing_projects:
             send_project_email_notification(project)
 
-        # Send email notifications for newly completed projects
         for project in completed_projects:
             send_completed_project_email_notification(project)
 
@@ -3946,6 +3979,8 @@ def update_projects():
     except Exception as e:
         logging.error(f"Error updating projects: {e}")
         return jsonify({"message": "Error updating projects"}), 500
+
+
 
 
 def send_project_email_notification(project):
