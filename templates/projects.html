@@ -110,12 +110,12 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true" class="client-name">{{ project.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ project.town }}</td>
+                        <td contenteditable="true" class="phone-number">{{ project.phone_number }}</td>
                         <td>
-                            <select class="sales-person">
-                                <option value="" {% if not project.sales_person %}selected{% endif %}>Select a Team Member</option>
+                            <select class="sales-person" data-id="{{ project.project_id }}">
+                                <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
                                     {{ member }}
@@ -160,11 +160,11 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true" class="client-name">{{ project.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ project.town }}</td>
+                        <td contenteditable="true" class="phone-number">{{ project.phone_number }}</td>
                         <td>
-                            <select class="sales-person">
+                            <select class="sales-person" data-id="{{ project.project_id }}">
                                 <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
@@ -174,7 +174,7 @@
                             </select>
                         </td>
                         <td>
-                            <select class="lead-installer">
+                            <select class="lead-installer" data-id="{{ project.project_id }}">
                                 <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
@@ -222,11 +222,11 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
+                        <td contenteditable="true" class="client-name">{{ project.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ project.town }}</td>
+                        <td contenteditable="true" class="phone-number">{{ project.phone_number }}</td>
                         <td>
-                            <select class="sales-person">
+                            <select class="sales-person" data-id="{{ project.project_id }}">
                                 <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
@@ -236,7 +236,7 @@
                             </select>
                         </td>
                         <td>
-                            <select class="lead-installer">
+                            <select class="lead-installer" data-id="{{ project.project_id }}">
                                 <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
@@ -266,197 +266,212 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const saveButton = document.getElementById("save-changes");
-        if (saveButton) {
-            saveButton.addEventListener("click", () => {
-                let updatedProjects = [];
-                document.querySelectorAll("tbody tr").forEach(row => {
-                    const projectID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td[contenteditable='true']");
-                    const inputs = row.querySelectorAll("input.date-input");
-                    const salesPersonSelect = row.querySelector(".sales-person");
-                    const leadInstallerSelect = row.querySelector(".lead-installer");
+    class ProjectTableManager {
+        constructor() {
+            this.updatedProjects = [];
+            this.teamMembers = window.teamMembers || [];
+            this.initializeEventListeners();
+        }
 
-                    let projectData = {
-                        project_id: projectID,
-                        client_name: cells[0]?.innerText.trim() || "",
-                        town: cells[1]?.innerText.trim() || "",
-                        phone_number: cells[2]?.innerText.trim() || "",
-                        sales_person: salesPersonSelect?.value || "",  // Ensure correct selection
-                        lead_installer: leadInstallerSelect?.value || "",  // Ensure correct selection
-                        start_date: inputs[0]?.value || "",
-                        commissioning_date: inputs[1]?.value || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
-                    };
+        initializeEventListeners() {
+            document.addEventListener("DOMContentLoaded", () => {
+                this.setupSaveButton();
+                this.setupAddRowButton();
+                this.setupDynamicColumnAddition();
+                this.setupInvoiceUpload();
+                this.setupImageModal();
+            });
+        }
 
-                    if (projectID || projectData.client_name || projectData.town || projectData.phone_number) {
-                        updatedProjects.push(projectData);
+        setupSaveButton() {
+            const saveButton = document.getElementById("save-changes");
+            if (saveButton) {
+                saveButton.addEventListener("click", () => this.saveChanges());
+            }
+        }
+
+        saveChanges() {
+            this.updatedProjects = [];
+            document.querySelectorAll("tbody tr").forEach(row => {
+                let projectData = this.extractProjectData(row);
+                if (this.isValidProject(projectData)) {
+                    this.updatedProjects.push(projectData);
+                }
+            });
+
+            fetch("/update_projects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ projects: this.updatedProjects })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.message === "Projects updated successfully") {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while saving.");
+            });
+        }
+
+        extractProjectData(row) {
+            return {
+                project_id: row.getAttribute("data-id") || null,
+                client_name: row.querySelector(".client-name")?.innerText.trim() || "",
+                town: row.querySelector(".town")?.innerText.trim() || "",
+                phone_number: row.querySelector(".phone-number")?.innerText.trim() || "",
+                sales_person: row.querySelector(".sales-person")?.value || "",
+                lead_installer: row.querySelector(".lead-installer")?.value || "",
+                start_date: row.querySelector(".start-date")?.value || "",
+                commissioning_date: row.querySelector(".commissioning-date")?.value || "",
+                invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
+            };
+        }
+
+        isValidProject(project) {
+            return project.project_id || project.client_name || project.town || project.phone_number;
+        }
+
+        getCellValue(row, selector) {
+            return row.querySelector(selector)?.innerText.trim() || "";
+        }
+
+        getInputValue(row, selector) {
+            return row.querySelector(selector)?.value || "";
+        }
+
+        getSelectValue(row, selector) {
+            return row.querySelector(selector)?.value || "";
+        }
+
+        setupAddRowButton() {
+            const addRowButton = document.getElementById("add-row");
+            if (addRowButton) {
+                addRowButton.addEventListener("click", () => this.addNewRow());
+            }
+        }
+
+        addNewRow() {
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td>
+                    <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="project_id" value="">
+                        <input type="file" name="invoice_image" accept="image/*">
+                        <button type="submit">Upload</button>
+                    </form>
+                </td>
+                <td contenteditable="true" class="client-name"></td>
+                <td contenteditable="true" class="town"></td>
+                <td contenteditable="true" class="phone-number"></td>
+                <td>${this.createSelect("sales-person")}</td>
+                <td>${this.createSelect("lead-installer")}</td>
+                <td><input type="date" class="start-date"></td>
+                <td><input type="date" class="commissioning-date"></td>
+            `;
+            document.querySelector("tbody").appendChild(newRow);
+        }
+
+        createSelect(className) {
+            return `<select class="${className}">
+                <option value="">Select a Team Member</option>
+                ${this.teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
+            </select>`;
+        }
+
+        setupDynamicColumnAddition() {
+            this.addColumnsIfNeeded("h2:nth-of-type(1) + .table-container table", ".lead-installer", [
+                { class: "lead-installer", text: "Lead Installer" },
+                { class: "start-date", text: "Start Date" }
+            ]);
+
+            this.addColumnsIfNeeded("h2:nth-of-type(2) + .table-container table", ".commissioning-date", [
+                { class: "commissioning-date", text: "Commissioning Date" }
+            ]);
+        }
+
+        addColumnsIfNeeded(tableSelector, columnClass, columnsToAdd) {
+            const table = document.querySelector(tableSelector);
+            if (!table) return;
+
+            let columnsAdded = false;
+            table.querySelector("tbody").addEventListener("click", (event) => {
+                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
+                    if (columnsAdded) return;
+                    this.addMissingColumns(table, columnClass, columnsToAdd);
+                    columnsAdded = true;
+                }
+            });
+        }
+
+        addMissingColumns(table, columnClass, columnsToAdd) {
+            const thead = table.querySelector("thead tr");
+            const tbody = table.querySelector("tbody");
+
+            columnsToAdd.forEach(({ class: columnClass, text }) => {
+                if (!thead.querySelector(`.${columnClass}-header`)) {
+                    let th = document.createElement("th");
+                    th.classList.add(`${columnClass}-header`);
+                    th.textContent = text;
+                    thead.appendChild(th);
+                }
+            });
+
+            tbody.querySelectorAll("tr").forEach(row => {
+                columnsToAdd.forEach(({ class: columnClass }) => {
+                    if (!row.querySelector(`.${columnClass}`)) {
+                        let td = document.createElement("td");
+                        td.innerHTML = `<input type="date" class="${columnClass}">`;
+                        row.appendChild(td);
                     }
-                });
-
-                fetch("/update_projects", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ projects: updatedProjects })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.message === "Projects updated successfully") {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred while saving.");
                 });
             });
         }
 
-        const addRowButton = document.getElementById("add-row");
-        if (addRowButton) {
-            addRowButton.addEventListener("click", () => {
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>
-                        <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="project_id" value="">
-                            <input type="file" name="invoice_image" accept="image/*">
-                            <button type="submit">Upload</button>
-                        </form>
-                    </td>
-                    <td contenteditable="true"></td>  <!-- Client Name -->
-                    <td contenteditable="true"></td>  <!-- Town -->
-                    <td contenteditable="true"></td>  <!-- Phone Number -->
-                    <td>
-                        <select class="sales-person">
-                            <option value="">Select a Team Member</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    </td>
-                `;
-                document.querySelector("tbody").appendChild(newRow);
-            });
+        setupInvoiceUpload() {
+            const uploadForm = document.getElementById("upload-form");
+            if (uploadForm) {
+                uploadForm.addEventListener("submit", (event) => this.handleInvoiceUpload(event));
+            }
         }
 
-        const newProjectsTable = document.querySelector("h2:nth-of-type(1) + .table-container table");
-        let columnsAdded = false;
+        handleInvoiceUpload(event) {
+            event.preventDefault();
 
-        function addNewColumns() {
-            if (columnsAdded) return;
+            let formData = new FormData();
+            let fileInput = document.getElementById("invoice_image");
 
-            const thead = newProjectsTable.querySelector("thead tr");
-            const tbody = newProjectsTable.querySelector("tbody");
-
-            // Add headers if missing
-            if (!thead.querySelector(".lead-installer-header")) {
-                let th1 = document.createElement("th");
-                th1.classList.add("lead-installer-header");
-                th1.textContent = "Lead Installer";
-                let th2 = document.createElement("th");
-                th2.classList.add("start-date-header");
-                th2.textContent = "Start Date";
-                thead.appendChild(th1);
-                thead.appendChild(th2);
+            if (!fileInput || fileInput.files.length === 0) {
+                document.getElementById("upload-status").innerText = "Please select a file.";
+                return;
             }
 
-            // Add missing columns to rows
-            tbody.querySelectorAll("tr").forEach(row => {
-                if (!row.querySelector(".lead-installer")) {
-                    let td1 = document.createElement("td");
-                    td1.innerHTML = `
-                        <select class="lead-installer">
-                            <option value="">Select a Team Member</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    `;
-                    row.appendChild(td1);
-                }
-                if (!row.querySelector(".date-input")) {
-                    let td2 = document.createElement("td");
-                    td2.innerHTML = `<input type="date" class="date-input">`;
-                    row.appendChild(td2);
-                }
-            });
+            formData.append("invoice_image", fileInput.files[0]);
 
-            columnsAdded = true;
-        }
-
-        if (newProjectsTable) {
-            newProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD") {
-                    addNewColumns();
-                }
+            fetch("/upload_invoice", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("upload-status").innerText = data.file_url ? "Upload successful!" : "Upload failed.";
+            })
+            .catch(error => {
+                document.getElementById("upload-status").innerText = "Error uploading file.";
+                console.error(error);
             });
         }
 
-        const ongoingProjectsTable = document.querySelector("h2:nth-of-type(2) + .table-container table");
-        let ongoingColumnsAdded = false;
+        setupImageModal() {
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("fullImage");
+            const closeBtn = document.querySelector(".close");
 
-        function addCommissioningDateColumn() {
-            if (ongoingColumnsAdded) return;
+            if (!modal || !modalImg || !closeBtn) return;
 
-            const thead = ongoingProjectsTable.querySelector("thead tr");
-            const tbody = ongoingProjectsTable.querySelector("tbody");
-
-            thead.innerHTML += `<th>Commissioning Date</th>`;
-
-            tbody.querySelectorAll("tr").forEach(row => {
-                row.innerHTML += `<td><input type="date" class="date-input"></td>`;
-            });
-
-            ongoingColumnsAdded = true;
-        }
-
-        if (ongoingProjectsTable) {
-            ongoingProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
-                    addCommissioningDateColumn();
-                }
-            });
-        }
-
-        const uploadForm = document.getElementById("upload-form");
-        if (uploadForm) {
-            uploadForm.addEventListener("submit", function(event) {
-                event.preventDefault();
-
-                let formData = new FormData();
-                let fileInput = document.getElementById("invoice_image");
-
-                if (fileInput && fileInput.files.length === 0) {
-                    document.getElementById("upload-status").innerText = "Please select a file.";
-                    return;
-                }
-
-                formData.append("invoice_image", fileInput.files[0]);
-
-                fetch("/upload_invoice", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.file_url) {
-                        document.getElementById("upload-status").innerText = "Upload successful!";
-                        console.log("Invoice Image URL:", data.file_url);
-                    } else {
-                        document.getElementById("upload-status").innerText = "Upload failed.";
-                    }
-                })
-                .catch(error => {
-                    document.getElementById("upload-status").innerText = "Error uploading file.";
-                    console.error(error);
-                });
-            });
-        }
-
-        const modal = document.getElementById("imageModal");
-        const modalImg = document.getElementById("fullImage");
-        const closeBtn = document.querySelector(".close");
-
-        if (modal && modalImg && closeBtn) {
             document.querySelectorAll(".invoice-image").forEach(img => {
                 img.addEventListener("click", function() {
                     modal.style.display = "block";
@@ -464,17 +479,13 @@
                 });
             });
 
-            closeBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-
-            modal.addEventListener("click", (event) => {
-                if (event.target === modal) {
-                    modal.style.display = "none";
-                }
-            });
+            closeBtn.addEventListener("click", () => modal.style.display = "none");
+            modal.addEventListener("click", (event) => { if (event.target === modal) modal.style.display = "none"; });
         }
-    });
+    }
+
+    // Initialize class
+    new ProjectTableManager();
     </script>
 
 
