@@ -123,11 +123,13 @@
                         <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
+                        <th>Google Coordinates</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Currency</th>
                         <th>Invoice Amount</th>
                         <th>Amount Paid</th>
+                        <th>Outstanding Balance</th>
                         <th>Expected Final Payment Date</th>
                         <th>Comment</th>
                     </tr>
@@ -150,6 +152,15 @@
                         </td>
                         <td contenteditable="true" class="client-name">{{ debt.client_name }}</td>
                         <td contenteditable="true" class="town">{{ debt.town }}</td>
+                        <td class="google-coordinates">
+                            {% if deal.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ debt.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ debt.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true" class="phone-number">{{ debt.phone_number }}</td>
                         <td>
                             <select class="sales-person">
@@ -164,6 +175,7 @@
                         <td contenteditable="true" class="currency">{{ debt.currency }}</td>
                         <td contenteditable="true" class="invoice-amount">{{ debt.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ debt.amount_paid }}</td>
+                        <td contenteditable="true" class="outstanding-balance">{{ debt.outstanding_balance }}</td>
                         <td><input type="date" class="expected-final-payment" value="{{ debt.expected_final_payment_date }}"></td>
                         <td contenteditable="true" class="comment">{{ debt.comment }}</td>
                     </tr>
