@@ -371,6 +371,23 @@
         }
 
         addNewRow() {
+            const table = document.querySelector("thead tr");
+
+            // Ensure "Start Date" and "Commissioning Date" headers are added
+            if (!document.querySelector(".start-date-header")) {
+                let thStartDate = document.createElement("th");
+                thStartDate.classList.add("start-date-header");
+                thStartDate.textContent = "Start Date";
+                table.appendChild(thStartDate);
+            }
+
+            if (!document.querySelector(".commissioning-date-header")) {
+                let thCommissioningDate = document.createElement("th");
+                thCommissioningDate.classList.add("commissioning-date-header");
+                thCommissioningDate.textContent = "Commissioning Date";
+                table.appendChild(thCommissioningDate);
+            }
+
             const newRow = document.createElement("tr");
             newRow.setAttribute("data-id", "new-" + Date.now()); // Temporary unique ID
             newRow.innerHTML = `
@@ -389,6 +406,7 @@
                 <td><input type="date" class="start-date"></td>
                 <td><input type="date" class="commissioning-date"></td>
             `;
+
             document.querySelector("tbody").appendChild(newRow);
         }
 
