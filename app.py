@@ -4246,35 +4246,21 @@ def update_bdu():
         for record in data:
             project_id = record.get('project_id')
             expected_payment_date = record.get('expected_final_payment_date', '').strip()
-
             expected_payment_date = expected_payment_date if expected_payment_date else None
 
             if project_id:
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
                     # Update only relevant fields
-                    if 'client_name' in record:
-                        existing_project.client_name = record['client_name']
-                    if 'town' in record:
-                        existing_project.town = record['town']
-                    if 'phone_number' in record:
-                        existing_project.phone_number = record['phone_number']
-                    if 'sales_person' in record:
-                        existing_project.sales_person = record['sales_person']
-                    if 'google_coordinates' in record:
-                        existing_project.google_coordinates = record['google_coordinates']
-                    if 'currency' in record:
-                        existing_project.currency = record['currency']
-                    if 'invoice_amount' in record:
-                        existing_project.invoice_amount = record['invoice_amount']
-                    if 'amount_paid' in record:
-                        existing_project.amount_paid = record['amount_paid']
-                    if 'outstanding_balance' in record:
-                        existing_project.outstanding_balance = record['outstanding_balance']
+                    for field in ['client_name', 'town', 'phone_number', 'sales_person',
+                                  'google_coordinates', 'currency', 'invoice_amount',
+                                  'amount_paid', 'outstanding_balance', 'comment',
+                                  'invoice_image_url']:
+                        if field in record:
+                            setattr(existing_project, field, record[field])
+
                     if 'expected_final_payment_date' in record:
                         existing_project.expected_final_payment_date = expected_payment_date
-                    if 'comment' in record:
-                        existing_project.comment = record['comment']
 
         db.session.commit()
         return jsonify({"message": "BDU records updated successfully"})
