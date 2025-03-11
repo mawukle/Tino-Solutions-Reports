@@ -311,6 +311,33 @@
         const clientsInDebtTable = "h2:nth-of-type(2) + .table-container table";
         const clientsInGoodStandingTable = "h2:nth-of-type(3) + .table-container table";
 
+        function showExpectedPaymentColumn() {
+            const table = document.querySelector(closedDealsTable);
+            if (!table) return;
+
+            const theadRow = table.querySelector("thead tr");
+            const tbodyRows = table.querySelectorAll("tbody tr");
+
+            if (theadRow.querySelector(".expected-final-payment-header")) return;
+
+            // Create and insert the new column header
+            const th = document.createElement("th");
+            th.classList.add("expected-final-payment-header");
+            th.textContent = "Expected Final Payment Date";
+
+            const commentTh = theadRow.querySelector("th:last-child");
+            theadRow.insertBefore(th, commentTh);
+
+            tbodyRows.forEach(row => {
+                const td = document.createElement("td");
+                td.classList.add("expected-final-payment");
+                td.innerHTML = `<input type="date" class="date-input">`;
+
+                const commentTd = row.querySelector("td:last-child");
+                row.insertBefore(td, commentTd);
+            });
+        }
+
         function handleClickToShowColumns(tableSelector, headers, cells) {
             const table = document.querySelector(tableSelector);
             if (!table) return;
@@ -348,6 +375,8 @@
                 { className: "outstanding-balance", htmlContent: `<td contenteditable="true"></td>` }
             ]
         );
+
+        document.querySelector(closedDealsTable)?.addEventListener("click", showExpectedPaymentColumn);
 
         const modal = document.getElementById("imageModal");
         const modalImg = document.getElementById("fullImage");
