@@ -4158,6 +4158,7 @@ def list_files_in_folder(service, folder_id):
 # list_files_in_folder(service, FOLDER_ID)
 
 
+
 @app.route('/bdu', methods=['GET'])
 def get_bdu():
     message = request.args.get('message', '')
@@ -4176,6 +4177,7 @@ def get_bdu():
             projects.amount_paid,
             projects.outstanding_balance,
             projects.expected_final_payment_date,
+            projects.commissioning_date,
             projects.comment
         ).all()
 
@@ -4186,9 +4188,13 @@ def get_bdu():
         clients_in_debt = []
         clients_in_good_standing = []
 
+        today = datetime.today().date()
+
         for project in projects_list:
-            outstanding_balance = project.outstanding_balance or 0.00
+            invoice_amount = project.invoice_amount or 0.00
             amount_paid = project.amount_paid or 0.00
+            outstanding_balance = project.outstanding_balance if project.outstanding_balance is not None else 0.00
+            commissioning_date = project.commissioning_date.date() if project.commissioning_date else None
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
@@ -4200,7 +4206,7 @@ def get_bdu():
                 "sales_person": project.sales_person or '',
                 "google_coordinates": project.google_coordinates or '',
                 "currency": project.currency or '',
-                "invoice_amount": project.invoice_amount or 0.00,
+                "invoice_amount": invoice_amount,
                 "amount_paid": amount_paid,
                 "outstanding_balance": outstanding_balance,
                 "expected_final_payment_date": expected_payment_date,
@@ -4208,11 +4214,11 @@ def get_bdu():
             }
 
             # Categorization logic
-            if outstanding_balance == 0:
+            if invoice_amount > 0 and amount_paid > 0 and commissioning_date and today < commissioning_date:
                 closed_deals.append(project_data)
-            elif outstanding_balance > 0 and expected_payment_date:
+            elif invoice_amount > 0 and amount_paid < invoice_amount:
                 clients_in_debt.append(project_data)
-            else:
+            elif invoice_amount > 0 and (outstanding_balance == 0 or outstanding_balance is None) and commissioning_date and today >= commissioning_date:
                 clients_in_good_standing.append(project_data)
 
         return render_template(
