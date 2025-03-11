@@ -244,7 +244,9 @@
                             project_id: projectID,
                             client_name: row.querySelector(".client-name")?.innerText.trim() || "",
                             town: row.querySelector(".town")?.innerText.trim() || "",
-                            google_coordinates: row.querySelector(".google-coordinates span")?.innerText.trim() || "",
+                            google_coordinates: row.querySelector(".google-coordinates a")
+                                ? row.querySelector(".google-coordinates a").getAttribute("href").split('=')[1]
+                                : row.querySelector(".google-coordinates span")?.innerText.trim() || "",
                             phone_number: row.querySelector(".phone-number")?.innerText.trim() || "",
                             sales_person: row.querySelector(".sales-person")?.value || "",
                             currency: row.querySelector(".currency")?.innerText.trim() || "",
