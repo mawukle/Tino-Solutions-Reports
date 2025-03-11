@@ -92,6 +92,7 @@
                         <th>Town</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
+                        <th>Lead Installer</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,6 +119,16 @@
                                 <option value="">Select a Team Member</option>
                                 {% for member in team_members %}
                                 <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
+                                    {{ member }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select class="lead-installer" data-id="{{ project.project_id }}">
+                                <option value="">Select a Team Member</option>
+                                {% for member in team_members %}
+                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
                                     {{ member }}
                                 </option>
                                 {% endfor %}
@@ -389,8 +400,7 @@
         }
 
         setupDynamicColumnAddition() {
-            this.addColumnsIfNeeded("h2:nth-of-type(1) + .table-container table", ".lead-installer", [
-                { class: "lead-installer", text: "Lead Installer" },
+            this.addColumnsIfNeeded("h2:nth-of-type(1) + .table-container table", ".start-date", [
                 { class: "start-date", text: "Start Date" }
             ]);
 
