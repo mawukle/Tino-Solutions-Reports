@@ -4169,6 +4169,7 @@ def get_bdu():
         # Fetch all relevant project data
         projects_list = db.session.query(
             projects.project_id,
+            projects.invoice_image_url,
             projects.client_name,
             projects.town,
             projects.phone_number,
