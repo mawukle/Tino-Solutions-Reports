@@ -153,7 +153,7 @@
                         <td contenteditable="true" class="client-name">{{ debt.client_name }}</td>
                         <td contenteditable="true" class="town">{{ debt.town }}</td>
                         <td class="google-coordinates">
-                            {% if deal.google_coordinates %}
+                            {% if debt.google_coordinates %}
                                 <a href="https://www.google.com/maps?q={{ debt.google_coordinates }}" target="_blank">
                                     View on Map
                                 </a>
