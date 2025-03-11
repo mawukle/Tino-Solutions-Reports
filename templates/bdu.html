@@ -240,14 +240,15 @@
                         project_id: projectID,
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
-                        phone_number: cells[2]?.innerText.trim() || "",
+                        google_coordinates: cells[2]?.innerText.trim() || "",  // ✅ Capture google_coordinates
+                        phone_number: cells[3]?.innerText.trim() || "",
                         sales_person: salesPersonSelect?.value || "",
-                        currency: cells[3]?.innerText.trim() || "",
-                        invoice_amount: cells[4]?.innerText.trim() || "",
-                        amount_paid: cells[5]?.innerText.trim() || "",
+                        currency: cells[4]?.innerText.trim() || "",
+                        invoice_amount: cells[5]?.innerText.trim() || "",
+                        amount_paid: cells[6]?.innerText.trim() || "",
                         expected_final_payment_date: inputs[0]?.value || "",
-                        outstanding_balance: cells[6]?.innerText.trim() || "",
-                        comment: cells[7]?.innerText.trim() || "",
+                        outstanding_balance: cells[7]?.innerText.trim() || "",
+                        comment: cells[8]?.innerText.trim() || "",
                         invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
                     };
 
