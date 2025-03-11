@@ -61,6 +61,7 @@
                         <th>Currency</th>
                         <th>Invoice Amount</th>
                         <th>Amount Paid</th>
+                        <th>Expected Final Payment Date</th> <!-- Permanently added here -->
                         <th>Comment</th>
                     </tr>
                 </thead>
@@ -105,6 +106,7 @@
                         <td contenteditable="true" class="currency">{{ deal.currency }}</td>
                         <td contenteditable="true" class="invoice-amount">{{ deal.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ deal.amount_paid }}</td>
+                        <td><input type="date" class="date-input" value="{{ deal.expected_final_payment_date }}"></td> <!-- Fixed position -->
                         <td contenteditable="true" class="comment">{{ deal.comment }}</td>
                     </tr>
                     {% endfor %}
@@ -279,44 +281,6 @@
                     console.error("Error:", error);
                     alert("An error occurred while saving.");
                 });
-            });
-        }
-
-        function addMissingColumnsToClosedDeals() {
-            const table = document.querySelector("h2:nth-of-type(1) + .table-container table"); // Only for Closed Deals
-            if (!table) return;
-
-            const thead = table.querySelector("thead tr");
-            const tbody = table.querySelector("tbody");
-
-            if (!thead || !tbody) return;
-
-            // Check if "Expected Final Payment Date" column already exists
-            if (!thead.querySelector(".expected-final-payment-header")) {
-                let th = document.createElement("th");
-                th.classList.add("expected-final-payment-header");
-                th.textContent = "Expected Final Payment Date";
-                thead.appendChild(th);
-            }
-
-            // Add missing column to rows
-            tbody.querySelectorAll("tr").forEach(row => {
-                if (!row.querySelector(".expected-final-payment")) {
-                    let td = document.createElement("td");
-                    td.classList.add("expected-final-payment");
-                    td.innerHTML = `<input type="date" class="date-input">`;
-                    row.appendChild(td);
-                }
-            });
-        }
-
-        // Attach event listener only for Closed Deals section
-        const closedDealsTable = document.querySelector("h2:nth-of-type(1) + .table-container table");
-        if (closedDealsTable) {
-            closedDealsTable.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
-                    addMissingColumnsToClosedDeals();
-                }
             });
         }
 
