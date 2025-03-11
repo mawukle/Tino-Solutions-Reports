@@ -106,7 +106,7 @@
                         <td contenteditable="true" class="currency">{{ deal.currency }}</td>
                         <td contenteditable="true" class="invoice-amount">{{ deal.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ deal.amount_paid }}</td>
-                        <td><input type="date" class="date-input" value="{{ deal.expected_final_payment_date }}"></td> <!-- Fixed position -->
+                        <td><input type="date" class="expected-final-payment" value="{{ deal.expected_final_payment_date }}"></td>
                         <td contenteditable="true" class="comment">{{ deal.comment }}</td>
                     </tr>
                     {% endfor %}
@@ -164,7 +164,7 @@
                         <td contenteditable="true" class="currency">{{ debt.currency }}</td>
                         <td contenteditable="true" class="invoice-amount">{{ debt.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ debt.amount_paid }}</td>
-                        <td><input type="date" class="date-input" value="{{ debt.expected_final_payment_date }}"></td>
+                        <td><input type="date" class="expected-final-payment" value="{{ debt.expected_final_payment_date }}"></td>
                         <td contenteditable="true" class="comment">{{ debt.comment }}</td>
                     </tr>
                     {% endfor %}
@@ -254,7 +254,7 @@
                         currency: row.querySelector(".currency")?.innerText.trim() || "",
                         invoice_amount: row.querySelector(".invoice-amount")?.innerText.trim() || "",
                         amount_paid: row.querySelector(".amount-paid")?.innerText.trim() || "",
-                        expected_final_payment_date: row.querySelector(".expected-final-payment input")?.value || "",
+                        expected_final_payment_date: row.querySelector(".expected-final-payment")?.value || "",
                         outstanding_balance: row.querySelector(".outstanding-balance")?.innerText.trim() || "",
                         comment: row.querySelector(".comment")?.innerText.trim() || "",
                         invoice_image_url: row.querySelector(".invoice-image") ? row.querySelector(".invoice-image").src : ""
