@@ -140,7 +140,7 @@
                                 </a>
                             {% else %}
                                 <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="project_id" value="{{ deal.project_id }}">
+                                    <input type="hidden" name="project_id" value="{{ debt.project_id }}">
                                     <input type="file" name="invoice_image" accept="image/*">
                                     <button type="submit">Upload</button>
                                 </form>
@@ -197,7 +197,7 @@
                                 </a>
                             {% else %}
                                 <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="project_id" value="{{ deal.project_id }}">
+                                    <input type="hidden" name="project_id" value="{{ good.project_id }}">
                                     <input type="file" name="invoice_image" accept="image/*">
                                     <button type="submit">Upload</button>
                                 </form>
