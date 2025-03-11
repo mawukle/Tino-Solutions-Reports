@@ -4201,7 +4201,7 @@ def get_bdu():
 
             project_data = {
                 "project_id": project.project_id,
-                "invoice": f"INV-{project.project_id}",  # Example invoice format
+                "invoice_image_url": project.invoice_image_url or '',
                 "client_name": project.client_name or '',
                 "town": project.town or '',
                 "phone_number": project.phone_number or '',
