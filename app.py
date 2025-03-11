@@ -4159,6 +4159,8 @@ def list_files_in_folder(service, folder_id):
 
 
 
+from datetime import datetime, timedelta
+
 @app.route('/bdu', methods=['GET'])
 def get_bdu():
     message = request.args.get('message', '')
@@ -4194,7 +4196,7 @@ def get_bdu():
             invoice_amount = project.invoice_amount or 0.00
             amount_paid = project.amount_paid or 0.00
             outstanding_balance = project.outstanding_balance if project.outstanding_balance is not None else 0.00
-            commissioning_date = project.commissioning_date if project.commissioning_date else None
+            commissioning_date = project.commissioning_date if project.commissioning_date else today + timedelta(days=1)  # Treat NULL as a future date
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
@@ -4214,7 +4216,7 @@ def get_bdu():
             }
 
             # Categorization logic
-            if invoice_amount > 0 and amount_paid > 0 and commissioning_date and today < commissioning_date:
+            if invoice_amount > 0 and amount_paid > 0 and today < commissioning_date:
                 closed_deals.append(project_data)
             elif invoice_amount > 0 and amount_paid < invoice_amount:
                 clients_in_debt.append(project_data)
