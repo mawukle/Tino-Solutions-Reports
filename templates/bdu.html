@@ -226,6 +226,7 @@
     <script>
     document.addEventListener("DOMContentLoaded", () => {
         const saveButton = document.getElementById("save-changes");
+
         if (saveButton) {
             saveButton.addEventListener("click", () => {
                 let updatedRecords = [];
@@ -246,7 +247,8 @@
                         amount_paid: cells[5]?.innerText.trim() || "",
                         expected_final_payment_date: inputs[0]?.value || "",
                         outstanding_balance: cells[6]?.innerText.trim() || "",
-                        comment: cells[7]?.innerText.trim() || ""
+                        comment: cells[7]?.innerText.trim() || "",
+                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
                     };
 
                     if (projectID || recordData.client_name || recordData.town || recordData.phone_number) {
@@ -258,13 +260,115 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ records: updatedRecords })
-                }).then(response => response.json())
+                })
+                .then(response => response.json())
                 .then(data => {
                     alert(data.message);
                     if (data.message === "BDU records updated successfully") {
                         location.reload();
                     }
-                }).catch(error => console.error("Error:", error));
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("An error occurred while saving.");
+                });
+            });
+        }
+
+        function addMissingColumns(tableSelector, additionalHeaders, additionalCells) {
+            const table = document.querySelector(tableSelector);
+            if (!table) return;
+
+            const thead = table.querySelector("thead tr");
+            const tbody = table.querySelector("tbody");
+
+            if (!thead || !tbody) return;
+
+            // Add missing headers
+            additionalHeaders.forEach(header => {
+                if (!thead.querySelector(`.${header.className}`)) {
+                    let th = document.createElement("th");
+                    th.classList.add(header.className);
+                    th.textContent = header.text;
+                    thead.appendChild(th);
+                }
+            });
+
+            // Add missing columns to rows
+            tbody.querySelectorAll("tr").forEach(row => {
+                additionalCells.forEach(cell => {
+                    if (!row.querySelector(`.${cell.className}`)) {
+                        let td = document.createElement("td");
+                        td.classList.add(cell.className);
+                        td.innerHTML = cell.htmlContent;
+                        row.appendChild(td);
+                    }
+                });
+            });
+        }
+
+        const closedDealsTable = "h2:nth-of-type(1) + .table-container table";
+        const clientsInDebtTable = "h2:nth-of-type(2) + .table-container table";
+        const clientsInGoodStandingTable = "h2:nth-of-type(3) + .table-container table";
+
+        function handleClickToShowColumns(tableSelector, headers, cells) {
+            const table = document.querySelector(tableSelector);
+            if (!table) return;
+
+            table.querySelector("tbody").addEventListener("click", (event) => {
+                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
+                    addMissingColumns(tableSelector, headers, cells);
+                }
+            });
+        }
+
+        handleClickToShowColumns(closedDealsTable,
+            [
+                { className: "google-coordinates-header", text: "Google Coordinates" }
+            ],
+            [
+                { className: "google-coordinates", htmlContent: `<td contenteditable="true"></td>` }
+            ]
+        );
+
+        handleClickToShowColumns(clientsInDebtTable,
+            [
+                { className: "expected-final-payment-header", text: "Expected Final Payment Date" }
+            ],
+            [
+                { className: "expected-final-payment", htmlContent: `<td><input type="date" class="date-input"></td>` }
+            ]
+        );
+
+        handleClickToShowColumns(clientsInGoodStandingTable,
+            [
+                { className: "outstanding-balance-header", text: "Outstanding Balance" }
+            ],
+            [
+                { className: "outstanding-balance", htmlContent: `<td contenteditable="true"></td>` }
+            ]
+        );
+
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("fullImage");
+        const closeBtn = document.querySelector(".close");
+
+        if (modal && modalImg && closeBtn) {
+            document.querySelectorAll(".invoice-image").forEach(img => {
+                img.addEventListener("click", function() {
+                    modal.style.display = "block";
+                    modalImg.src = this.src;
+                });
+            });
+
+            closeBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+            modal.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
             });
         }
     });
