@@ -67,7 +67,7 @@
                 <tbody>
                     {% for deal in closed_deals %}
                     <tr data-id="{{ deal.project_id }}">
-                        <td>
+                        <td class="invoice">
                             {% if deal.invoice_image_url %}
                                 <a href="{{ deal.invoice_image_url }}" target="_blank">
                                     <img src="{{ deal.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
@@ -80,9 +80,9 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ deal.client_name }}</td>
-                        <td contenteditable="true">{{ deal.town }}</td>
-                        <td>
+                        <td contenteditable="true" class="client-name">{{ deal.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ deal.town }}</td>
+                        <td class="google-coordinates">
                             {% if deal.google_coordinates %}
                                 <a href="https://www.google.com/maps?q={{ deal.google_coordinates }}" target="_blank">
                                     View on Map
@@ -91,7 +91,7 @@
                                 <span contenteditable="true">{{ deal.google_coordinates }}</span>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ deal.phone_number }}</td>
+                        <td contenteditable="true" class="phone-number">{{ deal.phone_number }}</td>
                         <td>
                             <select class="sales-person">
                                 <option value="">Select</option>
@@ -102,10 +102,10 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true">{{ deal.currency }}</td>
-                        <td contenteditable="true">{{ deal.invoice_amount }}</td>
-                        <td contenteditable="true">{{ deal.amount_paid }}</td>
-                        <td contenteditable="true">{{ deal.comment }}</td>
+                        <td contenteditable="true" class="currency">{{ deal.currency }}</td>
+                        <td contenteditable="true" class="invoice-amount">{{ deal.invoice_amount }}</td>
+                        <td contenteditable="true" class="amount-paid">{{ deal.amount_paid }}</td>
+                        <td contenteditable="true" class="comment">{{ deal.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -133,7 +133,7 @@
                 <tbody>
                     {% for debt in clients_in_debt %}
                     <tr data-id="{{ debt.project_id }}">
-                        <td>
+                        <td class="invoice">
                             {% if debt.invoice_image_url %}
                                 <a href="{{ debt.invoice_image_url }}" target="_blank">
                                     <img src="{{ debt.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
@@ -146,9 +146,9 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ debt.client_name }}</td>
-                        <td contenteditable="true">{{ debt.town }}</td>
-                        <td contenteditable="true">{{ debt.phone_number }}</td>
+                        <td contenteditable="true" class="client-name">{{ debt.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ debt.town }}</td>
+                        <td contenteditable="true" class="phone-number">{{ debt.phone_number }}</td>
                         <td>
                             <select class="sales-person">
                                 <option value="">Select</option>
@@ -159,11 +159,11 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true">{{ debt.currency }}</td>
-                        <td contenteditable="true">{{ debt.invoice_amount }}</td>
-                        <td contenteditable="true">{{ debt.amount_paid }}</td>
+                        <td contenteditable="true" class="currency">{{ debt.currency }}</td>
+                        <td contenteditable="true" class="invoice-amount">{{ debt.invoice_amount }}</td>
+                        <td contenteditable="true" class="amount-paid">{{ debt.amount_paid }}</td>
                         <td><input type="date" class="date-input" value="{{ debt.expected_final_payment_date }}"></td>
-                        <td contenteditable="true">{{ debt.comment }}</td>
+                        <td contenteditable="true" class="comment">{{ debt.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -190,7 +190,7 @@
                 <tbody>
                     {% for good in clients_in_good_standing %}
                     <tr data-id="{{ good.project_id }}">
-                        <td>
+                        <td class="invoice">
                             {% if good.invoice_image_url %}
                                 <a href="{{ good.invoice_image_url }}" target="_blank">
                                     <img src="{{ good.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
@@ -203,9 +203,9 @@
                                 </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ good.client_name }}</td>
-                        <td contenteditable="true">{{ good.town }}</td>
-                        <td contenteditable="true">{{ good.phone_number }}</td>
+                        <td contenteditable="true" class="client-name">{{ good.client_name }}</td>
+                        <td contenteditable="true" class="town">{{ good.town }}</td>
+                        <td contenteditable="true" class="phone-number">{{ good.phone_number }}</td>
                         <td>
                             <select class="sales-person">
                                 <option value="">Select</option>
@@ -216,10 +216,10 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true">{{ good.currency }}</td>
-                        <td contenteditable="true">{{ good.invoice_amount }}</td>
-                        <td contenteditable="true">{{ good.outstanding_balance }}</td>
-                        <td contenteditable="true">{{ good.comment }}</td>
+                        <td contenteditable="true" class="currency">{{ good.currency }}</td>
+                        <td contenteditable="true" class="invoice-amount">{{ good.invoice_amount }}</td>
+                        <td contenteditable="true" class="outstanding-balance">{{ good.outstanding_balance }}</td>
+                        <td contenteditable="true" class="comment">{{ good.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -232,151 +232,151 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const saveButton = document.getElementById("save-changes");
+        document.addEventListener("DOMContentLoaded", () => {
+            const saveButton = document.getElementById("save-changes");
 
-        if (saveButton) {
-            saveButton.addEventListener("click", () => {
-                let updatedRecords = [];
-                document.querySelectorAll("tbody tr").forEach(row => {
-                    const projectID = row.getAttribute("data-id") || null;
-                    const recordData = {
-                        project_id: projectID,
-                        client_name: row.querySelector("td:nth-child(2)")?.innerText.trim() || "",
-                        town: row.querySelector("td:nth-child(3)")?.innerText.trim() || "",
-                        google_coordinates: row.querySelector("td:nth-child(4) span")?.innerText.trim() || "",
-                        phone_number: row.querySelector("td:nth-child(5)")?.innerText.trim() || "",
-                        sales_person: row.querySelector(".sales-person")?.value || "",
-                        currency: row.querySelector("td:nth-child(7)")?.innerText.trim() || "",
-                        invoice_amount: row.querySelector("td:nth-child(8)")?.innerText.trim() || "",
-                        amount_paid: row.querySelector("td:nth-child(9)")?.innerText.trim() || "",
-                        expected_final_payment_date: row.querySelector("td:nth-child(10) input")?.value || "",
-                        outstanding_balance: row.querySelector("td:nth-child(11)")?.innerText.trim() || "",
-                        comment: row.querySelector("td:nth-child(12)")?.innerText.trim() || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
-                    };
+            if (saveButton) {
+                saveButton.addEventListener("click", () => {
+                    let updatedRecords = [];
+                    document.querySelectorAll("tbody tr").forEach(row => {
+                        const projectID = row.getAttribute("data-id") || null;
+                        const recordData = {
+                            project_id: projectID,
+                            client_name: row.querySelector(".client-name")?.innerText.trim() || "",
+                            town: row.querySelector(".town")?.innerText.trim() || "",
+                            google_coordinates: row.querySelector(".google-coordinates span")?.innerText.trim() || "",
+                            phone_number: row.querySelector(".phone-number")?.innerText.trim() || "",
+                            sales_person: row.querySelector(".sales-person")?.value || "",
+                            currency: row.querySelector(".currency")?.innerText.trim() || "",
+                            invoice_amount: row.querySelector(".invoice-amount")?.innerText.trim() || "",
+                            amount_paid: row.querySelector(".amount-paid")?.innerText.trim() || "",
+                            expected_final_payment_date: row.querySelector(".expected-final-payment input")?.value || "",
+                            outstanding_balance: row.querySelector(".outstanding-balance")?.innerText.trim() || "",
+                            comment: row.querySelector(".comment")?.innerText.trim() || "",
+                            invoice_image_url: row.querySelector(".invoice-image") ? row.querySelector(".invoice-image").src : ""
+                        };
 
-                    if (projectID || recordData.client_name || recordData.town || recordData.phone_number) {
-                        updatedRecords.push(recordData);
+                        if (projectID || recordData.client_name || recordData.town || recordData.phone_number) {
+                            updatedRecords.push(recordData);
+                        }
+                    });
+
+                    fetch("/update_bdu", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ records: updatedRecords })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if (data.message === "BDU records updated successfully") {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("An error occurred while saving.");
+                    });
+                });
+            }
+
+            function addMissingColumns(tableSelector, additionalHeaders, additionalCells) {
+                const table = document.querySelector(tableSelector);
+                if (!table) return;
+
+                const thead = table.querySelector("thead tr");
+                const tbody = table.querySelector("tbody");
+
+                if (!thead || !tbody) return;
+
+                // Add missing headers
+                additionalHeaders.forEach(header => {
+                    if (!thead.querySelector(`.${header.className}`)) {
+                        let th = document.createElement("th");
+                        th.classList.add(header.className);
+                        th.textContent = header.text;
+                        thead.appendChild(th);
                     }
                 });
 
-                fetch("/update_bdu", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ records: updatedRecords })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.message === "BDU records updated successfully") {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred while saving.");
+                // Add missing columns to rows
+                tbody.querySelectorAll("tr").forEach(row => {
+                    additionalCells.forEach(cell => {
+                        if (!row.querySelector(`.${cell.className}`)) {
+                            let td = document.createElement("td");
+                            td.classList.add(cell.className);
+                            td.innerHTML = cell.htmlContent;
+                            row.appendChild(td);
+                        }
+                    });
                 });
-            });
-        }
+            }
 
-        function addMissingColumns(tableSelector, additionalHeaders, additionalCells) {
-            const table = document.querySelector(tableSelector);
-            if (!table) return;
+            const closedDealsTable = "h2:nth-of-type(1) + .table-container table";
+            const clientsInDebtTable = "h2:nth-of-type(2) + .table-container table";
+            const clientsInGoodStandingTable = "h2:nth-of-type(3) + .table-container table";
 
-            const thead = table.querySelector("thead tr");
-            const tbody = table.querySelector("tbody");
+            function handleClickToShowColumns(tableSelector, headers, cells) {
+                const table = document.querySelector(tableSelector);
+                if (!table) return;
 
-            if (!thead || !tbody) return;
-
-            // Add missing headers
-            additionalHeaders.forEach(header => {
-                if (!thead.querySelector(`.${header.className}`)) {
-                    let th = document.createElement("th");
-                    th.classList.add(header.className);
-                    th.textContent = header.text;
-                    thead.appendChild(th);
-                }
-            });
-
-            // Add missing columns to rows
-            tbody.querySelectorAll("tr").forEach(row => {
-                additionalCells.forEach(cell => {
-                    if (!row.querySelector(`.${cell.className}`)) {
-                        let td = document.createElement("td");
-                        td.classList.add(cell.className);
-                        td.innerHTML = cell.htmlContent;
-                        row.appendChild(td);
+                table.querySelector("tbody").addEventListener("click", (event) => {
+                    if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
+                        addMissingColumns(tableSelector, headers, cells);
                     }
                 });
-            });
-        }
+            }
 
-        const closedDealsTable = "h2:nth-of-type(1) + .table-container table";
-        const clientsInDebtTable = "h2:nth-of-type(2) + .table-container table";
-        const clientsInGoodStandingTable = "h2:nth-of-type(3) + .table-container table";
+            handleClickToShowColumns(closedDealsTable,
+                [
+                    { className: "expected-final-payment-header", text: "Expected Final Payment Date" }
+                ],
+                [
+                    { className: "expected-final-payment", htmlContent: `<td><input type="date" class="date-input"></td>` }
+                ]
+            );
 
-        function handleClickToShowColumns(tableSelector, headers, cells) {
-            const table = document.querySelector(tableSelector);
-            if (!table) return;
+            handleClickToShowColumns(clientsInDebtTable,
+                [
+                    { className: "expected-final-payment-header", text: "Expected Final Payment Date" }
+                ],
+                [
+                    { className: "expected-final-payment", htmlContent: `<td><input type="date" class="date-input"></td>` }
+                ]
+            );
 
-            table.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
-                    addMissingColumns(tableSelector, headers, cells);
-                }
-            });
-        }
+            handleClickToShowColumns(clientsInGoodStandingTable,
+                [
+                    { className: "outstanding-balance-header", text: "Outstanding Balance" }
+                ],
+                [
+                    { className: "outstanding-balance", htmlContent: `<td contenteditable="true"></td>` }
+                ]
+            );
 
-        handleClickToShowColumns(closedDealsTable,
-            [
-                { className: "expected-final-payment-header", text: "Expected Final Payment Date" }
-            ],
-            [
-                { className: "expected-final-payment", htmlContent: `<td><input type="date" class="date-input"></td>` }
-            ]
-        );
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("fullImage");
+            const closeBtn = document.querySelector(".close");
 
-        handleClickToShowColumns(clientsInDebtTable,
-            [
-                { className: "expected-final-payment-header", text: "Expected Final Payment Date" }
-            ],
-            [
-                { className: "expected-final-payment", htmlContent: `<td><input type="date" class="date-input"></td>` }
-            ]
-        );
-
-        handleClickToShowColumns(clientsInGoodStandingTable,
-            [
-                { className: "outstanding-balance-header", text: "Outstanding Balance" }
-            ],
-            [
-                { className: "outstanding-balance", htmlContent: `<td contenteditable="true"></td>` }
-            ]
-        );
-
-        const modal = document.getElementById("imageModal");
-        const modalImg = document.getElementById("fullImage");
-        const closeBtn = document.querySelector(".close");
-
-        if (modal && modalImg && closeBtn) {
-            document.querySelectorAll(".invoice-image").forEach(img => {
-                img.addEventListener("click", function() {
-                    modal.style.display = "block";
-                    modalImg.src = this.src;
+            if (modal && modalImg && closeBtn) {
+                document.querySelectorAll(".invoice-image").forEach(img => {
+                    img.addEventListener("click", function() {
+                        modal.style.display = "block";
+                        modalImg.src = this.src;
+                    });
                 });
-            });
 
-            closeBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-
-            modal.addEventListener("click", (event) => {
-                if (event.target === modal) {
+                closeBtn.addEventListener("click", () => {
                     modal.style.display = "none";
-                }
-            });
-        }
-    });
+                });
+
+                modal.addEventListener("click", (event) => {
+                    if (event.target === modal) {
+                        modal.style.display = "none";
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
