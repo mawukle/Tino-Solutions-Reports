@@ -299,6 +299,11 @@
                 }
             });
 
+            if (this.updatedProjects.length === 0) {
+                alert("No changes detected.");
+                return;
+            }
+
             fetch("/update_projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -356,6 +361,7 @@
 
         addNewRow() {
             const newRow = document.createElement("tr");
+            newRow.setAttribute("data-id", "new-" + Date.now()); // Temporary unique ID
             newRow.innerHTML = `
                 <td>
                     <form action="/upload_invoice" method="post" enctype="multipart/form-data">
@@ -472,11 +478,11 @@
 
             if (!modal || !modalImg || !closeBtn) return;
 
-            document.querySelectorAll(".invoice-image").forEach(img => {
-                img.addEventListener("click", function() {
+            document.addEventListener("click", (event) => {
+                if (event.target.classList.contains("invoice-image")) {
                     modal.style.display = "block";
-                    modalImg.src = this.src;
-                });
+                    modalImg.src = event.target.src;
+                }
             });
 
             closeBtn.addEventListener("click", () => modal.style.display = "none");
