@@ -82,7 +82,15 @@
                         </td>
                         <td contenteditable="true">{{ deal.client_name }}</td>
                         <td contenteditable="true">{{ deal.town }}</td>
-                        <td contenteditable="true">{{ deal.google_coordinates }}</td>
+                        <td>
+                            {% if deal.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ deal.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ deal.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ deal.phone_number }}</td>
                         <td>
                             <select class="sales-person">
