@@ -240,23 +240,19 @@
                 let updatedRecords = [];
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td[contenteditable='true']");
-                    const inputs = row.querySelectorAll("input.date-input");
-                    const salesPersonSelect = row.querySelector(".sales-person");
-
-                    let recordData = {
+                    const recordData = {
                         project_id: projectID,
-                        client_name: cells[0]?.innerText.trim() || "",
-                        town: cells[1]?.innerText.trim() || "",
-                        google_coordinates: cells[2]?.innerText.trim() || "",  // ✅ Capture google_coordinates
-                        phone_number: cells[3]?.innerText.trim() || "",
-                        sales_person: salesPersonSelect?.value || "",
-                        currency: cells[4]?.innerText.trim() || "",
-                        invoice_amount: cells[5]?.innerText.trim() || "",
-                        amount_paid: cells[6]?.innerText.trim() || "",
-                        expected_final_payment_date: inputs[0]?.value || "",
-                        outstanding_balance: cells[7]?.innerText.trim() || "",
-                        comment: cells[8]?.innerText.trim() || "",
+                        client_name: row.querySelector("td:nth-child(2)")?.innerText.trim() || "",
+                        town: row.querySelector("td:nth-child(3)")?.innerText.trim() || "",
+                        google_coordinates: row.querySelector("td:nth-child(4) span")?.innerText.trim() || "",
+                        phone_number: row.querySelector("td:nth-child(5)")?.innerText.trim() || "",
+                        sales_person: row.querySelector(".sales-person")?.value || "",
+                        currency: row.querySelector("td:nth-child(7)")?.innerText.trim() || "",
+                        invoice_amount: row.querySelector("td:nth-child(8)")?.innerText.trim() || "",
+                        amount_paid: row.querySelector("td:nth-child(9)")?.innerText.trim() || "",
+                        expected_final_payment_date: row.querySelector("td:nth-child(10) input")?.value || "",
+                        outstanding_balance: row.querySelector("td:nth-child(11)")?.innerText.trim() || "",
+                        comment: row.querySelector("td:nth-child(12)")?.innerText.trim() || "",
                         invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
                     };
 
