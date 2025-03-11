@@ -67,7 +67,19 @@
                 <tbody>
                     {% for deal in closed_deals %}
                     <tr data-id="{{ deal.project_id }}">
-                        <td>{{ deal.invoice_image_url }}</td>
+                        <td>
+                            {% if deal.invoice_image_url %}
+                                <a href="{{ deal.invoice_image_url }}" target="_blank">
+                                    <img src="{{ deal.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
+                                </a>
+                            {% else %}
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ deal.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ deal.client_name }}</td>
                         <td contenteditable="true">{{ deal.town }}</td>
                         <td contenteditable="true">{{ deal.google_coordinates }}</td>
@@ -113,7 +125,19 @@
                 <tbody>
                     {% for debt in clients_in_debt %}
                     <tr data-id="{{ debt.project_id }}">
-                        <td>{{ debt.invoice_image_url }}</td>
+                        <td>
+                            {% if debt.invoice_image_url %}
+                                <a href="{{ debt.invoice_image_url }}" target="_blank">
+                                    <img src="{{ debt.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
+                                </a>
+                            {% else %}
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ deal.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ debt.client_name }}</td>
                         <td contenteditable="true">{{ debt.town }}</td>
                         <td contenteditable="true">{{ debt.phone_number }}</td>
@@ -158,7 +182,19 @@
                 <tbody>
                     {% for good in clients_in_good_standing %}
                     <tr data-id="{{ good.project_id }}">
-                        <td>{{ good.invoice_image_url }}</td>
+                        <td>
+                            {% if good.invoice_image_url %}
+                                <a href="{{ good.invoice_image_url }}" target="_blank">
+                                    <img src="{{ good.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
+                                </a>
+                            {% else %}
+                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="project_id" value="{{ deal.project_id }}">
+                                    <input type="file" name="invoice_image" accept="image/*">
+                                    <button type="submit">Upload</button>
+                                </form>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ good.client_name }}</td>
                         <td contenteditable="true">{{ good.town }}</td>
                         <td contenteditable="true">{{ good.phone_number }}</td>
