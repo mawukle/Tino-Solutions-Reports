@@ -4197,7 +4197,7 @@ def get_bdu():
             invoice_amount = project.invoice_amount or 0.00
             amount_paid = project.amount_paid or 0.00
             outstanding_balance = project.outstanding_balance if project.outstanding_balance is not None else 0.00
-            commissioning_date = project.commissioning_date if project.commissioning_date else today + timedelta(days=1)  # Treat NULL as a future date
+            commissioning_date = project.commissioning_date or None  # Keep None if null
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
@@ -4217,11 +4217,11 @@ def get_bdu():
             }
 
             # Categorization logic
-            if invoice_amount > 0 and amount_paid > 0 and today < commissioning_date:
+            if commissioning_date is None or commissioning_date > today:
                 closed_deals.append(project_data)
-            elif invoice_amount > 0 and amount_paid < invoice_amount:
+            elif commissioning_date <= today and outstanding_balance > 0:
                 clients_in_debt.append(project_data)
-            elif invoice_amount > 0 and (outstanding_balance == 0 or outstanding_balance is None) and commissioning_date and today >= commissioning_date:
+            elif commissioning_date <= today and outstanding_balance <= 0:
                 clients_in_good_standing.append(project_data)
 
         return render_template(
