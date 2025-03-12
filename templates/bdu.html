@@ -254,6 +254,26 @@
                 </tbody>
             </table>
         </div>
+        <h2>Summary Table</h2>
+        <label for="exchangeRate">GHC to USD Exchange Rate:</label>
+        <input type="number" id="exchangeRate" value="1" step="0.01" min="0">
+        <button onclick="calculateSummary()">Update Summary</button>
+
+        <div class="table-container">
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Sales Person</th>
+                        <th>Total Invoice Amount (USD)</th>
+                        <th>Total Amount Paid (USD)</th>
+                        <th>Total Outstanding Balance (USD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Summary rows will be dynamically generated here -->
+                </tbody>
+            </table>
+        </div>
 
         <div class="buttons">
             <button id="save-changes">Save Changes</button>
@@ -333,6 +353,52 @@
             });
         }
     });
+    document.addEventListener("DOMContentLoaded", () => {
+        calculateSummary(); // Calculate summary on page load
+    });
+
+    function calculateSummary() {
+        let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 1;
+        let summaryData = {};
+
+        document.querySelectorAll("tbody tr").forEach(row => {
+            let salesPerson = row.querySelector(".sales-person")?.value || "";
+            let currency = row.querySelector(".currency")?.value || "USD";
+            let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.trim()) || 0;
+            let amountPaid = parseFloat(row.querySelector(".amount-paid")?.innerText.trim()) || 0;
+            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || (invoiceAmount - amountPaid);
+
+            // Convert GHC amounts to USD
+            if (currency === "GHC") {
+                invoiceAmount /= exchangeRate;
+                amountPaid /= exchangeRate;
+                outstandingBalance /= exchangeRate;
+            }
+
+            if (!summaryData[salesPerson]) {
+                summaryData[salesPerson] = { invoiceTotal: 0, paidTotal: 0, balanceTotal: 0 };
+            }
+
+            summaryData[salesPerson].invoiceTotal += invoiceAmount;
+            summaryData[salesPerson].paidTotal += amountPaid;
+            summaryData[salesPerson].balanceTotal += outstandingBalance;
+        });
+
+        // Update summary table
+        let summaryTableBody = document.getElementById("summaryTable").querySelector("tbody");
+        summaryTableBody.innerHTML = ""; // Clear previous data
+
+        Object.entries(summaryData).forEach(([salesPerson, totals]) => {
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${salesPerson}</td>
+                <td>${totals.invoiceTotal.toFixed(2)}</td>
+                <td>${totals.paidTotal.toFixed(2)}</td>
+                <td>${totals.balanceTotal.toFixed(2)}</td>
+            `;
+            summaryTableBody.appendChild(row);
+        });
+    }
     </script>
 </body>
 </html>
