@@ -374,6 +374,7 @@
     function calculateSummary() {
         let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 1;
         let summaryData = {};
+        let totalInvoice = 0, totalPaid = 0, totalBalance = 0;
 
         document.querySelectorAll("tbody tr").forEach(row => {
             let salesPerson = row.querySelector(".sales-person")?.value || "";
@@ -396,6 +397,11 @@
             summaryData[salesPerson].invoiceTotal += invoiceAmount;
             summaryData[salesPerson].paidTotal += amountPaid;
             summaryData[salesPerson].balanceTotal += outstandingBalance;
+
+            // Accumulate totals for the final row
+            totalInvoice += invoiceAmount;
+            totalPaid += amountPaid;
+            totalBalance += outstandingBalance;
         });
 
         // Convert summaryData object to an array and sort it by invoiceTotal in descending order
@@ -415,6 +421,16 @@
             `;
             summaryTableBody.appendChild(row);
         });
+
+        // Add total row
+        let totalRow = document.createElement("tr");
+        totalRow.innerHTML = `
+            <td><strong>Total</strong></td>
+            <td><strong>${totalInvoice.toFixed(2)}</strong></td>
+            <td><strong>${totalPaid.toFixed(2)}</strong></td>
+            <td><strong>${totalBalance.toFixed(2)}</strong></td>
+        `;
+        summaryTableBody.appendChild(totalRow);
     }
     </script>
 </body>
