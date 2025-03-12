@@ -4178,7 +4178,7 @@ def get_bdu():
             projects.currency,
             projects.invoice_amount,
             projects.amount_paid,
-            projects.outstanding_balance,
+            #projects.outstanding_balance,
             projects.expected_final_payment_date,
             projects.commissioning_date,
             projects.comment
@@ -4196,7 +4196,7 @@ def get_bdu():
         for project in projects_list:
             invoice_amount = project.invoice_amount or 0.00
             amount_paid = project.amount_paid or 0.00
-            outstanding_balance = project.outstanding_balance if project.outstanding_balance is not None else 0.00
+            outstanding_balance = invoice_amount - amount_paid  # Dynamically calculate Outstanding Balance
             commissioning_date = project.commissioning_date or None  # Keep None if null
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
