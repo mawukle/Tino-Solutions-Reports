@@ -103,7 +103,12 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true" class="currency">{{ deal.currency }}</td>
+                        <td>
+                            <select class="currency">
+                                <option value="GHC" {% if deal.currency == "GHC" %}selected{% endif %}>GHC</option>
+                                <option value="USD" {% if deal.currency == "USD" %}selected{% endif %}>USD</option>
+                            </select>
+                        </td>
                         <td contenteditable="true" class="invoice-amount">{{ deal.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ deal.amount_paid }}</td>
                         <td><input type="date" class="expected-final-payment" value="{{ deal.expected_final_payment_date }}"></td>
@@ -172,7 +177,12 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true" class="currency">{{ debt.currency }}</td>
+                        <td>
+                            <select class="currency">
+                                <option value="GHC" {% if debt.currency == "GHC" %}selected{% endif %}>GHC</option>
+                                <option value="USD" {% if debt.currency == "USD" %}selected{% endif %}>USD</option>
+                            </select>
+                        </td>
                         <td contenteditable="true" class="invoice-amount">{{ debt.invoice_amount }}</td>
                         <td contenteditable="true" class="amount-paid">{{ debt.amount_paid }}</td>
                         <td class="outstanding-balance">{{ debt.outstanding_balance }}</td>
@@ -230,7 +240,12 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td contenteditable="true" class="currency">{{ good.currency }}</td>
+                        <td>
+                            <select class="currency">
+                                <option value="GHC" {% if good.currency == "GHC" %}selected{% endif %}>GHC</option>
+                                <option value="USD" {% if good.currency == "USD" %}selected{% endif %}>USD</option>
+                            </select>
+                        </td>
                         <td contenteditable="true" class="invoice-amount">{{ good.invoice_amount }}</td>
                         <td class="outstanding-balance">{{ good.outstanding_balance }}</td>
                         <td contenteditable="true" class="comment">{{ good.comment }}</td>
@@ -263,7 +278,7 @@
                             : row.querySelector(".google-coordinates span")?.innerText.trim() || "",
                         phone_number: row.querySelector(".phone-number")?.innerText.trim() || "",
                         sales_person: row.querySelector(".sales-person")?.value || "",
-                        currency: row.querySelector(".currency")?.innerText.trim() || "",
+                        currency: row.querySelector(".currency")?.value || "",
                         invoice_amount: row.querySelector(".invoice-amount")?.innerText.trim() || "",
                         amount_paid: row.querySelector(".amount-paid")?.innerText.trim() || "",
                         expected_final_payment_date: row.querySelector(".expected-final-payment")?.value || "",
