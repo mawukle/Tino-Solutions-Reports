@@ -354,8 +354,22 @@
         }
     });
     document.addEventListener("DOMContentLoaded", () => {
-        calculateSummary(); // Calculate summary on page load
+        fetchExchangeRate(); // Fetch exchange rate on page load
     });
+
+    function fetchExchangeRate() {
+        fetch("https://api.exchangerate-api.com/v4/latest/GHS")  // Replace with your preferred API
+        .then(response => response.json())
+        .then(data => {
+            let exchangeRate = data.rates.USD;  // Extract GHS to USD rate
+            document.getElementById("exchangeRate").value = exchangeRate.toFixed(2);
+            calculateSummary();  // Recalculate summary after updating rate
+        })
+        .catch(error => {
+            console.error("Error fetching exchange rate:", error);
+            calculateSummary();  // Fallback to calculating summary with default or existing exchange rate
+        });
+    }
 
     function calculateSummary() {
         let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 1;
@@ -368,7 +382,7 @@
             let amountPaid = parseFloat(row.querySelector(".amount-paid")?.innerText.trim()) || 0;
             let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || (invoiceAmount - amountPaid);
 
-            // Convert GHC amounts to USD
+            // Convert GHS amounts to USD
             if (currency === "GHC") {
                 invoiceAmount /= exchangeRate;
                 amountPaid /= exchangeRate;
