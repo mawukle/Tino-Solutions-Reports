@@ -398,11 +398,14 @@
             summaryData[salesPerson].balanceTotal += outstandingBalance;
         });
 
+        // Convert summaryData object to an array and sort it by invoiceTotal in descending order
+        let sortedSummary = Object.entries(summaryData).sort((a, b) => b[1].invoiceTotal - a[1].invoiceTotal);
+
         // Update summary table
         let summaryTableBody = document.getElementById("summaryTable").querySelector("tbody");
         summaryTableBody.innerHTML = ""; // Clear previous data
 
-        Object.entries(summaryData).forEach(([salesPerson, totals]) => {
+        sortedSummary.forEach(([salesPerson, totals]) => {
             let row = document.createElement("tr");
             row.innerHTML = `
                 <td>${salesPerson}</td>
