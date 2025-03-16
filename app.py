@@ -3877,53 +3877,36 @@ def update_projects():
 
         for project in data:
             project_id = project.get('project_id')
-            start_date = project.get('start_date', '').strip()
-            commissioning_date = project.get('commissioning_date', '').strip()
-            expected_payment_date = project.get('expected_final_payment_date', '').strip()
-            invoice_image_url = project.get('invoice_image_url', '').strip()
 
-            start_date = start_date if start_date else None
-            commissioning_date = commissioning_date if commissioning_date else None
-            expected_payment_date = expected_payment_date if expected_payment_date else None
-
-            if project_id:  # Update existing project
+            if project_id:  # Updating an existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
-                    # Track previous statuses
+                    # Preserve existing values if not provided in the request
+                    project_fields = {
+                        'client_name': project.get('client_name', existing_project.client_name),
+                        'town': project.get('town', existing_project.town),
+                        'phone_number': project.get('phone_number', existing_project.phone_number),
+                        'sales_person': project.get('sales_person') if 'sales_person' in project else existing_project.sales_person,
+                        'lead_installer': project.get('lead_installer') if 'lead_installer' in project else existing_project.lead_installer,
+                        'start_date': project.get('start_date', existing_project.start_date),
+                        'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date),
+                        'invoice_image_url': project.get('invoice_image_url', existing_project.invoice_image_url),
+                        'google_coordinates': project.get('google_coordinates', existing_project.google_coordinates),
+                        'currency': project.get('currency', existing_project.currency),
+                        'invoice_amount': project.get('invoice_amount', existing_project.invoice_amount),
+                        'amount_paid': project.get('amount_paid', existing_project.amount_paid),
+                        'outstanding_balance': project.get('outstanding_balance', existing_project.outstanding_balance),
+                        'expected_final_payment_date': project.get('expected_final_payment_date', existing_project.expected_final_payment_date),
+                        'comment': project.get('comment', existing_project.comment),
+                    }
+
+                    # Track previous statuses before changes
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
                     previously_completed = bool(existing_project.commissioning_date)
 
-                    # Only update fields that exist in the request data
-                    if 'client_name' in project:
-                        existing_project.client_name = project['client_name']
-                    if 'town' in project:
-                        existing_project.town = project['town']
-                    if 'phone_number' in project:
-                        existing_project.phone_number = project['phone_number']
-                    if 'sales_person' in project:
-                        existing_project.sales_person = project['sales_person']
-                    if 'lead_installer' in project:
-                        existing_project.lead_installer = project['lead_installer']
-                    if 'start_date' in project:
-                        existing_project.start_date = start_date
-                    if 'commissioning_date' in project:
-                        existing_project.commissioning_date = commissioning_date
-                    if 'invoice_image_url' in project:
-                        existing_project.invoice_image_url = project['invoice_image_url']
-                    if 'google_coordinates' in project:
-                        existing_project.google_coordinates = project['google_coordinates']
-                    if 'currency' in project:
-                        existing_project.currency = project['currency']
-                    if 'invoice_amount' in project:
-                        existing_project.invoice_amount = project['invoice_amount']
-                    if 'amount_paid' in project:
-                        existing_project.amount_paid = project['amount_paid']
-                    if 'outstanding_balance' in project:
-                        existing_project.outstanding_balance = project['outstanding_balance']
-                    if 'expected_final_payment_date' in project:
-                        existing_project.expected_final_payment_date = expected_payment_date
-                    if 'comment' in project:
-                        existing_project.comment = project['comment']
+                    # Apply updates to the existing project
+                    for key, value in project_fields.items():
+                        setattr(existing_project, key, value)
 
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
@@ -3933,42 +3916,35 @@ def update_projects():
                     if not previously_completed and existing_project.commissioning_date:
                         completed_projects.append(existing_project)
 
-            else:
-                existing_project = db.session.query(projects).filter_by(
+            else:  # Adding a new project
+                new_project = projects(
                     client_name=project.get('client_name', ''),
                     town=project.get('town', ''),
                     phone_number=project.get('phone_number', ''),
-                    sales_person=project.get('sales_person', '')
-                ).first()
+                    sales_person=project.get('sales_person', ''),
+                    lead_installer=project.get('lead_installer', ''),
+                    start_date=start_date,
+                    commissioning_date=commissioning_date,
+                    invoice_image_url=project.get('invoice_image_url', ''),
+                    google_coordinates=project.get('google_coordinates', ''),
+                    currency=project.get('currency', ''),
+                    invoice_amount=project.get('invoice_amount', 0.00),
+                    amount_paid=project.get('amount_paid', 0.00),
+                    outstanding_balance=project.get('outstanding_balance', 0.00),
+                    expected_final_payment_date=expected_final_payment_date,
+                    comment=project.get('comment', '')
+                )
+                db.session.add(new_project)
 
-                if not existing_project:  # Add only if it does not exist
-                    new_project = projects(
-                        client_name=project.get('client_name', ''),
-                        town=project.get('town', ''),
-                        phone_number=project.get('phone_number', ''),
-                        sales_person=project.get('sales_person', ''),
-                        lead_installer=project.get('lead_installer', ''),
-                        start_date=start_date,
-                        commissioning_date=commissioning_date,
-                        invoice_image_url=project.get('invoice_image_url', ''),
-                        google_coordinates=project.get('google_coordinates', ''),
-                        currency=project.get('currency', ''),
-                        invoice_amount=project.get('invoice_amount', 0.00),
-                        amount_paid=project.get('amount_paid', 0.00),
-                        outstanding_balance=project.get('outstanding_balance', 0.00),
-                        expected_final_payment_date=expected_payment_date,
-                        comment=project.get('comment', '')
-                    )
-                    db.session.add(new_project)
+                if new_project.lead_installer and new_project.start_date:
+                    ongoing_projects.append(new_project)
 
-                    if new_project.lead_installer and new_project.start_date:
-                        ongoing_projects.append(new_project)
-
-                    if new_project.commissioning_date:
-                        completed_projects.append(new_project)
+                if new_project.commissioning_date:
+                    completed_projects.append(new_project)
 
         db.session.commit()
 
+        # Send email notifications only for projects that changed status
         for project in ongoing_projects:
             send_project_email_notification(project)
 
@@ -4246,22 +4222,33 @@ def update_bdu():
 
         for record in data:
             project_id = record.get('project_id')
-            expected_payment_date = record.get('expected_final_payment_date', '').strip()
-            expected_payment_date = expected_payment_date if expected_payment_date else None
 
             if project_id:
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
+
                 if existing_project:
-                    # Update only relevant fields
-                    for field in ['client_name', 'town', 'phone_number', 'sales_person',
-                                  'google_coordinates', 'currency', 'invoice_amount',
-                                  'amount_paid', 'outstanding_balance', 'comment',
-                                  'invoice_image_url']:
-                        if field in record:
+                    # Only update fields that have changed
+                    for field in ['client_name', 'town', 'phone_number', 'google_coordinates',
+                                  'currency', 'invoice_amount', 'amount_paid', 'outstanding_balance',
+                                  'comment', 'invoice_image_url']:
+                        if field in record and record[field] != getattr(existing_project, field):
                             setattr(existing_project, field, record[field])
 
-                    if 'expected_final_payment_date' in record:
-                        existing_project.expected_final_payment_date = expected_payment_date
+                    # Handle `sales_person` safely
+                    if 'sales_person' in record:
+                        new_sales_person = record['sales_person'].strip()
+                        if new_sales_person:  # Prevent overwriting with an empty value
+                            existing_project.sales_person = new_sales_person
+
+                    # Handle `lead_installer` safely
+                    if 'lead_installer' in record:
+                        new_lead_installer = record['lead_installer'].strip()
+                        if new_lead_installer:  # Prevent overwriting with an empty value
+                            existing_project.lead_installer = new_lead_installer
+
+                    # Handle `expected_final_payment_date`
+                    expected_payment_date = record.get('expected_final_payment_date', '').strip()
+                    existing_project.expected_final_payment_date = expected_payment_date if expected_payment_date else None
 
         db.session.commit()
         return jsonify({"message": "BDU records updated successfully"})

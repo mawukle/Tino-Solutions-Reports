@@ -257,32 +257,39 @@
         <img class="modal-content" id="fullImage">
     </div>
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const saveButton = document.getElementById("save-changes");
-        if (saveButton) {
-            saveButton.addEventListener("click", () => {
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("save-changes").addEventListener("click", () => {
                 let updatedProjects = [];
+
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
+                    if (!projectID) return;
+
                     const cells = row.querySelectorAll("td[contenteditable='true']");
                     const inputs = row.querySelectorAll("input.date-input");
                     const salesPersonSelect = row.querySelector(".sales-person");
                     const leadInstallerSelect = row.querySelector(".lead-installer");
+
                     let projectData = {
                         project_id: projectID,
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
                         phone_number: cells[2]?.innerText.trim() || "",
-                        sales_person: salesPersonSelect?.value || "",  // Ensure correct selection
-                        lead_installer: leadInstallerSelect?.value || "",  // Ensure correct selection
                         start_date: inputs[0]?.value || "",
                         commissioning_date: inputs[1]?.value || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
+                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : "",
                     };
-                    if (projectID || projectData.client_name || projectData.town || projectData.phone_number) {
-                        updatedProjects.push(projectData);
+
+                    if (salesPersonSelect && salesPersonSelect.value) {
+                        projectData.sales_person = salesPersonSelect.value;
                     }
+                    if (leadInstallerSelect && leadInstallerSelect.value) {
+                        projectData.lead_installer = leadInstallerSelect.value;
+                    }
+
+                    updatedProjects.push(projectData);
                 });
+
                 fetch("/update_projects", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -300,145 +307,165 @@
                     alert("An error occurred while saving.");
                 });
             });
-        }
-        const addRowButton = document.getElementById("add-row");
-        if (addRowButton) {
-            addRowButton.addEventListener("click", () => {
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>
-                        <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="project_id" value="">
-                            <input type="file" name="invoice_image" accept="image/*">
-                            <button type="submit">Upload</button>
-                        </form>
-                    </td>
-                    <td contenteditable="true"></td>  <!-- Client Name -->
-                    <td contenteditable="true"></td>  <!-- Town -->
-                    <td contenteditable="true"></td>  <!-- Phone Number -->
-                    <td>
-                        <select class="sales-person">
-                            <option value="">Select a Team Member</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    </td>
-                `;
-                document.querySelector("tbody").appendChild(newRow);
-            });
-        }
-        const newProjectsTable = document.querySelector("h2:nth-of-type(1) + .table-container table");
-        let columnsAdded = false;
-        function addNewColumns() {
-            if (columnsAdded) return;
-            const thead = newProjectsTable.querySelector("thead tr");
-            const tbody = newProjectsTable.querySelector("tbody");
-            // Add headers if missing
-            if (!thead.querySelector(".lead-installer-header")) {
-                let th1 = document.createElement("th");
-                th1.classList.add("lead-installer-header");
-                th1.textContent = "Lead Installer";
-                let th2 = document.createElement("th");
-                th2.classList.add("start-date-header");
-                th2.textContent = "Start Date";
-                thead.appendChild(th1);
-                thead.appendChild(th2);
-            }
-            // Add missing columns to rows
-            tbody.querySelectorAll("tr").forEach(row => {
-                if (!row.querySelector(".lead-installer")) {
-                    let td1 = document.createElement("td");
-                    td1.innerHTML = `
-                        <select class="lead-installer">
-                            <option value="">Select a Team Member</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
+
+            const addRowButton = document.getElementById("add-row");
+            if (addRowButton) {
+                addRowButton.addEventListener("click", () => {
+                    const newRow = document.createElement("tr");
+                    newRow.innerHTML = `
+                        <td>
+                            <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="project_id" value="">
+                                <input type="file" name="invoice_image" accept="image/*">
+                                <button type="submit">Upload</button>
+                            </form>
+                        </td>
+                        <td contenteditable="true"></td>  <!-- Client Name -->
+                        <td contenteditable="true"></td>  <!-- Town -->
+                        <td contenteditable="true"></td>  <!-- Phone Number -->
+                        <td>
+                            <select class="sales-person">
+                                <option value="">Select a Team Member</option>
+                                ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
+                            </select>
+                        </td>
                     `;
-                    row.appendChild(td1);
+                    document.querySelector("tbody").appendChild(newRow);
+                });
+            }
+
+            const newProjectsTable = document.querySelector("h2:nth-of-type(1) + .table-container table");
+            let columnsAdded = false;
+
+            function addNewColumns() {
+                if (columnsAdded) return;
+                const thead = newProjectsTable.querySelector("thead tr");
+                const tbody = newProjectsTable.querySelector("tbody");
+
+                if (!thead.querySelector(".lead-installer-header")) {
+                    let th1 = document.createElement("th");
+                    th1.classList.add("lead-installer-header");
+                    th1.textContent = "Lead Installer";
+
+                    let th2 = document.createElement("th");
+                    th2.classList.add("start-date-header");
+                    th2.textContent = "Start Date";
+
+                    thead.appendChild(th1);
+                    thead.appendChild(th2);
                 }
-                if (!row.querySelector(".date-input")) {
-                    let td2 = document.createElement("td");
-                    td2.innerHTML = `<input type="date" class="date-input">`;
-                    row.appendChild(td2);
-                }
-            });
-            columnsAdded = true;
-        }
-        if (newProjectsTable) {
-            newProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD") {
-                    addNewColumns();
-                }
-            });
-        }
-        const ongoingProjectsTable = document.querySelector("h2:nth-of-type(2) + .table-container table");
-        let ongoingColumnsAdded = false;
-        function addCommissioningDateColumn() {
-            if (ongoingColumnsAdded) return;
-            const thead = ongoingProjectsTable.querySelector("thead tr");
-            const tbody = ongoingProjectsTable.querySelector("tbody");
-            thead.innerHTML += `<th>Commissioning Date</th>`;
-            tbody.querySelectorAll("tr").forEach(row => {
-                row.innerHTML += `<td><input type="date" class="date-input"></td>`;
-            });
-            ongoingColumnsAdded = true;
-        }
-        if (ongoingProjectsTable) {
-            ongoingProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
-                if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
-                    addCommissioningDateColumn();
-                }
-            });
-        }
-        const uploadForm = document.getElementById("upload-form");
-        if (uploadForm) {
-            uploadForm.addEventListener("submit", function(event) {
-                event.preventDefault();
-                let formData = new FormData();
-                let fileInput = document.getElementById("invoice_image");
-                if (fileInput && fileInput.files.length === 0) {
-                    document.getElementById("upload-status").innerText = "Please select a file.";
-                    return;
-                }
-                formData.append("invoice_image", fileInput.files[0]);
-                fetch("/upload_invoice", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.file_url) {
-                        document.getElementById("upload-status").innerText = "Upload successful!";
-                        console.log("Invoice Image URL:", data.file_url);
-                    } else {
-                        document.getElementById("upload-status").innerText = "Upload failed.";
+
+                tbody.querySelectorAll("tr").forEach(row => {
+                    if (!row.querySelector(".lead-installer")) {
+                        let td1 = document.createElement("td");
+                        td1.innerHTML = `
+                            <select class="lead-installer">
+                                <option value="">Select a Team Member</option>
+                                ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
+                            </select>
+                        `;
+                        row.appendChild(td1);
                     }
-                })
-                .catch(error => {
-                    document.getElementById("upload-status").innerText = "Error uploading file.";
-                    console.error(error);
+                    if (!row.querySelector(".date-input")) {
+                        let td2 = document.createElement("td");
+                        td2.innerHTML = `<input type="date" class="date-input">`;
+                        row.appendChild(td2);
+                    }
                 });
-            });
-        }
-        const modal = document.getElementById("imageModal");
-        const modalImg = document.getElementById("fullImage");
-        const closeBtn = document.querySelector(".close");
-        if (modal && modalImg && closeBtn) {
-            document.querySelectorAll(".invoice-image").forEach(img => {
-                img.addEventListener("click", function() {
-                    modal.style.display = "block";
-                    modalImg.src = this.src;
+
+                columnsAdded = true;
+            }
+
+            if (newProjectsTable) {
+                newProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
+                    if (event.target.tagName === "TD") {
+                        addNewColumns();
+                    }
                 });
-            });
-            closeBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-            modal.addEventListener("click", (event) => {
-                if (event.target === modal) {
+            }
+
+            const ongoingProjectsTable = document.querySelector("h2:nth-of-type(2) + .table-container table");
+            let ongoingColumnsAdded = false;
+
+            function addCommissioningDateColumn() {
+                if (ongoingColumnsAdded) return;
+                const thead = ongoingProjectsTable.querySelector("thead tr");
+                const tbody = ongoingProjectsTable.querySelector("tbody");
+
+                thead.innerHTML += `<th>Commissioning Date</th>`;
+
+                tbody.querySelectorAll("tr").forEach(row => {
+                    row.innerHTML += `<td><input type="date" class="date-input"></td>`;
+                });
+
+                ongoingColumnsAdded = true;
+            }
+
+            if (ongoingProjectsTable) {
+                ongoingProjectsTable.querySelector("tbody").addEventListener("click", (event) => {
+                    if (event.target.tagName === "TD" || event.target.tagName === "INPUT") {
+                        addCommissioningDateColumn();
+                    }
+                });
+            }
+
+            const uploadForm = document.getElementById("upload-form");
+            if (uploadForm) {
+                uploadForm.addEventListener("submit", function(event) {
+                    event.preventDefault();
+                    let formData = new FormData();
+                    let fileInput = document.getElementById("invoice_image");
+
+                    if (fileInput && fileInput.files.length === 0) {
+                        document.getElementById("upload-status").innerText = "Please select a file.";
+                        return;
+                    }
+
+                    formData.append("invoice_image", fileInput.files[0]);
+
+                    fetch("/upload_invoice", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.file_url) {
+                            document.getElementById("upload-status").innerText = "Upload successful!";
+                            console.log("Invoice Image URL:", data.file_url);
+                        } else {
+                            document.getElementById("upload-status").innerText = "Upload failed.";
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById("upload-status").innerText = "Error uploading file.";
+                        console.error(error);
+                    });
+                });
+            }
+
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("fullImage");
+            const closeBtn = document.querySelector(".close");
+
+            if (modal && modalImg && closeBtn) {
+                document.querySelectorAll(".invoice-image").forEach(img => {
+                    img.addEventListener("click", function() {
+                        modal.style.display = "block";
+                        modalImg.src = this.src;
+                    });
+                });
+
+                closeBtn.addEventListener("click", () => {
                     modal.style.display = "none";
-                }
-            });
-        }
-    });
+                });
+
+                modal.addEventListener("click", (event) => {
+                    if (event.target === modal) {
+                        modal.style.display = "none";
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
