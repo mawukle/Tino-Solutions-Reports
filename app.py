@@ -4181,7 +4181,10 @@ def get_bdu():
             invoice_amount = Decimal(project.invoice_amount or 0.00)
             amount_paid = Decimal(project.amount_paid or 0.00)
             outstanding_balance = invoice_amount - amount_paid  # Dynamically calculate Outstanding Balance
-            commissioning_date = project.commissioning_date or None  # Keep None if null
+            if project.commissioning_date:
+                commissioning_date = datetime.strptime(project.commissioning_date, '%Y-%m-%d').date()
+            else:
+                commissioning_date = None
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
