@@ -3814,9 +3814,9 @@ def get_projects():
         one_month_ago = datetime.now() - timedelta(days=30)  # Get date one month ago
 
         for project in projects_list:
-            start_date = project.start_date.strftime('%Y-%m-%d') if project.start_date else ''
-            commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else ''
-            expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
+            start_date = project.start_date.strftime('%Y-%m-%d') if isinstance(project.start_date, datetime) else project.start_date or ''
+            commissioning_date = project.commissioning_date.strftime('%Y-%m-%d') if isinstance(project.commissioning_date, datetime) else project.commissioning_date or ''
+            expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if isinstance(project.expected_final_payment_date, datetime) else project.expected_final_payment_date or ''
 
             project_data = {
                 "project_id": project.project_id,
