@@ -263,7 +263,7 @@
 
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
-                    if (!projectID) return;
+                    //if (!projectID) return;
 
                     const cells = row.querySelectorAll("td[contenteditable='true']");
                     const inputs = row.querySelectorAll("input.date-input");
