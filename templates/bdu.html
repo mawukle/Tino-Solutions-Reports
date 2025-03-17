@@ -382,22 +382,25 @@
             let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.trim()) || 0;
             let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || 0;
 
-            // Fix: Get Amount Paid for all sections, even if it's not displayed in Clients in Good Standing
-            let amountPaid = invoiceAmount - outstandingBalance;
+            // Ensure amountPaid is correctly retrieved or calculated
+            let amountPaid = parseFloat(row.querySelector(".amount-paid")?.innerText.trim()) || (invoiceAmount - outstandingBalance);
 
-            // Convert GHS amounts to USD (Divide by exchange rate)
+            // Convert GHC amounts to USD (Divide by exchange rate)
             if (currency === "GHC") {
                 invoiceAmount /= exchangeRate;
                 amountPaid /= exchangeRate;
                 outstandingBalance /= exchangeRate;
             }
 
+            // Debugging output
+            console.log(`Sales Person: ${salesPerson}, Currency: ${currency}, Invoice: ${invoiceAmount.toFixed(2)}, Paid: ${amountPaid.toFixed(2)}, Balance: ${outstandingBalance.toFixed(2)}`);
+
             if (!summaryData[salesPerson]) {
                 summaryData[salesPerson] = { invoiceTotal: 0, paidTotal: 0, balanceTotal: 0 };
             }
 
             summaryData[salesPerson].invoiceTotal += invoiceAmount;
-            summaryData[salesPerson].paidTotal += amountPaid;  // Include amount paid
+            summaryData[salesPerson].paidTotal += amountPaid;
             summaryData[salesPerson].balanceTotal += outstandingBalance;
 
             // Accumulate totals for the final row
