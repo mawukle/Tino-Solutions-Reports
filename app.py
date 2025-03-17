@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Float, and_, func, literal_colum
 from sqlalchemy.orm import sessionmaker, aliased
 import pandas as pd
 from sqlalchemy.sql import text
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import openpyxl
 from openpyxl import load_workbook
 from fpdf import FPDF
