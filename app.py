@@ -3930,15 +3930,15 @@ def update_projects():
                     phone_number=project.get('phone_number', ''),
                     sales_person=project.get('sales_person', ''),
                     lead_installer=project.get('lead_installer', ''),
-                    start_date=start_date,
-                    commissioning_date=commissioning_date,
+                    start_date=project.get('start_date', None),
+                    commissioning_date=project.get('commissioning_date', None),
                     invoice_image_url=project.get('invoice_image_url', ''),
                     google_coordinates=project.get('google_coordinates', ''),
                     currency=project.get('currency', ''),
                     invoice_amount=project.get('invoice_amount', 0.00),
                     amount_paid=project.get('amount_paid', 0.00),
                     outstanding_balance=project.get('outstanding_balance', 0.00),
-                    expected_final_payment_date=expected_final_payment_date,
+                    expected_final_payment_date=project.get('expected_final_payment_date', None),
                     comment=project.get('comment', '')
                 )
                 db.session.add(new_project)
