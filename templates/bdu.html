@@ -376,12 +376,14 @@
         let summaryData = {};
         let totalInvoice = 0, totalPaid = 0, totalBalance = 0;
 
-        document.querySelectorAll("tbody tr").forEach(row => {
+        document.querySelectorAll(".table-container tbody tr").forEach(row => {
             let salesPerson = row.querySelector(".sales-person")?.value || "";
             let currency = row.querySelector(".currency")?.value || "USD";
             let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.trim()) || 0;
-            let amountPaid = parseFloat(row.querySelector(".amount-paid")?.innerText.trim()) || 0;
-            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || (invoiceAmount - amountPaid);
+            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || 0;
+
+            // Fix: Get Amount Paid for all sections, even if it's not displayed in Clients in Good Standing
+            let amountPaid = invoiceAmount - outstandingBalance;
 
             // Convert GHS amounts to USD (Divide by exchange rate)
             if (currency === "GHC") {
@@ -395,7 +397,7 @@
             }
 
             summaryData[salesPerson].invoiceTotal += invoiceAmount;
-            summaryData[salesPerson].paidTotal += amountPaid;
+            summaryData[salesPerson].paidTotal += amountPaid;  // Include amount paid
             summaryData[salesPerson].balanceTotal += outstandingBalance;
 
             // Accumulate totals for the final row
