@@ -4242,10 +4242,15 @@ def update_bdu():
                 if existing_project:
                     # Only update fields that have changed
                     for field in ['client_name', 'town', 'phone_number', 'google_coordinates',
-                                  'currency', 'invoice_amount', 'amount_paid', 'outstanding_balance',
+                                  'currency', 'invoice_amount', 'outstanding_balance',
                                   'comment', 'invoice_image_url']:
                         if field in record and record[field] != getattr(existing_project, field):
                             setattr(existing_project, field, record[field])
+
+                    # Handle `amount_paid` carefully to avoid setting it to 0
+                    if 'amount_paid' in record:
+                        if record['amount_paid'] is not None:
+                            existing_project.amount_paid = record['amount_paid']
 
                     # Handle `sales_person` safely
                     if 'sales_person' in record:
