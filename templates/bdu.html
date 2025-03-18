@@ -289,6 +289,14 @@
                 let updatedRecords = [];
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
+                    let amountPaidElement = row.querySelector(".amount-paid");
+                    let amountPaid = amountPaidElement ? amountPaidElement.innerText.trim() : "";
+
+                    // Only send amount_paid if it has a valid value
+                    if (amountPaid === "" || isNaN(parseFloat(amountPaid))) {
+                        amountPaid = null; // Avoid sending invalid data
+                    }
+
                     const recordData = {
                         project_id: projectID,
                         client_name: row.querySelector(".client-name")?.innerText.trim() || "",
@@ -300,7 +308,7 @@
                         sales_person: row.querySelector(".sales-person")?.value || "",
                         currency: row.querySelector(".currency")?.value || "",
                         invoice_amount: row.querySelector(".invoice-amount")?.innerText.trim() || "",
-                        amount_paid: row.querySelector(".amount-paid")?.innerText.trim() || "",
+                        amount_paid: amountPaid, // Use the validated amount
                         expected_final_payment_date: row.querySelector(".expected-final-payment")?.value || "",
                         comment: row.querySelector(".comment")?.innerText.trim() || "",
                         invoice_image_url: row.querySelector(".invoice-image") ? row.querySelector(".invoice-image").src : ""
