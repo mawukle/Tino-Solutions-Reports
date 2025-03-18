@@ -379,21 +379,25 @@
         document.querySelectorAll(".table-container tbody tr").forEach(row => {
             let salesPerson = row.querySelector(".sales-person")?.value || "";
             let currency = row.querySelector(".currency")?.value || "USD";
-            let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.trim()) || 0;
-            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.trim()) || 0;
+            let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.replace(/,/g, '').trim()) || 0;
+            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.replace(/,/g, '').trim()) || 0;
 
-            // Ensure amountPaid is correctly retrieved or calculated
-            let amountPaid = parseFloat(row.querySelector(".amount-paid")?.innerText.trim()) || (invoiceAmount - outstandingBalance);
+            let amountPaidElement = row.querySelector(".amount-paid");
+            let amountPaid = amountPaidElement ? parseFloat(amountPaidElement.innerText.replace(/,/g, '').trim()) : 0;
 
-            // Convert GHC amounts to USD (Divide by exchange rate)
+            if (!amountPaidElement || isNaN(amountPaid)) {
+                console.warn(`Missing or invalid Amount Paid for ${salesPerson}. Using invoice - balance calculation.`);
+                amountPaid = invoiceAmount - outstandingBalance;
+            }
+
+            // Convert GHC amounts to USD if needed
             if (currency === "GHC") {
                 invoiceAmount /= exchangeRate;
                 amountPaid /= exchangeRate;
                 outstandingBalance /= exchangeRate;
             }
 
-            // Debugging output
-            console.log(`Sales Person: ${salesPerson}, Currency: ${currency}, Invoice: ${invoiceAmount.toFixed(2)}, Paid: ${amountPaid.toFixed(2)}, Balance: ${outstandingBalance.toFixed(2)}`);
+            console.log(`SalesPerson: ${salesPerson}, Invoice: ${invoiceAmount}, Paid: ${amountPaid}, Balance: ${outstandingBalance}`);
 
             if (!summaryData[salesPerson]) {
                 summaryData[salesPerson] = { invoiceTotal: 0, paidTotal: 0, balanceTotal: 0 };
@@ -403,20 +407,16 @@
             summaryData[salesPerson].paidTotal += amountPaid;
             summaryData[salesPerson].balanceTotal += outstandingBalance;
 
-            // Accumulate totals for the final row
+            // Accumulate totals for final row
             totalInvoice += invoiceAmount;
             totalPaid += amountPaid;
             totalBalance += outstandingBalance;
         });
 
-        // Convert summaryData object to an array and sort it by invoiceTotal in descending order
-        let sortedSummary = Object.entries(summaryData).sort((a, b) => b[1].invoiceTotal - a[1].invoiceTotal);
-
-        // Update summary table
         let summaryTableBody = document.getElementById("summaryTable").querySelector("tbody");
-        summaryTableBody.innerHTML = ""; // Clear previous data
+        summaryTableBody.innerHTML = "";
 
-        sortedSummary.forEach(([salesPerson, totals]) => {
+        Object.entries(summaryData).sort((a, b) => b[1].invoiceTotal - a[1].invoiceTotal).forEach(([salesPerson, totals]) => {
             let row = document.createElement("tr");
             row.innerHTML = `
                 <td>${salesPerson}</td>
@@ -427,7 +427,6 @@
             summaryTableBody.appendChild(row);
         });
 
-        // Add total row
         let totalRow = document.createElement("tr");
         totalRow.innerHTML = `
             <td><strong>Total</strong></td>
