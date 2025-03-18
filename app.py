@@ -3909,7 +3909,7 @@ def update_projects():
 
                     # Track previous statuses before changes
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
-                    previously_completed = bool(existing_project.commissioning_date)
+                    previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
 
                     # Apply updates to the existing project
                     for key, value in project_fields.items():
