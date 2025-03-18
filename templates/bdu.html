@@ -292,9 +292,11 @@
                     let amountPaidElement = row.querySelector(".amount-paid");
                     let amountPaid = amountPaidElement ? amountPaidElement.innerText.trim() : "";
 
-                    // Only send amount_paid if it has a valid value
-                    if (amountPaid === "" || isNaN(parseFloat(amountPaid))) {
-                        amountPaid = null; // Avoid sending invalid data
+                    // Ensure amountPaid is valid
+                    if (amountPaid !== "" && !isNaN(parseFloat(amountPaid))) {
+                        amountPaid = parseFloat(amountPaid); // Convert to float
+                    } else {
+                        amountPaid = undefined; // Don't send it if it's invalid
                     }
 
                     const recordData = {
@@ -308,11 +310,15 @@
                         sales_person: row.querySelector(".sales-person")?.value || "",
                         currency: row.querySelector(".currency")?.value || "",
                         invoice_amount: row.querySelector(".invoice-amount")?.innerText.trim() || "",
-                        amount_paid: amountPaid, // Use the validated amount
                         expected_final_payment_date: row.querySelector(".expected-final-payment")?.value || "",
                         comment: row.querySelector(".comment")?.innerText.trim() || "",
                         invoice_image_url: row.querySelector(".invoice-image") ? row.querySelector(".invoice-image").src : ""
                     };
+
+                    // Only add amount_paid if it's a valid number
+                    if (amountPaid !== undefined) {
+                        recordData.amount_paid = amountPaid;
+                    }
 
                     if (projectID || recordData.client_name || recordData.town || recordData.phone_number) {
                         updatedRecords.push(recordData);
