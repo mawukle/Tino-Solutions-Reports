@@ -394,24 +394,21 @@
             let salesPerson = row.querySelector(".sales-person")?.value || "";
             let currency = row.querySelector(".currency")?.value || "USD";
             let invoiceAmount = parseFloat(row.querySelector(".invoice-amount")?.innerText.replace(/,/g, '').trim()) || 0;
-            let outstandingBalance = parseFloat(row.querySelector(".outstanding-balance")?.innerText.replace(/,/g, '').trim()) || 0;
 
             let amountPaidElement = row.querySelector(".amount-paid");
             let amountPaid = amountPaidElement ? parseFloat(amountPaidElement.innerText.replace(/,/g, '').trim()) : 0;
 
-            if (!amountPaidElement || isNaN(amountPaid)) {
-                console.warn(`Missing or invalid Amount Paid for ${salesPerson}. Using invoice - balance calculation.`);
-                amountPaid = invoiceAmount - outstandingBalance;
+            if (isNaN(amountPaid)) {
+                amountPaid = 0;
             }
 
-            // Convert GHC amounts to USD if needed
+            let outstandingBalance = invoiceAmount - amountPaid;
+
             if (currency === "GHC") {
                 invoiceAmount /= exchangeRate;
                 amountPaid /= exchangeRate;
                 outstandingBalance /= exchangeRate;
             }
-
-            console.log(`SalesPerson: ${salesPerson}, Invoice: ${invoiceAmount}, Paid: ${amountPaid}, Balance: ${outstandingBalance}`);
 
             if (!summaryData[salesPerson]) {
                 summaryData[salesPerson] = { invoiceTotal: 0, paidTotal: 0, balanceTotal: 0 };
@@ -419,9 +416,8 @@
 
             summaryData[salesPerson].invoiceTotal += invoiceAmount;
             summaryData[salesPerson].paidTotal += amountPaid;
-            summaryData[salesPerson].balanceTotal += outstandingBalance;
+            summaryData[salesPerson].balanceTotal = summaryData[salesPerson].invoiceTotal - summaryData[salesPerson].paidTotal;
 
-            // Accumulate totals for final row
             totalInvoice += invoiceAmount;
             totalPaid += amountPaid;
             totalBalance += outstandingBalance;
