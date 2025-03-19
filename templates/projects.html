@@ -66,6 +66,17 @@
             color: white;
             cursor: pointer;
         }
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Adjust spacing */
+            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+        }
+        .filter-form label,
+        .filter-form input,
+        .filter-form button {
+            white-space: nowrap; /* Prevents wrapping of individual elements */
+        }
 
     </style>
 </head>
@@ -77,7 +88,7 @@
         {% if message %}
         <p class="message">{{ message }}</p>
         {% endif %}
-        <form method="GET" action="{{ url_for('get_projects') }}">
+        <form method="GET" action="{{ url_for('get_projects') }}" class="filter-form">
             <label for="start_date_from">Start Date From:</label>
             <input type="date" id="start_date_from" name="start_date_from" value="{{ request.args.get('start_date_from', '') }}">
 
