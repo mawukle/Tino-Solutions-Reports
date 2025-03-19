@@ -77,14 +77,15 @@
         {% if message %}
         <p class="message">{{ message }}</p>
         {% endif %}
-        <form method="GET" action="{{ url_for('get_projects') }}" style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <form method="GET" action="{{ url_for('get_projects') }}"
+              style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap;">
             <label for="start_date_from">Start Date From:</label>
             <input type="date" id="start_date_from" name="start_date_from" value="{{ request.args.get('start_date_from', '') }}">
 
             <label for="start_date_to">Start Date To:</label>
             <input type="date" id="start_date_to" name="start_date_to" value="{{ request.args.get('start_date_to', '') }}">
 
-            <button type="submit">Filter</button>
+            <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
         </form>
 
         <!-- New Projects -->
