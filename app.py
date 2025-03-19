@@ -3780,12 +3780,21 @@ def serialize_row(row):
 
 
 
+from flask import request, render_template
+from datetime import datetime, timedelta
+import logging
+
 @app.route('/projects', methods=['GET'])
 def get_projects():
     message = request.args.get('message', '')
 
+    # Retrieve filter values from request arguments
+    start_date_from = request.args.get('start_date_from', '')
+    start_date_to = request.args.get('start_date_to', '')
+
     try:
-        projects_list = db.session.query(
+        # Base query
+        query = db.session.query(
             projects.project_id,
             projects.client_name,
             projects.town,
@@ -3802,8 +3811,21 @@ def get_projects():
             projects.outstanding_balance,
             projects.expected_final_payment_date,
             projects.comment
-        ).distinct().all()
+        ).distinct()
 
+        # Apply date filters if provided
+        if start_date_from:
+            start_date_from = datetime.strptime(start_date_from, '%Y-%m-%d')
+            query = query.filter(projects.start_date >= start_date_from)
+
+        if start_date_to:
+            start_date_to = datetime.strptime(start_date_to, '%Y-%m-%d')
+            query = query.filter(projects.start_date <= start_date_to)
+
+        # Execute the filtered query
+        projects_list = query.all()
+
+        # Fetch team members
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
         team_members = [member.Team_Member_Name for member in team_members]
 
