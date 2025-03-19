@@ -3996,6 +3996,9 @@ def send_project_email_notification(project):
             print(f"ERROR: No email found for sales person {project.sales_person}")
             return
 
+        # Generate Google Maps link if coordinates exist
+        google_maps_link = f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>' if project.google_coordinates else ""
+
         invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
         subject = f"Project Update: {project.client_name} installation is now Ongoing"
@@ -4010,6 +4013,7 @@ def send_project_email_notification(project):
             <li>Start Date: {project.start_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
+        {google_maps_link}
         {invoice_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
@@ -4042,6 +4046,9 @@ def send_completed_project_email_notification(project):
             print(f"ERROR: No email found for sales person {project.sales_person}")
             return
 
+        # Generate Google Maps link if coordinates exist
+        google_maps_link = f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>' if project.google_coordinates else ""
+
         invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
         subject = f"Project Completion Notification: {project.client_name} installation has been Completed"
@@ -4057,6 +4064,7 @@ def send_completed_project_email_notification(project):
             <li>Commissioning Date: {project.commissioning_date}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
+        {google_maps_link}
         {invoice_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
