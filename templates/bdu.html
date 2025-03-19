@@ -207,6 +207,7 @@
                         <th>Sales Person</th>
                         <th>Currency</th>
                         <th>Invoice Amount</th>
+                        <th>Amount Paid</th> <!-- Added this column -->
                         <th>Outstanding Balance</th>
                         <th>Comment</th>
                     </tr>
@@ -247,6 +248,7 @@
                             </select>
                         </td>
                         <td contenteditable="true" class="invoice-amount">{{ good.invoice_amount }}</td>
+                        <td contenteditable="true" class="amount-paid">{{ good.amount_paid }}</td> <!-- Added this column -->
                         <td class="outstanding-balance">{{ good.outstanding_balance }}</td>
                         <td contenteditable="true" class="comment">{{ good.comment }}</td>
                     </tr>
