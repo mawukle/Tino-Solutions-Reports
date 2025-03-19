@@ -4166,10 +4166,16 @@ from datetime import datetime, timedelta
 @app.route('/bdu', methods=['GET'])
 def get_bdu():
     message = request.args.get('message', '')
+    start_date_from = request.args.get('start_date_from')
+    start_date_to = request.args.get('start_date_to')
 
     try:
-        # Fetch all relevant project data
-        projects_list = db.session.query(
+        # Convert date inputs to proper format
+        start_date = datetime.strptime(start_date_from, '%Y-%m-%d').date() if start_date_from else None
+        end_date = datetime.strptime(start_date_to, '%Y-%m-%d').date() if start_date_to else None
+
+        # Base query for projects
+        query = db.session.query(
             projects.project_id,
             projects.invoice_image_url,
             projects.client_name,
@@ -4180,11 +4186,24 @@ def get_bdu():
             projects.currency,
             projects.invoice_amount,
             projects.amount_paid,
-            #projects.outstanding_balance,
             projects.expected_final_payment_date,
             projects.commissioning_date,
             projects.comment
-        ).all()
+        )
+
+        # Apply date filtering based on commissioning_date
+        if start_date and end_date:
+            query = query.filter(
+                projects.commissioning_date >= start_date,
+                projects.commissioning_date <= end_date
+            )
+        elif start_date:
+            query = query.filter(projects.commissioning_date >= start_date)
+        elif end_date:
+            query = query.filter(projects.commissioning_date <= end_date)
+
+        # Fetch filtered projects
+        projects_list = query.all()
 
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
         team_members = [member.Team_Member_Name for member in team_members]
@@ -4199,6 +4218,8 @@ def get_bdu():
             invoice_amount = Decimal(project.invoice_amount or 0.00)
             amount_paid = Decimal(project.amount_paid or 0.00)
             outstanding_balance = invoice_amount - amount_paid  # Dynamically calculate Outstanding Balance
+
+            # Handle commissioning_date format
             if isinstance(project.commissioning_date, str):
                 if project.commissioning_date == '0000-00-00':
                     commissioning_date = None  # Treat as missing date
@@ -4206,6 +4227,7 @@ def get_bdu():
                     commissioning_date = datetime.strptime(project.commissioning_date, '%Y-%m-%d').date()
             else:
                 commissioning_date = project.commissioning_date  # Already a datetime.date
+
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
             project_data = {
