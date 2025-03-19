@@ -77,6 +77,15 @@
         {% if message %}
         <p class="message">{{ message }}</p>
         {% endif %}
+        <div>
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date">
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date">
+
+            <button onclick="filterProjects()">Apply Filter</button>
+        </div>
         <!-- New Projects -->
         <h2>New Projects</h2>
         <div class="table-container">
@@ -465,6 +474,17 @@
                     }
                 });
             }
+            function filterProjects() {
+                let startDate = document.getElementById("start_date").value;
+                let endDate = document.getElementById("end_date").value;
+
+                if (startDate && endDate) {
+                    window.location.href = `/projects?start_date=${startDate}&end_date=${endDate}`;
+                } else {
+                    alert("Please select both start and end dates.");
+                }
+            }
+            
         });
     </script>
 </body>
