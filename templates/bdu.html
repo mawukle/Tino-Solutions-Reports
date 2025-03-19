@@ -45,6 +45,18 @@
         {% if message %}
         <p class="message">{{ message }}</p>
         {% endif %}
+        <!-- Date Filter Form -->
+        <form method="GET" action="{{ url_for('get_bdu') }}"
+              style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap; margin-bottom: 20px;">
+            <label for="start_date_from">From:</label>
+            <input type="date" id="start_date_from" name="start_date_from" value="{{ request.args.get('start_date_from', '') }}">
+
+            <label for="start_date_to">To:</label>
+            <input type="date" id="start_date_to" name="start_date_to" value="{{ request.args.get('start_date_to', '') }}">
+
+            <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
+        </form>
+
 
         <!-- Closed Deals -->
         <h2>Closed Deals</h2>
