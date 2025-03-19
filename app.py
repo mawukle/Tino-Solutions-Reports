@@ -4191,16 +4191,16 @@ def get_bdu():
             projects.comment
         )
 
-        # Apply date filtering based on commissioning_date
+        # Apply date filtering based on start_date
         if start_date and end_date:
             query = query.filter(
-                projects.commissioning_date >= start_date,
-                projects.commissioning_date <= end_date
+                projects.start_date >= start_date,
+                projects.start_date <= end_date
             )
         elif start_date:
-            query = query.filter(projects.commissioning_date >= start_date)
+            query = query.filter(projects.start_date >= start_date)
         elif end_date:
-            query = query.filter(projects.commissioning_date <= end_date)
+            query = query.filter(projects.start_date <= end_date)
 
         # Fetch filtered projects
         projects_list = query.all()
