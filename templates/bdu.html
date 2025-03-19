@@ -404,6 +404,10 @@
         let summaryData = {};
         let totalInvoice = 0, totalPaid = 0, totalBalance = 0;
 
+        // Get selected date range
+        let startDate = new Date(document.getElementById("start_date_from").value);
+        let endDate = new Date(document.getElementById("start_date_to").value);
+
         document.querySelectorAll(".table-container tbody tr").forEach(row => {
             let salesPerson = row.querySelector(".sales-person")?.value || "";
             let currency = row.querySelector(".currency")?.value || "USD";
@@ -422,6 +426,17 @@
                 invoiceAmount /= exchangeRate;
                 amountPaid /= exchangeRate;
                 outstandingBalance /= exchangeRate;
+            }
+
+            // Get Invoice Date from the row
+            let invoiceDateText = row.querySelector(".invoice-date")?.innerText.trim();
+            let invoiceDate = invoiceDateText ? new Date(invoiceDateText) : null;
+
+            // Apply date filter
+            if (invoiceDate && startDate && endDate) {
+                if (invoiceDate < startDate || invoiceDate > endDate) {
+                    return; // Skip this row if it's outside the date range
+                }
             }
 
             if (!summaryData[salesPerson]) {
@@ -460,6 +475,8 @@
         `;
         summaryTableBody.appendChild(totalRow);
     }
+    document.getElementById("start_date_from").addEventListener("change", calculateSummary);
+    document.getElementById("start_date_to").addEventListener("change", calculateSummary);
     </script>
 </body>
 </html>
