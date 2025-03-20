@@ -18,7 +18,7 @@ SCHEDULED_TIMES = {
 
 # Define scheduled email times (UTC) for payment reminders
 #PAYMENT_REMINDER_TIMES = ["09:00", "09:10"]  # UTC
-PAYMENT_REMINDER_TIMES = ["15:00", "15:10"]  # UTC
+PAYMENT_REMINDER_TIMES = ["15:10", "15:20"]  # UTC
 
 def is_scheduled_time(schedule_times):
     """Check if the current UTC time is within a 10-minute window of a scheduled time."""
