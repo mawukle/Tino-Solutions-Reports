@@ -17,8 +17,7 @@ SCHEDULED_TIMES = {
 }
 
 # Define scheduled email times (UTC) for payment reminders
-#PAYMENT_REMINDER_TIMES = ["09:00", "09:10"]  # UTC
-PAYMENT_REMINDER_TIMES = ["15:50", "16:00"]  # UTC
+PAYMENT_REMINDER_TIMES = ["09:00", "09:10"]  # UTC
 
 def is_scheduled_time(schedule_times):
     """Check if the current UTC time is within a 10-minute window of a scheduled time."""
@@ -103,7 +102,7 @@ def send_payment_reminders():
 
             if project.expected_final_payment_date:
                 due_date = project.expected_final_payment_date
-                if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
+                if due_date == today or (today > due_date and (today - due_date).days % 14 == 0):
                     should_send_email = True
 
             elif project.commissioning_date:
@@ -117,7 +116,7 @@ def send_payment_reminders():
                         print(f"Skipping invalid commissioning date: {commissioning_date} - {e}")
                         continue  # Skip the record if the date is invalid
                 due_date = commissioning_date + datetime.timedelta(days=14)
-                if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
+                if due_date == today or (today > due_date and (today - due_date).days % 14 == 0):
                     should_send_email = True
 
             if should_send_email:
@@ -152,7 +151,7 @@ def send_payment_reminders():
                     subject=f"Payment Reminder: {project.client_name}",
                     #recipients=[sales_person_email],
                     recipients=["emmanuel@tinosolutions.com"],
-                    #cc=["gorden@tinosolutions.com", "augustine@tinosolutions.com", "finance@tinosolutions.com", "accounts@tinosolutions.com"],
+                    #cc=["gorden@tinosolutions.com", "philip@tinosolutions.com", "finance@tinosolutions.com", "accounts@tinosolutions.com"],
                     cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
                     bcc=["emmanuel@tinosolutions.com"],
                     html=email_body
