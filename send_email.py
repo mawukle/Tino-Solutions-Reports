@@ -107,7 +107,7 @@ def send_payment_reminders():
                     should_send_email = True
 
             elif project.commissioning_date:
-                commissioning_date = datetime.datetime.strptime(project.commissioning_date, "%Y-%m-%d").date()
+                commissioning_date = project.commissioning_date  # No need for strptime
                 due_date = commissioning_date + datetime.timedelta(days=14)
                 if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
                     should_send_email = True
