@@ -18,7 +18,7 @@ SCHEDULED_TIMES = {
 
 # Define scheduled email times (UTC) for payment reminders
 #PAYMENT_REMINDER_TIMES = ["09:00", "09:10"]  # UTC
-PAYMENT_REMINDER_TIMES = ["15:10", "15:20"]  # UTC
+PAYMENT_REMINDER_TIMES = ["15:30", "15:40"]  # UTC
 
 def is_scheduled_time(schedule_times):
     """Check if the current UTC time is within a 10-minute window of a scheduled time."""
@@ -107,7 +107,9 @@ def send_payment_reminders():
                     should_send_email = True
 
             elif project.commissioning_date:
-                commissioning_date = project.commissioning_date  # No need for strptime
+                commissioning_date = project.commissioning_date  # Ensure it's already a date object
+                if isinstance(commissioning_date, str):  # Convert only if it's a string
+                    commissioning_date = datetime.datetime.strptime(commissioning_date, "%Y-%m-%d").date()
                 due_date = commissioning_date + datetime.timedelta(days=14)
                 if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
                     should_send_email = True
