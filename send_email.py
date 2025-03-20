@@ -1,14 +1,13 @@
-from bs4 import BeautifulSoup
 import datetime
 import pytz
 from flask_mail import Message
-from app import app, mail  # Import Flask app and Mail instance
+from app import app, mail, db
 from flask import render_template
+from bs4 import BeautifulSoup
+from models import projects, Team_Members  # Ensure correct import paths
 
-# Define scheduled email times (UTC)
+# Define scheduled email times (UTC) for client list
 SCHEDULED_TIMES = {
-    "2025-02-27": "16:00", #trial
-    "2025-02-27": "16:10", #note that the 10 minutes extra is added to get the code to work even if there are delays with Heroku
     "2025-02-28": "08:00",
     "2025-02-28": "08:10",
     "2025-03-31": "08:00",
@@ -17,96 +16,145 @@ SCHEDULED_TIMES = {
     "2025-04-30": "08:10",
 }
 
-def is_scheduled_time():
+# Define scheduled email times (UTC) for payment reminders
+#PAYMENT_REMINDER_TIMES = ["09:00", "09:10"]  # UTC
+PAYMENT_REMINDER_TIMES = ["14:40", "14:50"]  # UTC
+
+def is_scheduled_time(schedule_times):
     """Check if the current UTC time is within a 10-minute window of a scheduled time."""
     utc_now = datetime.datetime.now(pytz.utc)
-    current_date = utc_now.strftime("%Y-%m-%d")
+    current_time = utc_now.strftime("%H:%M")
 
-    if current_date in SCHEDULED_TIMES:
-        scheduled_time = datetime.datetime.strptime(SCHEDULED_TIMES[current_date], "%H:%M").time()
-        scheduled_datetime = datetime.datetime.combine(utc_now.date(), scheduled_time).replace(tzinfo=pytz.utc)
-
+    for scheduled_time in schedule_times:
+        scheduled_datetime = datetime.datetime.combine(utc_now.date(), datetime.datetime.strptime(scheduled_time, "%H:%M").time()).replace(tzinfo=pytz.utc)
         time_difference = abs((utc_now - scheduled_datetime).total_seconds())
 
-        return time_difference <= 600  # 600 seconds = 10 minutes
+        if time_difference <= 600:  # 600 seconds = 10 minutes
+            return True
     return False
 
-def fetch_client_list_html():
-    """Retrieve the rendered HTML content from the /client_list route with the email_mode filter applied."""
-    with app.test_client() as client:
-        response = client.get('/client_list?email_mode=1')  # Use the email mode filter
-        if response.status_code == 200:
-            full_html = response.get_data(as_text=True)
-
-            # Parse HTML and extract only the Tino Team table
-            soup = BeautifulSoup(full_html, 'html.parser')
-            tino_team_table = soup.find(id="tino_team_table")
-
-            if tino_team_table:
-                return str(tino_team_table)
-            else:
-                print("ERROR: 'tino_team_table' div not found in HTML.")
-                return None
-        else:
-            print(f"ERROR: Failed to fetch client list (HTTP {response.status_code})")
-            return None
-
 def send_client_list_email():
-    """Send an email with only the 'Installed by Tino Team' table and an introductory message."""
-    if not is_scheduled_time():
-        print(f"Not the scheduled time ({datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}). Exiting.")
+    """Send the client list email at scheduled times."""
+    if not is_scheduled_time(SCHEDULED_TIMES.values()):
         return
 
-    recipient = ["hippolite@tinosolutions.com", "support@tinosolutions.com", "service@tinosolutions.com"] # Main recipient
-    cc_recipients = ["gorden@tinosolutions.com", "augustine@tinosolutions.com", "philip@tinosolutions.com", "solal@tinosolutions.com", "kwame@tinosolutions.com", "naalenuo@tinosolutions.com", "patrick@tinosolutions.com", "reports@tinosolutions.com", "marketing@tinosolutions.com", "sales@tinosolutions.com"]  # CC recipients
+    with app.app_context():
+        recipient = ["hippolite@tinosolutions.com", "support@tinosolutions.com", "service@tinosolutions.com"]
+        cc_recipients = ["gorden@tinosolutions.com", "augustine@tinosolutions.com", "philip@tinosolutions.com",
+                         "solal@tinosolutions.com", "kwame@tinosolutions.com", "naalenuo@tinosolutions.com",
+                         "patrick@tinosolutions.com", "reports@tinosolutions.com", "marketing@tinosolutions.com", "sales@tinosolutions.com"]
 
-    with app.app_context():  # Ensure Flask context is available
-        subject = "Client List Report"
-        body_content = fetch_client_list_html()
+        response = app.test_client().get('/client_list?email_mode=1')
+        if response.status_code != 200:
+            print(f"ERROR: Failed to fetch client list (HTTP {response.status_code})")
+            return
 
-        if body_content:
-            # Ensure the table has no border by injecting inline styles
-            soup = BeautifulSoup(body_content, 'html.parser')
-            table = soup.find("table")
-            if table:
-                table["style"] = "border: none; border-collapse: collapse; width: 100%;"
+        soup = BeautifulSoup(response.get_data(as_text=True), 'html.parser')
+        tino_team_table = soup.find(id="tino_team_table")
 
-            # Email content with introductory message
-            styled_body = f"""
-            <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 20px; background-color: #f9f9f9;">
-                <p>Dear Team,</p>
-                <p>
-                    Please find below details of installed systems within the past 12 months.
-                    Kindly click on any of the client names in
-                    <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list"
-                    style="color: #004085; text-decoration: none; font-weight: bold;">
-                        our client list
-                    </a>
-                    if you need further details about a given client.
-                </p>
-                <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+        if not tino_team_table:
+            print("ERROR: 'tino_team_table' div not found in HTML.")
+            return
 
-                <h2 style="color: #004085; text-align: center;">Client List Report</h2>
-                <div style="padding: 15px;">  <!-- Removed border -->
-                    {str(soup)}
-                </div>
-                <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
-                    This is a monthly automated email from the Tino Solutions System Database.
-                </p>
-            </div>
-            """
+        styled_body = f"""
+        <p>Dear Team,</p>
+        <p>Please find below details of installed systems within the past 12 months.</p>
+        <p>Click <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/client_list">here</a> for more details.</p>
+        <h2 style="color: #004085;">Client List Report</h2>
+        {str(tino_team_table)}
+        <p>This is an automated email from the Tino Solutions System.</p>
+        """
 
-            # Create the email message
-            msg = Message(subject, recipients=recipient, cc=cc_recipients, html=styled_body)
+        msg = Message("Client List Report", recipients=recipient, cc=cc_recipients, html=styled_body)
+        try:
+            mail.send(msg)
+            print("Client list email sent successfully!")
+        except Exception as e:
+            print(f"ERROR: Failed to send client list email: {e}")
 
-            try:
-                mail.send(msg)
-                print("Email sent successfully!")
-            except Exception as e:
-                print(f"ERROR: Failed to send email: {e}")
-        else:
-            print("ERROR: Client list HTML is empty. Email not sent.")
+def send_payment_reminders():
+    """Send payment reminders at scheduled times (9:00 and 9:10 GMT daily)."""
+    if not is_scheduled_time(PAYMENT_REMINDER_TIMES):
+        return
 
+    with app.app_context():
+        today = datetime.datetime.now(pytz.utc).date()
+        projects_list = db.session.query(
+            projects.client_name, projects.sales_person, projects.invoice_amount,
+            projects.amount_paid, projects.expected_final_payment_date,
+            projects.commissioning_date, projects.google_coordinates, projects.invoice_image_url
+        ).all()
+
+        for project in projects_list:
+            invoice_amount = project.invoice_amount or 0
+            amount_paid = project.amount_paid or 0
+            outstanding_balance = invoice_amount - amount_paid
+
+            if outstanding_balance <= 0:
+                continue  # Skip if fully paid
+
+            sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
+                Team_Members.Team_Member_Name == project.sales_person
+            ).scalar()
+            if not sales_person_email:
+                continue  # Skip if email not found
+
+            should_send_email = False
+
+            if project.expected_final_payment_date:
+                due_date = project.expected_final_payment_date
+                if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
+                    should_send_email = True
+
+            elif project.commissioning_date:
+                due_date = project.commissioning_date + datetime.timedelta(days=14)
+                if due_date == today or (today > due_date and (today - due_date).days % 7 == 0):
+                    should_send_email = True
+
+            if should_send_email:
+                email_body = f"""
+                <p>Dear {project.sales_person},</p>
+                <p>This is a reminder for the payment of <b>{project.client_name}</b>.</p>
+                <p><b>Invoice Amount:</b> {invoice_amount}</p>
+                <p><b>Amount Paid:</b> {amount_paid}</p>
+                <p><b>Outstanding Balance:</b> {outstanding_balance}</p>
+                """
+                if project.google_coordinates:
+                    email_body += f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>'
+                if project.invoice_image_url:
+                    email_body += f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>'
+
+                email_body += """
+                <p><b>Update Payment Details:</b></p>
+                <p>If the provided data is not a true reflection of the client’s debt status,
+                you can update it by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/bdu" target="_blank">this link</a>,
+                editing the <b>Amount Paid</b> column, and then clicking <b>Save Changes</b> at the bottom of the page.</p>
+                """
+
+                email_body += """
+                <p><b>Modify Expected Payment Date:</b></p>
+                <p>If you would like to postpone future reminders, you can change the <b>Expected Final Payment Date</b>
+                to a later date on the same page.</p>
+                """
+
+                email_body += "<p>Kind regards,<br>Emmanuel Kwesi Padi</p>"
+
+                msg = Message(
+                    subject=f"Payment Reminder: {project.client_name}",
+                    #recipients=[sales_person_email],
+                    recipients=["emmanuel@tinosolutions.com"],
+                    #cc=["gorden@tinosolutions.com", "augustine@tinosolutions.com", "finance@tinosolutions.com", "accounts@tinosolutions.com"],
+                    cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
+                    bcc=["emmanuel@tinosolutions.com"],
+                    html=email_body
+                )
+
+                try:
+                    mail.send(msg)
+                    print(f"Payment reminder sent to {sales_person_email} for {project.client_name}")
+                except Exception as e:
+                    print(f"ERROR: Failed to send payment reminder to {sales_person_email}: {e}")
 
 if __name__ == "__main__":
     send_client_list_email()
+    send_payment_reminders()
