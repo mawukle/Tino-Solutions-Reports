@@ -54,6 +54,11 @@
             <label for="start_date_to">To:</label>
             <input type="date" id="start_date_to" name="start_date_to" value="{{ request.args.get('start_date_to', '') }}">
 
+            <input type="text" id="search-box" name="search_query" placeholder="Search..."
+                   value="{{ request.args.get('search_query', '') }}"
+                   style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
+                   autocomplete="off">
+
             <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
         </form>
 

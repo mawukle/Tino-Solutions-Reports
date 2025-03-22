@@ -4191,6 +4191,8 @@ def get_bdu():
     message = request.args.get('message', '')
     start_date_from = request.args.get('start_date_from')
     start_date_to = request.args.get('start_date_to')
+    search_query = request.args.get('search_query', '').strip().lower()
+
 
     try:
         # Convert date inputs to proper format
@@ -4224,6 +4226,17 @@ def get_bdu():
             query = query.filter(projects.start_date >= start_date)
         elif end_date:
             query = query.filter(projects.start_date <= end_date)
+
+        # Apply search filter if a query is provided
+        if search_query:
+            query = query.filter(
+                (projects.client_name.ilike(f"%{search_query}%")) |
+                (projects.town.ilike(f"%{search_query}%")) |
+                (projects.phone_number.ilike(f"%{search_query}%")) |
+                (projects.sales_person.ilike(f"%{search_query}%")) |
+                (projects.currency.ilike(f"%{search_query}%")) |
+                (projects.comment.ilike(f"%{search_query}%"))
+            )
 
         # Fetch filtered projects
         projects_list = query.all()
@@ -4283,7 +4296,10 @@ def get_bdu():
             clients_in_debt=clients_in_debt,
             clients_in_good_standing=clients_in_good_standing,
             team_members=team_members,
-            message=message
+            message=message,
+            search_query=search_query,  # Ensure search query is passed back
+            start_date_from=start_date_from,
+            start_date_to=start_date_to
         )
 
     except Exception as e:
