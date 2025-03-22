@@ -88,7 +88,8 @@
 
             <input type="text" id="search-box" name="search_query" placeholder="Search..."
                    value="{{ request.args.get('search_query', '') }}"
-                   style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                   style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
+                   autocomplete="off">
 
             <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
         </form>
