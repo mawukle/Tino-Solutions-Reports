@@ -3829,7 +3829,9 @@ def get_projects():
                 (projects.client_name.ilike(f"%{search_query}%")) |
                 (projects.town.ilike(f"%{search_query}%")) |
                 (projects.phone_number.ilike(f"%{search_query}%")) |
-                (projects.sales_person.ilike(f"%{search_query}%"))
+                (projects.sales_person.ilike(f"%{search_query}%")) |
+                (projects.lead_installer.ilike(f"%{search_query}%"))
+
             )
 
         # Execute the filtered query
