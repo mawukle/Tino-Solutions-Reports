@@ -79,11 +79,14 @@
         {% endif %}
         <form method="GET" action="{{ url_for('get_projects') }}"
               style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap;">
+
             <label for="start_date_from">From:</label>
             <input type="date" id="start_date_from" name="start_date_from" value="{{ request.args.get('start_date_from', '') }}">
 
             <label for="start_date_to">To:</label>
             <input type="date" id="start_date_to" name="start_date_to" value="{{ request.args.get('start_date_to', '') }}">
+
+            <input type="text" id="search-box" placeholder="Search..." style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
 
             <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
         </form>
@@ -481,6 +484,15 @@
                     }
                 });
             }
+            document.getElementById('search-box').addEventListener('keyup', function() {
+                let filter = this.value.toLowerCase();
+                let rows = document.querySelectorAll('tbody tr');
+
+                rows.forEach(row => {
+                    let text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
 
         });
     </script>
