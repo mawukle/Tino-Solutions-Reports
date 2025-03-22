@@ -3791,6 +3791,7 @@ def get_projects():
     # Retrieve filter values from request arguments
     start_date_from = request.args.get('start_date_from', '')
     start_date_to = request.args.get('start_date_to', '')
+    search_query = request.args.get('search_query', '').strip().lower()  # Get the search input
 
     try:
         # Base query
@@ -3821,6 +3822,15 @@ def get_projects():
         if start_date_to:
             start_date_to = datetime.strptime(start_date_to, '%Y-%m-%d')
             query = query.filter(projects.start_date <= start_date_to)
+
+        # Apply search filter
+        if search_query:
+            query = query.filter(
+                (projects.client_name.ilike(f"%{search_query}%")) |
+                (projects.town.ilike(f"%{search_query}%")) |
+                (projects.phone_number.ilike(f"%{search_query}%")) |
+                (projects.sales_person.ilike(f"%{search_query}%"))
+            )
 
         # Execute the filtered query
         projects_list = query.all()
@@ -3884,7 +3894,10 @@ def get_projects():
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
             team_members=team_members,
-            message=message
+            message=message,
+            search_query=search_query,  # Pass search term back to template
+            start_date_from=start_date_from,
+            start_date_to=start_date_to
         )
 
     except Exception as e:
