@@ -281,12 +281,13 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("save-changes").addEventListener("click", () => {
+                let saveButton = document.getElementById("save-changes");
+                saveButton.disabled = true; // Disable button to prevent duplicate requests
+
                 let updatedProjects = [];
 
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const projectID = row.getAttribute("data-id") || null;
-                    //if (!projectID) return;
-
                     const cells = row.querySelectorAll("td[contenteditable='true']");
                     const inputs = row.querySelectorAll("input.date-input");
                     const salesPersonSelect = row.querySelector(".sales-person");
@@ -299,18 +300,15 @@
                         phone_number: cells[2]?.innerText.trim() || "",
                         start_date: inputs[0]?.value || "",
                         commissioning_date: inputs[1]?.value || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : "",
+                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
+                        //sales_person: salesPersonSelect?.value || "",
+                        //lead_installer: leadInstallerSelect?.value || ""
                     };
-
-                    if (salesPersonSelect && salesPersonSelect.value) {
-                        projectData.sales_person = salesPersonSelect.value;
-                    }
-                    if (leadInstallerSelect && leadInstallerSelect.value) {
-                        projectData.lead_installer = leadInstallerSelect.value;
-                    }
 
                     updatedProjects.push(projectData);
                 });
+
+                console.log("Updated Projects Data:", updatedProjects);
 
                 fetch("/update_projects", {
                     method: "POST",
@@ -327,6 +325,9 @@
                 .catch(error => {
                     console.error("Error:", error);
                     alert("An error occurred while saving.");
+                })
+                .finally(() => {
+                    saveButton.disabled = false; // Re-enable button after request completes
                 });
             });
 
