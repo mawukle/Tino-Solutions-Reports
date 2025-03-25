@@ -38,10 +38,11 @@ def send_client_list_email():
         return
 
     with app.app_context():
-        recipient = ["hippolite@tinosolutions.com", "support@tinosolutions.com", "service@tinosolutions.com"]
-        cc_recipients = ["gorden@tinosolutions.com", "augustine@tinosolutions.com", "philip@tinosolutions.com",
-                         "solal@tinosolutions.com", "kwame@tinosolutions.com", "naalenuo@tinosolutions.com",
-                         "patrick@tinosolutions.com", "reports@tinosolutions.com", "marketing@tinosolutions.com", "sales@tinosolutions.com"]
+        recipient = ["emmanuel@tinosolutions.com"]
+        #recipient = ["hippolite@tinosolutions.com", "support@tinosolutions.com", "service@tinosolutions.com"]
+        #cc_recipients = ["gorden@tinosolutions.com", "augustine@tinosolutions.com", "philip@tinosolutions.com",
+                         #"solal@tinosolutions.com", "kwame@tinosolutions.com", "naalenuo@tinosolutions.com",
+                         #"patrick@tinosolutions.com", "reports@tinosolutions.com", "marketing@tinosolutions.com", "sales@tinosolutions.com"]
 
         response = app.test_client().get('/client_list?email_mode=1')
         if response.status_code != 200:
