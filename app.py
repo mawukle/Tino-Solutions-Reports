@@ -4116,7 +4116,7 @@ def upload_invoice():
     project_id = request.form.get("project_id")  # Get project_id from form data
 
     if not project_id:
-        return jsonify({"message": "Project ID is required"}), 400
+        return jsonify({"message": "Project ID is required. Please enter the other parameters on the row"}), 400
 
     if "invoice_image" not in request.files:
         return jsonify({"message": "No file uploaded"}), 400
