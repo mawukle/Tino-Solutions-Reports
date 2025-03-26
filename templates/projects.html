@@ -390,15 +390,14 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        if (data.file_url) {
-                            alert("Upload successful!");
-                            console.log("Invoice Image URL:", data.file_url);
-                        } else {
-                            alert("Upload failed.");
+                        alert(data.message);
+                        if (data.refresh) {
+                            location.reload(); // Refresh page if upload was successful
                         }
                     })
                     .catch(error => {
                         console.error("Error uploading file:", error);
+                        alert("Error uploading file.");
                     });
                 });
             });

@@ -4141,7 +4141,9 @@ def upload_invoice():
         if project:
             project.invoice_image_url = file_url
             db.session.commit()
-            return redirect(url_for('get_projects'))  # Redirect to the projects page
+
+            # Return a success message to the frontend
+            return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
 
         else:
             return jsonify({"message": "Project not found"}), 404
