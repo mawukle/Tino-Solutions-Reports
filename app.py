@@ -4255,7 +4255,7 @@ def upload_file_to_folder():
             logging.error(f"Error uploading file {file.filename}: {e}")
             return jsonify({"message": f"Error uploading file {file.filename}"}), 500
 
-    return jsonify({"message": "Upload successful", "files": uploaded_files})
+    #return jsonify({"message": "Upload successful", "files": uploaded_files})
 
 
 from datetime import datetime, timedelta
