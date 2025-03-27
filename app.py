@@ -23,7 +23,7 @@ from sqlalchemy.sql.expression import true
 import decimal
 from urllib.parse import urlparse
 from flask_mail import Mail, Message
-from drive_uploader import upload_to_drive
+from drive_uploader import upload_to_drive, GOOGLE_DRIVE_FOLDER_ID
 from decimal import Decimal
 
 
