@@ -108,6 +108,9 @@
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
+                        <th>Project Folder</th>
+                        <th>File Upload Button</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -147,6 +150,21 @@
                         </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td>
+                            {% if project.folder_link %}
+                                <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
+                            {% else %}
+                                No Folder
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
+                                <input type="file" name="file" multiple>
+                                <button type="submit">Upload</button>
+                            </form>
+                        </td>
+
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -250,6 +268,8 @@
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
+                        <th>Project Folder</th>
+                        <th>File Upload Button</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -293,6 +313,21 @@
                         </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td>
+                            {% if project.folder_link %}
+                                <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
+                            {% else %}
+                                No Folder
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
+                                <input type="file" name="file" multiple>
+                                <button type="submit">Upload</button>
+                            </form>
+                        </td>
+
                     </tr>
                     {% endfor %}
                 </tbody>
