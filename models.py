@@ -153,6 +153,7 @@ class projects(db.Model):
     start_date = db.Column(db.Date, nullable=True)
     commissioning_date = db.Column(db.Date, nullable=True)
     invoice_image_url = db.Column(db.String(500), nullable=True)
+    google_folder_id = db.Column(db.String(255), nullable=True)  # New Column
     google_coordinates = db.Column(db.VARCHAR(255), nullable=True)
     currency = db.Column(db.VARCHAR(10), nullable=True)
     invoice_amount = db.Column(db.DECIMAL(15,2), nullable=True)

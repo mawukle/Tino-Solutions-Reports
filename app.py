@@ -3831,7 +3831,6 @@ def get_projects():
                 (projects.phone_number.ilike(f"%{search_query}%")) |
                 (projects.sales_person.ilike(f"%{search_query}%")) |
                 (projects.lead_installer.ilike(f"%{search_query}%"))
-
             )
 
         # Execute the filtered query
@@ -3857,6 +3856,15 @@ def get_projects():
             commissioning_date = format_date(project.commissioning_date)
             expected_payment_date = format_date(project.expected_final_payment_date)
 
+            # Generate folder name
+            folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
+
+            try:
+                folder_id = get_or_create_folder(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9", folder_name)
+            except Exception as e:
+                logging.error(f"Error creating folder for project {project.project_id}: {e}")
+                folder_id = ""
+
             project_data = {
                 "project_id": project.project_id,
                 "client_name": project.client_name or '',
@@ -3867,6 +3875,8 @@ def get_projects():
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
                 "invoice_image_url": project.invoice_image_url or '',
+                "folder_id": folder_id,  # Add folder ID
+                "folder_link": f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else '',
                 "google_coordinates": project.google_coordinates or '',
                 "currency": project.currency or '',
                 "invoice_amount": project.invoice_amount or 0.00,
@@ -4130,23 +4140,27 @@ def upload_invoice():
     file.save(file_path)
 
     try:
-        # Upload to Google Drive
-        file_url = upload_to_drive(file_path, file.filename)
+        # Get the project's folder ID
+        project = db.session.query(projects).filter_by(project_id=project_id).first()
+        if not project:
+            return jsonify({"message": "Project not found"}), 404
+
+        folder_id = project.google_folder_id  # Get the stored Google Drive folder ID
+        if not folder_id:
+            return jsonify({"message": "Project folder not found. Please check if the folder exists."}), 404
+
+        # Upload invoice to the project's Google Drive folder
+        file_url = upload_to_drive(file_path, file.filename, folder_id)
 
         # Remove the temporary file
         os.remove(file_path)
 
         # Update the project in the database with the invoice URL
-        project = db.session.query(projects).filter_by(project_id=project_id).first()
-        if project:
-            project.invoice_image_url = file_url
-            db.session.commit()
+        project.invoice_image_url = file_url
+        db.session.commit()
 
-            # Return a success message to the frontend
-            return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
-
-        else:
-            return jsonify({"message": "Project not found"}), 404
+        # Return a success message to the frontend
+        return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
 
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
@@ -4192,6 +4206,52 @@ def list_files_in_folder(service, folder_id):
 # Call the function to list files
 # list_files_in_folder(service, FOLDER_ID)
 
+def get_or_create_folder(service, parent_folder_id, folder_name):
+    """Check if folder exists, if not, create it."""
+    query = f"mimeType='application/vnd.google-apps.folder' and trashed=false and name='{folder_name}' and '{parent_folder_id}' in parents"
+    results = service.files().list(q=query, fields="files(id)").execute()
+    files = results.get("files", [])
+
+    if files:
+        return files[0]['id']  # Return existing folder ID
+
+    # If folder does not exist, create it
+    file_metadata = {
+        "name": folder_name,
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [parent_folder_id]
+    }
+    folder = service.files().create(body=file_metadata, fields="id").execute()
+
+    return folder["id"]  # Return new folder ID
+
+@app.route("/upload_file_to_folder", methods=["POST"])
+def upload_file_to_folder():
+    folder_id = request.form.get("folder_id")
+
+    if not folder_id:
+        return jsonify({"message": "Folder ID is required"}), 400
+
+    if "file" not in request.files:
+        return jsonify({"message": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"message": "No selected file"}), 400
+
+    # Save file temporarily
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(file_path)
+
+    try:
+        file_url = upload_to_drive(file_path, file.filename, folder_id)
+        os.remove(file_path)  # Delete temporary file
+
+        return redirect(url_for('get_projects'))
+
+    except Exception as e:
+        logging.error(f"Error uploading file: {e}")
+        return jsonify({"message": "Error uploading file"}), 500
 
 
 from datetime import datetime, timedelta
