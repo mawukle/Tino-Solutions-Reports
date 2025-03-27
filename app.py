@@ -4123,7 +4123,7 @@ def send_completed_project_email_notification(project):
 
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
-    project_id = request.form.get("project_id")  # Get project_id from form data
+    project_id = request.form.get("project_id")
 
     if not project_id:
         return jsonify({"message": "Project ID is required. Please enter the other parameters on the row"}), 400
@@ -4140,27 +4140,22 @@ def upload_invoice():
     file.save(file_path)
 
     try:
-        # Get the project's folder ID
-        project = db.session.query(projects).filter_by(project_id=project_id).first()
-        if not project:
-            return jsonify({"message": "Project not found"}), 404
-
-        folder_id = project.google_folder_id  # Get stored Google Drive folder ID
-        if not folder_id:
-            return jsonify({"message": "Project folder not found. Please check if the folder exists."}), 404
-
-        # ✅ FIX: Pass folder_id to `upload_to_drive`
-        file_url = upload_to_drive(file_path, file.filename, folder_id)
+        # Upload to Google Drive (without folder_id, so it goes to root)
+        file_url = upload_to_drive(file_path, file.filename)  # ✅ No folder_id needed
 
         # Remove the temporary file
         os.remove(file_path)
 
         # Update the project in the database with the invoice URL
-        project.invoice_image_url = file_url
-        db.session.commit()
+        project = db.session.query(projects).filter_by(project_id=project_id).first()
+        if project:
+            project.invoice_image_url = file_url
+            db.session.commit()
 
-        # Return a success message to the frontend
-        return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
+            return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
+
+        else:
+            return jsonify({"message": "Project not found"}), 404
 
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
