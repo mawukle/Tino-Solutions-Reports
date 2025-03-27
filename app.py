@@ -4250,8 +4250,8 @@ def upload_file_to_folder():
             logging.error(f"Error uploading file {file.filename}: {e}")
             return jsonify({"message": f"Error uploading file {file.filename}: {str(e)}"}), 500
 
-    # Ensure a response is always returned
-    return jsonify({"uploaded_files": uploaded_files}), 200
+    # Redirect to projects.html after successful upload
+    return redirect(url_for("projects"))
 
     #return jsonify({"message": "Upload successful", "files": uploaded_files})
 
