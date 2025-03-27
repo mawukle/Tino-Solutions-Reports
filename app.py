@@ -4123,7 +4123,7 @@ def send_completed_project_email_notification(project):
 
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
-    project_id = request.form.get("project_id")
+    project_id = request.form.get("project_id")  # Get project_id from form data
 
     if not project_id:
         return jsonify({"message": "Project ID is required. Please enter the other parameters on the row"}), 400
@@ -4140,8 +4140,8 @@ def upload_invoice():
     file.save(file_path)
 
     try:
-        # Upload to Google Drive (without folder_id, so it goes to root)
-        file_url = upload_to_drive(file_path, file.filename)  # ✅ No folder_id needed
+        # Upload to Google Drive using the root folder ID
+        file_url = upload_to_drive(file_path, file.filename, GOOGLE_DRIVE_FOLDER_ID)
 
         # Remove the temporary file
         os.remove(file_path)
@@ -4152,6 +4152,7 @@ def upload_invoice():
             project.invoice_image_url = file_url
             db.session.commit()
 
+            # Return a success message to the frontend
             return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
 
         else:
