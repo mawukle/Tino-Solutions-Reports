@@ -4235,23 +4235,27 @@ def upload_file_to_folder():
     if "file" not in request.files:
         return jsonify({"message": "No file uploaded"}), 400
 
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"message": "No selected file"}), 400
+    files = request.files.getlist("file")  # Get multiple files
 
-    # Save file temporarily
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(file_path)
+    if not files or all(f.filename == "" for f in files):
+        return jsonify({"message": "No selected files"}), 400
 
-    try:
-        file_url = upload_to_drive(file_path, file.filename, folder_id)
-        os.remove(file_path)  # Delete temporary file
+    uploaded_files = []  # Store uploaded file URLs
 
-        return redirect(url_for('get_projects'))
+    for file in files:
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        file.save(file_path)
 
-    except Exception as e:
-        logging.error(f"Error uploading file: {e}")
-        return jsonify({"message": "Error uploading file"}), 500
+        try:
+            file_url = upload_to_drive(file_path, file.filename, folder_id)
+            os.remove(file_path)  # Delete temporary file
+            uploaded_files.append(file_url)  # Store file URL
+
+        except Exception as e:
+            logging.error(f"Error uploading file {file.filename}: {e}")
+            return jsonify({"message": f"Error uploading file {file.filename}"}), 500
+
+    return jsonify({"message": "Upload successful", "files": uploaded_files})
 
 
 from datetime import datetime, timedelta
