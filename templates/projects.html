@@ -226,8 +226,8 @@
                         <td>
                             <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
-                                <input type="file" name="file">
-                                <button type="submit">Upload to Folder</button>
+                                <input type="file" name="file" multiple>
+                                <button type="submit">Upload</button>
                             </form>
                         </td>
 
