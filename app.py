@@ -4248,7 +4248,10 @@ def upload_file_to_folder():
 
         except Exception as e:
             logging.error(f"Error uploading file {file.filename}: {e}")
-            return jsonify({"message": f"Error uploading file {file.filename}"}), 500
+            return jsonify({"message": f"Error uploading file {file.filename}: {str(e)}"}), 500
+
+    # Ensure a response is always returned
+    return jsonify({"uploaded_files": uploaded_files}), 200
 
     #return jsonify({"message": "Upload successful", "files": uploaded_files})
 
