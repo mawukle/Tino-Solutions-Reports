@@ -4201,24 +4201,45 @@ def list_files_in_folder(service, folder_id):
 # Call the function to list files
 # list_files_in_folder(service, FOLDER_ID)
 
-def get_or_create_folder(service, parent_folder_id, folder_name):
-    """Check if folder exists, if not, create it."""
-    query = f"mimeType='application/vnd.google-apps.folder' and trashed=false and name='{folder_name}' and '{parent_folder_id}' in parents"
-    results = service.files().list(q=query, fields="files(id)").execute()
-    files = results.get("files", [])
+def get_or_create_folder(service, parent_folder_id, project):
+    """Retrieve the existing folder for the project or create a new one if necessary."""
 
-    if files:
-        return files[0]['id']  # Return existing folder ID
+    # Check if the project already has a folder ID stored in the database
+    folder_id = db.session.query(projects.google_folder_id).filter_by(project_id=project.project_id).scalar()
 
-    # If folder does not exist, create it
-    file_metadata = {
-        "name": folder_name,
-        "mimeType": "application/vnd.google-apps.folder",
-        "parents": [parent_folder_id]
-    }
-    folder = service.files().create(body=file_metadata, fields="id").execute()
+    # Generate the folder name using the latest project details
+    folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
 
-    return folder["id"]  # Return new folder ID
+    if folder_id:
+        try:
+            # Check if the folder still exists in Google Drive
+            folder = service.files().get(fileId=folder_id).execute()
+
+            # Update the folder name if it has changed
+            if folder["name"] != folder_name:
+                service.files().update(fileId=folder_id, body={"name": folder_name}).execute()
+
+            return folder_id
+
+        except Exception as e:
+            logging.error(f"Error retrieving folder {folder_id}: {e}")
+            folder_id = None  # Reset folder_id if the folder is missing
+
+    # If no folder exists, create a new one
+    if not folder_id:
+        file_metadata = {
+            "name": folder_name,
+            "mimeType": "application/vnd.google-apps.folder",
+            "parents": [parent_folder_id]
+        }
+        folder = service.files().create(body=file_metadata, fields="id").execute()
+        folder_id = folder["id"]
+
+        # Store the folder ID in the database
+        db.session.query(projects).filter_by(project_id=project.project_id).update({"google_folder_id": folder_id})
+        db.session.commit()
+
+    return folder_id
 
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
