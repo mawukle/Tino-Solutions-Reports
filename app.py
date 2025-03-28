@@ -4096,6 +4096,12 @@ def send_completed_project_email_notification(project):
 
         invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
+        # Check if project folder contains files before adding the Google Drive link
+        google_drive_link = (
+            f'<p><b>Project Files:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
+            if project.google_folder_id and folder_has_files(project.google_folder_id) else ""
+        )
+
         subject = f"Project Completion Notification: {project.client_name} installation has been Completed"
 
         body = f"""
@@ -4111,6 +4117,7 @@ def send_completed_project_email_notification(project):
         </ul>
         {google_maps_link}
         {invoice_link}
+        {google_drive_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
