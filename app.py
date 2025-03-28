@@ -4039,7 +4039,7 @@ def send_project_email_notification(project):
 
         # Check if project folder contains files before adding the Google Drive link
         google_drive_link = (
-            f'<p><b>Project Files:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
+            f'<p><b>Project Pictures:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
             if project.google_folder_id and folder_has_files(project.google_folder_id) else ""
         )
 
@@ -4098,7 +4098,7 @@ def send_completed_project_email_notification(project):
 
         # Check if project folder contains files before adding the Google Drive link
         google_drive_link = (
-            f'<p><b>Project Files:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
+            f'<p><b>Project Pictures:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
             if project.google_folder_id and folder_has_files(project.google_folder_id) else ""
         )
 
