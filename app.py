@@ -4500,6 +4500,9 @@ if __name__ == '__main__':
     # Ensure the upload folder exists
     #if not os.path.exists(UPLOAD_FOLDER):
     #    os.makedirs(UPLOAD_FOLDER)
+    with app.app_context():
+        update_existing_folder_ids(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9")
+
 
     # Use the port from environment variables; default to 5000 for local development
     port = int(os.environ.get('PORT', 5000))
