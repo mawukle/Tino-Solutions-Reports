@@ -3805,6 +3805,7 @@ def get_projects():
             projects.start_date,
             projects.commissioning_date,
             projects.invoice_image_url,
+            projects.google_folder_id,  # Fetch existing folder ID
             projects.google_coordinates,
             projects.currency,
             projects.invoice_amount,
@@ -3856,14 +3857,22 @@ def get_projects():
             commissioning_date = format_date(project.commissioning_date)
             expected_payment_date = format_date(project.expected_final_payment_date)
 
-            # Generate folder name
+            # Generate the folder name
             folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
 
             try:
-                folder_id = get_or_create_folder(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9", folder_name)
+                # Update existing folder name if needed, or create a new folder
+                folder_id = update_or_create_folder(service, project.google_folder_id, folder_name)
+
+                # If a new folder was created, update the database
+                if not project.google_folder_id:
+                    project.google_folder_id = folder_id
+                    db.session.commit()
+
             except Exception as e:
-                logging.error(f"Error creating folder for project {project.project_id}: {e}")
+                logging.error(f"Error creating/updating folder for project {project.project_id}: {e}")
                 folder_id = ""
+
 
             project_data = {
                 "project_id": project.project_id,
@@ -4200,6 +4209,37 @@ def list_files_in_folder(service, folder_id):
 
 # Call the function to list files
 # list_files_in_folder(service, FOLDER_ID)
+
+def update_or_create_folder(service, folder_id, folder_name):
+    """Check if a folder exists in Google Drive, rename it if necessary, or create a new one."""
+
+    parent_folder_id = "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9"  # Root folder ID
+
+    if folder_id:
+        try:
+            # Fetch existing folder details
+            existing_folder = service.files().get(fileId=folder_id, fields="id, name").execute()
+
+            if existing_folder.get("name") != folder_name:
+                # Rename folder if name is different
+                update_metadata = {"name": folder_name}
+                service.files().update(fileId=folder_id, body=update_metadata).execute()
+
+            return folder_id  # Return existing folder ID
+
+        except Exception as e:
+            logging.error(f"Folder ID {folder_id} not found. Creating new folder. Error: {e}")
+
+    # If folder doesn't exist, create a new one
+    file_metadata = {
+        "name": folder_name,
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [parent_folder_id]
+    }
+    folder = service.files().create(body=file_metadata, fields="id").execute()
+
+    return folder["id"]  # Return new folder ID
+
 
 def get_or_create_folder(service, parent_folder_id, folder_name):
     """Check if folder exists, if not, create it."""
