@@ -4201,24 +4201,89 @@ def list_files_in_folder(service, folder_id):
 # Call the function to list files
 # list_files_in_folder(service, FOLDER_ID)
 
-def get_or_create_folder(service, parent_folder_id, folder_name):
-    """Check if folder exists, if not, create it."""
-    query = f"mimeType='application/vnd.google-apps.folder' and trashed=false and name='{folder_name}' and '{parent_folder_id}' in parents"
-    results = service.files().list(q=query, fields="files(id)").execute()
-    files = results.get("files", [])
+def get_or_create_folder(service, parent_folder_id, project_id, client_name, town, sales_person):
+    """Ensure a single folder per project_id and rename it if necessary."""
+    # Query MySQL for existing folder ID
+    project = db.session.query(projects).filter_by(project_id=project_id).first()
+    existing_folder_id = project.google_folder_id if project else None
 
-    if files:
-        return files[0]['id']  # Return existing folder ID
+    # Define expected folder name
+    expected_folder_name = f"{client_name}_{town}_{sales_person}_{project_id}"
 
-    # If folder does not exist, create it
+    if existing_folder_id:
+        try:
+            # Get current folder name from Google Drive
+            folder_metadata = service.files().get(fileId=existing_folder_id, fields="name").execute()
+            current_folder_name = folder_metadata.get("name", "")
+
+            if current_folder_name != expected_folder_name:
+                # Rename folder if the name has changed
+                service.files().update(fileId=existing_folder_id, body={"name": expected_folder_name}).execute()
+
+            return existing_folder_id  # Return the existing folder ID
+        except Exception as e:
+            logging.error(f"Error fetching folder {existing_folder_id}: {e}")
+
+    # If no existing folder ID, search for the folder in Drive
+    query = f"mimeType='application/vnd.google-apps.folder' and trashed=false and name contains '{project_id}' and '{parent_folder_id}' in parents"
+    results = service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get("files", [])
+
+    if folders:
+        folder_id = folders[0]["id"]
+        if folders[0]["name"] != expected_folder_name:
+            # Rename if the folder exists but has a different name
+            service.files().update(fileId=folder_id, body={"name": expected_folder_name}).execute()
+
+        # Update the database with the correct folder ID
+        if project:
+            project.google_folder_id = folder_id
+            db.session.commit()
+
+        return folder_id
+
+    # If no folder exists, create a new one
     file_metadata = {
-        "name": folder_name,
+        "name": expected_folder_name,
         "mimeType": "application/vnd.google-apps.folder",
         "parents": [parent_folder_id]
     }
     folder = service.files().create(body=file_metadata, fields="id").execute()
+    folder_id = folder["id"]
 
-    return folder["id"]  # Return new folder ID
+    # Save new folder ID in the database
+    if project:
+        project.google_folder_id = folder_id
+        db.session.commit()
+
+    return folder_id
+
+def update_existing_folder_ids(service, parent_folder_id):
+    """Fetch and store missing Google Drive folder IDs for existing projects."""
+    projects_without_folders = db.session.query(projects).filter(projects.google_folder_id.is_(None)).all()
+
+    for project in projects_without_folders:
+        folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
+
+        # Search for the folder in Google Drive
+        query = f"mimeType='application/vnd.google-apps.folder' and trashed=false and name contains '{project.project_id}' and '{parent_folder_id}' in parents"
+        results = service.files().list(q=query, fields="files(id, name)").execute()
+        folders = results.get("files", [])
+
+        if folders:
+            folder_id = folders[0]["id"]
+
+            # Update MySQL with the folder ID
+            project.google_folder_id = folder_id
+            db.session.commit()
+
+            logging.info(f"Updated folder ID for project {project.project_id}: {folder_id}")
+        else:
+            logging.warning(f"No folder found for project {project.project_id}")
+
+# Call this function once
+update_existing_folder_ids(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9")
+
 
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
