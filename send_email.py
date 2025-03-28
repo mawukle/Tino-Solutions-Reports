@@ -136,7 +136,7 @@ def send_payment_reminders():
                 email_body += """
                 <p><b>Update Payment Details:</b></p>
                 <p>If the provided data is not a true reflection of the client’s debt status,
-                you can update it by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/bdu" target="_blank">this link</a>,
+                you can update it by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/bdu?start_date_from=&start_date_to=&search_query={project.sales_person}" target="_blank">this link</a>,
                 editing the <b>Amount Paid</b> column, and then clicking <b>Save Changes</b> at the bottom of the page.</p>
                 """
 
@@ -150,10 +150,10 @@ def send_payment_reminders():
 
                 msg = Message(
                     subject=f"Payment Reminder: {project.client_name}",
-                    recipients=[sales_person_email],
-                    #recipients=["emmanuel@tinosolutions.com"],
-                    cc=["gorden@tinosolutions.com", "finance@tinosolutions.com", "accounts@tinosolutions.com"],
-                    #cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
+                    #recipients=[sales_person_email],
+                    recipients=["emmanuel@tinosolutions.com"],
+                    #cc=["gorden@tinosolutions.com", "finance@tinosolutions.com", "accounts@tinosolutions.com"],
+                    cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
                     bcc=["emmanuel@tinosolutions.com"],
                     html=email_body
                 )
