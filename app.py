@@ -3863,9 +3863,10 @@ def get_projects():
                 folder_id = get_or_create_folder(
                     service,
                     "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",
+                    project.project_id,  # Add missing project_id
                     project.client_name,
-                    project.town, 
-                    project.sales_person
+                    project.town,
+                    project.sales_person  # Add missing sales_person
                 )
             except Exception as e:
                 logging.error(f"Error creating folder for project {project.project_id}: {e}")
