@@ -4037,6 +4037,12 @@ def send_project_email_notification(project):
 
         invoice_link = f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>' if project.invoice_image_url else ""
 
+        # Check if project folder contains files before adding the Google Drive link
+        google_drive_link = (
+            f'<p><b>Project Files:</b> <a href="https://drive.google.com/drive/folders/{project.google_folder_id}" target="_blank">View Files</a></p>'
+            if project.google_folder_id and folder_has_files(project.google_folder_id) else ""
+        )
+
         subject = f"Project Update: {project.client_name} installation is now Ongoing"
 
         body = f"""
@@ -4051,6 +4057,7 @@ def send_project_email_notification(project):
         </ul>
         {google_maps_link}
         {invoice_link}
+        {google_drive_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
         <hr>
@@ -4302,6 +4309,19 @@ def upload_file_to_folder():
     return redirect(url_for("get_projects"))
 
     #return jsonify({"message": "Upload successful", "files": uploaded_files})
+
+def folder_has_files(folder_id):
+    """Check if the given Google Drive folder contains any files."""
+    try:
+        results = service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields="files(id)",
+            pageSize=1  # We only need to check if at least one file exists
+        ).execute()
+        return bool(results.get('files', []))  # Returns True if files exist, False otherwise
+    except Exception as e:
+        print(f"Error checking folder contents: {e}")
+        return False
 
 
 from datetime import datetime, timedelta
