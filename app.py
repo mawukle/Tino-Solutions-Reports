@@ -3872,6 +3872,11 @@ def get_projects():
                 logging.error(f"Error creating folder for project {project.project_id}: {e}")
                 folder_id = ""
 
+            # ✅ Check if folder contains files before adding the Google Drive link
+            folder_link = (
+                f"https://drive.google.com/drive/folders/{folder_id}" if folder_id and folder_has_files(folder_id) else ""
+            )
+
             project_data = {
                 "project_id": project.project_id,
                 "client_name": project.client_name or '',
@@ -3882,8 +3887,8 @@ def get_projects():
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
                 "invoice_image_url": project.invoice_image_url or '',
-                "folder_id": folder_id,  # Add folder ID
-                "folder_link": f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else '',
+                "folder_id": folder_id,  # Store folder ID
+                "folder_link": folder_link,  # Store only if folder is not empty
                 "google_coordinates": project.google_coordinates or '',
                 "currency": project.currency or '',
                 "invoice_amount": project.invoice_amount or 0.00,
