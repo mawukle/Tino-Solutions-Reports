@@ -4060,9 +4060,9 @@ def send_project_email_notification(project):
         {google_drive_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
-        <hr>
-        <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
         """
+        #<hr>
+        #<p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
 
         msg = Message(
             subject,
@@ -4121,16 +4121,16 @@ def send_completed_project_email_notification(project):
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
         <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
-        <hr>
-        <p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
         """
+        #<hr>
+        #<p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
 
         msg = Message(
             subject,
             #recipients=["emmanuel@tinosolutions.com"],
             recipients=[sales_person_email],
             #cc=["emmanuel@tinosolutions.com"],
-            cc=["hippolite@tinosolutions.com", "support@tinosolutions.com", "solal@tinosolutions.com"],
+            cc=["hippolite@tinosolutions.com", "support@tinosolutions.com"],
             bcc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "augustine@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
             html=body
         )
