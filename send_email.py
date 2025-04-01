@@ -1,7 +1,7 @@
 import datetime
 import pytz
 from flask_mail import Message
-#from app import app, mail, db
+from app import app, mail, db
 from flask import render_template
 from bs4 import BeautifulSoup
 from models import projects, Team_Members  # Ensure correct import paths
@@ -74,9 +74,8 @@ def send_client_list_email():
 
 def send_payment_reminders():
     """Send payment reminders at scheduled times (9:00 and 9:10 GMT daily)."""
-    #if not is_scheduled_time(PAYMENT_REMINDER_TIMES):
-    #    return
-    from app import app, mail, db
+    if not is_scheduled_time(PAYMENT_REMINDER_TIMES):
+        return
 
     with app.app_context():
         today = datetime.datetime.now(pytz.utc).date()
