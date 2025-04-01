@@ -4508,6 +4508,11 @@ def update_bdu():
         return jsonify({"message": "Error updating BDU records"}), 500
 
 
+from send_email import send_payment_reminders
+
+# Call the function to send emails now
+send_payment_reminders()
+
 
 
 if __name__ == '__main__':

@@ -74,8 +74,8 @@ def send_client_list_email():
 
 def send_payment_reminders():
     """Send payment reminders at scheduled times (9:00 and 9:10 GMT daily)."""
-    if not is_scheduled_time(PAYMENT_REMINDER_TIMES):
-        return
+    #if not is_scheduled_time(PAYMENT_REMINDER_TIMES):
+    #    return
 
     with app.app_context():
         today = datetime.datetime.now(pytz.utc).date()
