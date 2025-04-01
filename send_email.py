@@ -133,10 +133,14 @@ def send_payment_reminders():
                 if project.invoice_image_url:
                     email_body += f'<p><b>Invoice:</b> <a href="{project.invoice_image_url}" target="_blank">View Invoice</a></p>'
 
-                email_body += """
+                from urllib.parse import urlencode
+
+                search_url = f"https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/bdu?{urlencode({'search_query': project.sales_person})}"
+
+                email_body += f"""
                 <p><b>Update Payment Details:</b></p>
                 <p>If the provided data is not a true reflection of the client’s debt status,
-                you can update it by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/bdu?search_query={{ project.sales_person | urlencode }}" target="_blank">this link</a>,
+                you can update it by clicking <a href="{search_url}" target="_blank">this link</a>,
                 editing the <b>Amount Paid</b> column, and then clicking <b>Save Changes</b> at the bottom of the page.</p>
                 """
 
