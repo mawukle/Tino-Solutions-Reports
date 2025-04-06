@@ -4024,6 +4024,11 @@ def update_projects():
         return jsonify({"message": "Error updating projects"}), 500
 
 
+def format_date_with_suffix(date_obj):
+    if not date_obj:
+        return "N/A"
+    suffix = lambda d: "th" if 11 <= d <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(d % 10, "th")
+    return date_obj.strftime(f"%A, %-d{suffix(date_obj.day)} %B, %Y")
 
 
 def send_project_email_notification(project):
@@ -4057,7 +4062,7 @@ def send_project_email_notification(project):
         <ul>
             <li>Client Name: {project.client_name}</li>
             <li>Town: {project.town}</li>
-            <li>Start Date: {project.start_date}</li>
+            <li>Start Date: {format_date_with_suffix(project.start_date)}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
         {google_maps_link}
@@ -4116,8 +4121,8 @@ def send_completed_project_email_notification(project):
         <ul>
             <li>Client Name: {project.client_name}</li>
             <li>Town: {project.town}</li>
-            <li>Start Date: {project.start_date}</li>
-            <li>Commissioning Date: {project.commissioning_date}</li>
+            <li>Start Date: {format_date_with_suffix(project.start_date)}</li>
+            <li>Commissioning Date: {format_date_with_suffix(project.commissioning_date)}</li>
             <li>Lead Installer: {project.lead_installer}</li>
         </ul>
         {google_maps_link}
