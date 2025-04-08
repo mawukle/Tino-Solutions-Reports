@@ -154,10 +154,10 @@ def send_payment_reminders():
 
                 msg = Message(
                     subject=f"Payment Reminder: {project.client_name}",
-                    #recipients=[sales_person_email],
-                    recipients=["emmanuel@tinosolutions.com"],
-                    #cc=["finance@tinosolutions.com", "accounts@tinosolutions.com"],
-                    cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
+                    recipients=[sales_person_email],
+                    #recipients=["emmanuel@tinosolutions.com"],
+                    cc=["finance@tinosolutions.com", "accounts@tinosolutions.com"],
+                    #cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
                     bcc=["emmanuel@tinosolutions.com"],
                     html=email_body
                 )
