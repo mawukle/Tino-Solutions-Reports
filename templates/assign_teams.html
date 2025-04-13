@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
-        <a href="{{ url_for('assign_teams') }}" class="back-link">The Renewable Energy Experts</a>
+        <a href="{{ url_for('newClient_entryForm') }}" class="back-link">The Renewable Energy Experts</a>
         <h1>TEAM ASSIGNMENT</h1>
 
         <form id="assign_teams_form" action="{{ url_for('assign_teams') }}" method="POST">
