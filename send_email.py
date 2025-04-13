@@ -82,13 +82,15 @@ def send_payment_reminders():
         projects_list = db.session.query(
             projects.client_name, projects.sales_person, projects.invoice_amount,
             projects.amount_paid, projects.expected_final_payment_date,
-            projects.commissioning_date, projects.google_coordinates, projects.invoice_image_url
+            projects.commissioning_date, projects.google_coordinates,
+            projects.invoice_image_url, projects.currency  # ✅ Added currency
         ).all()
 
         for project in projects_list:
             invoice_amount = project.invoice_amount or 0
             amount_paid = project.amount_paid or 0
             outstanding_balance = invoice_amount - amount_paid
+            currency = project.currency or ''  # ✅ Default to empty string if null
 
             if outstanding_balance <= 0:
                 continue  # Skip if fully paid
@@ -124,9 +126,9 @@ def send_payment_reminders():
                 email_body = f"""
                 <p>Dear {project.sales_person},</p>
                 <p>This is a reminder for the payment of <b>{project.client_name}</b>.</p>
-                <p><b>Invoice Amount:</b> {invoice_amount}</p>
-                <p><b>Amount Paid:</b> {amount_paid}</p>
-                <p><b>Outstanding Balance:</b> {outstanding_balance}</p>
+                <p><b>Invoice Amount:</b> {currency} {invoice_amount:,.2f}</p>
+                <p><b>Amount Paid:</b> {currency} {amount_paid:,.2f}</p>
+                <p><b>Outstanding Balance:</b> {currency} {outstanding_balance:,.2f}</p>
                 """
                 if project.google_coordinates:
                     email_body += f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>'
