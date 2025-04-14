@@ -4080,7 +4080,7 @@ def send_project_email_notification(project):
             recipients=[sales_person_email],
             #cc=["emmanuel@tinosolutions.com"],
             cc=["augustine@tinosolutions.com"],
-            bcc=["marketing@tinosolutions.com", "ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
+            bcc=["ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
             html=body
         )
 
