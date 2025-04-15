@@ -65,7 +65,8 @@ def send_client_list_email():
         <p>This is an automated email from the Tino Solutions System.</p>
         """
 
-        msg = Message("Client List Report", recipients=recipient, cc=cc_recipients, html=styled_body)
+        #msg = Message("Client List Report", recipients=recipient, cc=cc_recipients, html=styled_body)
+        msg = Message("Client List Report", recipients=recipient, html=styled_body)
         try:
             mail.send(msg)
             print("Client list email sent successfully!")
