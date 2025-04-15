@@ -598,6 +598,8 @@
                 });
 
 
+                let submittedOnce = false;
+
                 $(document).ready(function () {
                     $('#submit-button').click(function (event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
@@ -658,17 +660,20 @@
                                 while (yOffset < canvasHeight) {
                                     const remainingHeight = canvasHeight - yOffset;
                                     const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
-                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
+                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7); // Simplified logic
                                     pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
                                     yOffset += visibleHeight;
                                     if (yOffset < canvasHeight) pdf.addPage();
                                 }
                             }
 
-                            // Platform-specific saving
                             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                            if (isIOS) {
+                            if (isIOS && !submittedOnce) {
+                                submittedOnce = true;
+                                revertDivsToTextareas();
+                                $('#daily-report-form').submit(); // Submit immediately without saving
+                            } else if (isIOS) {
                                 const blob = pdf.output('blob');
                                 const blobUrl = URL.createObjectURL(blob);
                                 const a = document.createElement('a');
