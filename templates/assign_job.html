@@ -660,7 +660,7 @@
                                 while (yOffset < canvasHeight) {
                                     const remainingHeight = canvasHeight - yOffset;
                                     const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
-                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7); // Simplified logic
+                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
                                     pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
                                     yOffset += visibleHeight;
                                     if (yOffset < canvasHeight) pdf.addPage();
@@ -669,31 +669,19 @@
 
                             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                            if (isIOS && !submittedOnce) {
-                                submittedOnce = true;
+                            if (isIOS) {
+                                pdf.save(pdfFileName); // Let the user save manually
+                                alert("After saving the PDF, press OK to continue and submit the report.");
                                 revertDivsToTextareas();
-                                $('#daily-report-form').submit(); // Submit immediately without saving
-                            } else if (isIOS) {
-                                const blob = pdf.output('blob');
-                                const blobUrl = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = blobUrl;
-                                a.download = pdfFileName;
-                                document.body.appendChild(a);
-                                a.click();
-                                setTimeout(() => {
-                                    URL.revokeObjectURL(blobUrl);
-                                    document.body.removeChild(a);
-                                    revertDivsToTextareas();
-                                    $('#daily-report-form').submit();
-                                }, 1000);
+                                $('#daily-report-form').submit();
                             } else {
                                 pdf.save(pdfFileName);
                                 return new Promise(resolve => setTimeout(resolve, 1000)); // Allow time to initiate download
                             }
                         })
                         .then(function () {
-                            if (!/iPad|iPhone|iPod/.test(navigator.userAgent) || window.MSStream) {
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                            if (!isIOS) {
                                 revertDivsToTextareas();
                                 $('#daily-report-form').submit();
                             }
