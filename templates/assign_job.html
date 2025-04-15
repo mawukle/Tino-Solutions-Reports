@@ -597,38 +597,32 @@
                     $(this).toggleClass('selected'); // Toggle the 'selected' class
                 });
 
-                $(document).ready(function() {
-                    $('#submit-button').click(function(event) {
+
+                $(document).ready(function () {
+                    $('#submit-button').click(function (event) {
                         event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        // Capture date and client name for the file name
                         const jobDate = $('#job_date').val(); // Format: YYYY-MM-DD
                         const clientName = $('#client_name').val();
-
-                        // Format the job date to DDMMYYYY
-                        const formattedDate = jobDate ? jobDate.split('-').reverse().join('') : 'NoDate'; // Converts to DDMMYYYY, with fallback
-
-                        // Combine to create the file name, default to "Report" if clientName is empty
+                        const formattedDate = jobDate ? jobDate.split('-').reverse().join('') : 'NoDate';
                         const pdfFileName = `${formattedDate} - ${clientName || 'Report'}.pdf`;
 
-                        // Replace each textarea with a div that preserves line breaks and adds a border
                         const replaceTextareas = () => {
                             document.querySelectorAll("textarea").forEach(textarea => {
                                 const div = document.createElement("div");
                                 div.style.cssText = window.getComputedStyle(textarea).cssText;
-                                div.style.whiteSpace = "pre-wrap"; // Keeps the line breaks
-                                div.style.overflowWrap = "break-word"; // Ensures word breaks within bounds
-                                div.style.border = "1px solid rgba(0, 0, 0, 0.1)"; // Faint border color
-                                div.style.borderRadius = "4px"; // Rounded corners
-                                div.style.padding = "5px"; // Padding for similar appearance to textarea
-                                div.innerText = textarea.value; // Copies text content with line breaks
+                                div.style.whiteSpace = "pre-wrap";
+                                div.style.overflowWrap = "break-word";
+                                div.style.border = "1px solid rgba(0, 0, 0, 0.1)";
+                                div.style.borderRadius = "4px";
+                                div.style.padding = "5px";
+                                div.innerText = textarea.value;
                                 div.setAttribute("data-replaced", "textarea");
-                                div.setAttribute("name", textarea.name); // Preserve the textarea name for form submission
+                                div.setAttribute("name", textarea.name);
                                 textarea.parentNode.replaceChild(div, textarea);
                             });
                         };
 
-                        // Revert each div back to textarea after capturing for PDF
                         const revertDivsToTextareas = () => {
                             document.querySelectorAll("div[data-replaced='textarea']").forEach(div => {
                                 const textarea = document.createElement("textarea");
@@ -638,24 +632,20 @@
                             });
                         };
 
-                        // Call replaceTextareas to swap out textareas before capturing
                         replaceTextareas();
 
-                        // Capture the form content as an image
                         html2canvas(document.querySelector("#report-container"), {
                             scale: 2,
                             allowTaint: true,
                             useCORS: true
-                        }).then(function(canvas) {
+                        }).then(function (canvas) {
                             const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
-
                             const imgData = canvas.toDataURL('image/jpeg', 0.7);
                             const pageWidth = pdf.internal.pageSize.getWidth();
                             const pageHeight = pdf.internal.pageSize.getHeight();
                             const canvasWidth = canvas.width;
                             const canvasHeight = canvas.height;
 
-                            // Calculate scaling factor and center alignment
                             const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
                             const scaledCanvasWidth = canvasWidth * scaleFactor;
                             const scaledCanvasHeight = canvasHeight * scaleFactor;
@@ -668,30 +658,45 @@
                                 while (yOffset < canvasHeight) {
                                     const remainingHeight = canvasHeight - yOffset;
                                     const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
-
                                     const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
                                     pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
                                     yOffset += visibleHeight;
-
                                     if (yOffset < canvasHeight) pdf.addPage();
                                 }
                             }
 
-                            // Save PDF with the formatted file name
-                            pdf.save(pdfFileName);
+                            // Platform-specific saving
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                            return new Promise(function(resolve) {
-                                setTimeout(resolve, 1500); // Brief delay to allow download to initiate
-                            });
+                            if (isIOS) {
+                                const blob = pdf.output('blob');
+                                const blobUrl = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = blobUrl;
+                                a.download = pdfFileName;
+                                document.body.appendChild(a);
+                                a.click();
+                                setTimeout(() => {
+                                    URL.revokeObjectURL(blobUrl);
+                                    document.body.removeChild(a);
+                                    revertDivsToTextareas();
+                                    $('#daily-report-form').submit();
+                                }, 1000);
+                            } else {
+                                pdf.save(pdfFileName);
+                                return new Promise(resolve => setTimeout(resolve, 1000)); // Allow time to initiate download
+                            }
                         })
-                        .then(function() {
-                            revertDivsToTextareas(); // Revert divs back to textareas before form submission
-                            $('#daily-report-form').submit(); // Submit the form after PDF generation
+                        .then(function () {
+                            if (!/iPad|iPhone|iPod/.test(navigator.userAgent) || window.MSStream) {
+                                revertDivsToTextareas();
+                                $('#daily-report-form').submit();
+                            }
                         })
-                        .catch(function(error) {
+                        .catch(function (error) {
                             console.error('Error generating or downloading PDF:', error);
-                            revertDivsToTextareas(); // Revert divs even if PDF generation fails
-                            $('#daily-report-form').submit(); // Fallback: submit form even if PDF fails
+                            revertDivsToTextareas();
+                            $('#daily-report-form').submit(); // Fallback even on error
                         });
                     });
                 });
