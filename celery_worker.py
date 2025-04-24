@@ -21,13 +21,14 @@ def make_celery():
         logging.error("REDIS_URL environment variable is not set.")
         raise RuntimeError("REDIS_URL environment variable is required but not found.")
 
-    # Default SSL settings
+    # Reduce SSL Security for Redis connection (Use with caution)
     broker_use_ssl = None
     redis_backend_use_ssl = None
 
     if redis_url.startswith('rediss://'):
+        # Disable SSL validation
         ssl_config = {
-            'ssl_cert_reqs': ssl.CERT_NONE  # Or ssl.CERT_REQUIRED for production-grade security
+            'ssl_cert_reqs': ssl.CERT_NONE  # This disables SSL certificate validation
         }
         broker_use_ssl = ssl_config
         redis_backend_use_ssl = ssl_config
@@ -82,4 +83,4 @@ def update_folder_has_files(project_id, folder_id):
             project.folder_has_files = has_files
             db.session.commit()
     except Exception as e:
-        logging.error(f"Error in update_folder_has_files task for project {project_id}: {e}")
+        logging.error(f"Error updating folder_has_files for project {project_id}: {e}")
