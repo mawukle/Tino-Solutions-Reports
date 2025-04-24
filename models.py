@@ -161,6 +161,7 @@ class projects(db.Model):
     outstanding_balance = db.Column(db.DECIMAL(15,2), nullable=True)
     expected_final_payment_date = db.Column(db.DATE, nullable=True)
     comment = db.Column(db.TEXT, nullable=True)
+    folder_has_files = db.Column(db.Boolean, default=False)  # <- Added this line
 
 
     def __repr__(self):

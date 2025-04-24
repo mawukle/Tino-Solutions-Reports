@@ -3779,6 +3779,7 @@ def serialize_row(row):
         return dict(row)  # Fallback for other iterable key-value pairs
 
 
+from celery_worker import update_folder_has_files  # 👈 make sure this import is at the top
 
 from flask import request, render_template
 from datetime import datetime, timedelta
@@ -3844,38 +3845,40 @@ def get_projects():
         ongoing_projects = []
         completed_projects = []
 
+
         for project in projects_list:
             def format_date(date_value):
                 if date_value in [None, "0000-00-00"]:
                     return ""
                 if isinstance(date_value, (datetime, date)):
                     return date_value.strftime('%Y-%m-%d')
-                return date_value  # Keep it as is if it's already a string
+                return date_value
 
             start_date = format_date(project.start_date)
             commissioning_date = format_date(project.commissioning_date)
             expected_payment_date = format_date(project.expected_final_payment_date)
 
-            # Generate folder name
             folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
 
             try:
                 folder_id = get_or_create_folder(
                     service,
                     "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",
-                    project.project_id,  # Add missing project_id
+                    project.project_id,
                     project.client_name,
                     project.town,
-                    project.sales_person  # Add missing sales_person
+                    project.sales_person
                 )
             except Exception as e:
                 logging.error(f"Error creating folder for project {project.project_id}: {e}")
                 folder_id = ""
 
-            # ✅ Check if folder contains files before adding the Google Drive link
-            folder_link = (
-                f"https://drive.google.com/drive/folders/{folder_id}" if folder_id and folder_has_files(folder_id) else ""
-            )
+            # 🔁 Launch background task instead of checking directly
+            if folder_id:
+                update_folder_has_files.delay(project.project_id, folder_id)  # 🔥 Fire-and-forget task
+                folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
+            else:
+                folder_link = ""
 
             project_data = {
                 "project_id": project.project_id,
@@ -3887,8 +3890,8 @@ def get_projects():
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
                 "invoice_image_url": project.invoice_image_url or '',
-                "folder_id": folder_id,  # Store folder ID
-                "folder_link": folder_link,  # Store only if folder is not empty
+                "folder_id": folder_id,
+                "folder_link": folder_link,
                 "google_coordinates": project.google_coordinates or '',
                 "currency": project.currency or '',
                 "invoice_amount": project.invoice_amount or 0.00,
@@ -3898,7 +3901,7 @@ def get_projects():
                 "comment": project.comment or ''
             }
 
-            # Categorization logic
+            # Categorize
             if project_data["client_name"] and project_data["town"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
             elif project_data["commissioning_date"] and project_data["start_date"]:
