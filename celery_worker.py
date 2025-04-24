@@ -9,7 +9,6 @@ from models import db, projects
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
-# Flask app context
 def make_celery():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('JAWSDB_USER')}:{os.getenv('JAWSDB_PASSWORD')}@{os.getenv('JAWSDB_HOST')}/{os.getenv('JAWSDB_DB')}"
@@ -22,21 +21,25 @@ def make_celery():
         logging.error("REDIS_URL environment variable is not set.")
         raise RuntimeError("REDIS_URL environment variable is required but not found.")
 
-    # Create the Celery app
+    # Default SSL settings
+    broker_use_ssl = None
+    redis_backend_use_ssl = None
+
+    if redis_url.startswith('rediss://'):
+        ssl_config = {
+            'ssl_cert_reqs': ssl.CERT_NONE  # Or ssl.CERT_REQUIRED for production-grade security
+        }
+        broker_use_ssl = ssl_config
+        redis_backend_use_ssl = ssl_config
+
+    # Construct Celery with SSL config passed explicitly
     celery = Celery(
         app.import_name,
         broker=redis_url,
         backend=redis_url,
+        broker_use_ssl=broker_use_ssl,
+        redis_backend_use_ssl=redis_backend_use_ssl
     )
-
-    # Use SSL only if rediss://
-    if redis_url.startswith('rediss://'):
-        celery.conf.broker_use_ssl = {
-            'ssl_cert_reqs': ssl.CERT_NONE  # You can use ssl.CERT_REQUIRED for stricter security
-        }
-        celery.conf.redis_backend_ssl = {
-            'ssl_cert_reqs': ssl.CERT_NONE
-        }
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
