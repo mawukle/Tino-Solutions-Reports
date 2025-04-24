@@ -1,8 +1,12 @@
 import os
+import logging
 from celery import Celery
 from flask import Flask
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 from models import db, projects
-from drive_uploader import folder_has_files  # Your existing method
+
+GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
 # Flask app context
 def make_celery():
@@ -13,7 +17,7 @@ def make_celery():
     db.init_app(app)
     celery = Celery(
         app.import_name,
-        broker=os.getenv('REDIS_URL'),  # Redis Cloud URL
+        broker=os.getenv('REDIS_URL'),
         backend=os.getenv('REDIS_URL')
     )
 
@@ -27,6 +31,28 @@ def make_celery():
 
 celery = make_celery()
 
+def folder_has_files(folder_id):
+    """Check if the Google Drive folder contains any files."""
+    try:
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE,
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        service = build("drive", "v3", credentials=credentials)
+
+        response = service.files().list(
+            q=f"'{folder_id}' in parents and trashed = false",
+            pageSize=1,
+            fields="files(id)"
+        ).execute()
+
+        files = response.get("files", [])
+        return len(files) > 0
+
+    except Exception as e:
+        logging.error(f"Error checking folder {folder_id} contents: {e}")
+        return False
+
 @celery.task()
 def update_folder_has_files(project_id, folder_id):
     try:
@@ -36,4 +62,4 @@ def update_folder_has_files(project_id, folder_id):
             project.folder_has_files = has_files
             db.session.commit()
     except Exception as e:
-        print(f"Error checking folder {folder_id}: {e}")
+        logging.error(f"Error in update_folder_has_files task for project {project_id}: {e}")
