@@ -1,12 +1,11 @@
 import os
+import ssl
 import logging
-from celery import Celery
 from flask import Flask
+from celery import Celery
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from models import db, projects
-import ssl
-
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
@@ -23,22 +22,21 @@ def make_celery():
         logging.error("REDIS_URL environment variable is not set.")
         raise RuntimeError("REDIS_URL environment variable is required but not found.")
 
-    # 🔐 Add SSL settings if using rediss://
-    broker_use_ssl = None
-    if redis_url.startswith('rediss://'):
-        broker_use_ssl = {
-            'ssl_cert_reqs': ssl.CERT_NONE  # Adjust to CERT_OPTIONAL or CERT_REQUIRED as needed
-        }
-
+    # Create the Celery app
     celery = Celery(
         app.import_name,
         broker=redis_url,
-        backend=redis_url
+        backend=redis_url,
     )
 
-    if broker_use_ssl:
-        celery.conf.broker_use_ssl = broker_use_ssl
-        celery.conf.redis_backend_use_ssl = broker_use_ssl
+    # Use SSL only if rediss://
+    if redis_url.startswith('rediss://'):
+        celery.conf.broker_use_ssl = {
+            'ssl_cert_reqs': ssl.CERT_NONE  # You can use ssl.CERT_REQUIRED for stricter security
+        }
+        celery.conf.redis_backend_ssl = {
+            'ssl_cert_reqs': ssl.CERT_NONE
+        }
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
