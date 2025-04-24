@@ -5,6 +5,8 @@ from flask import Flask
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from models import db, projects
+import ssl
+
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
@@ -25,7 +27,7 @@ def make_celery():
     broker_use_ssl = None
     if redis_url.startswith('rediss://'):
         broker_use_ssl = {
-            'ssl_cert_reqs': 'CERT_NONE'  # Adjust to CERT_OPTIONAL or CERT_REQUIRED as needed
+            'ssl_cert_reqs': ssl.CERT_NONE  # Adjust to CERT_OPTIONAL or CERT_REQUIRED as needed
         }
 
     celery = Celery(
