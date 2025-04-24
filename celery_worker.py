@@ -15,11 +15,28 @@ def make_celery():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+
+    redis_url = os.getenv('REDIS_URL')
+    if not redis_url:
+        logging.error("REDIS_URL environment variable is not set.")
+        raise RuntimeError("REDIS_URL environment variable is required but not found.")
+
+    # 🔐 Add SSL settings if using rediss://
+    broker_use_ssl = None
+    if redis_url.startswith('rediss://'):
+        broker_use_ssl = {
+            'ssl_cert_reqs': 'CERT_NONE'  # Adjust to CERT_OPTIONAL or CERT_REQUIRED as needed
+        }
+
     celery = Celery(
         app.import_name,
-        broker=os.getenv('REDIS_URL'),
-        backend=os.getenv('REDIS_URL')
+        broker=redis_url,
+        backend=redis_url
     )
+
+    if broker_use_ssl:
+        celery.conf.broker_use_ssl = broker_use_ssl
+        celery.conf.redis_backend_use_ssl = broker_use_ssl
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
