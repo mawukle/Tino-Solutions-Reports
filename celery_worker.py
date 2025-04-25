@@ -21,19 +21,26 @@ def make_celery():
         logging.error("REDIS_URL environment variable is not set.")
         raise RuntimeError("REDIS_URL environment variable is required but not found.")
 
-    # Reduce SSL Security for Redis connection (Use with caution)
+    # Check if Redis URL uses SSL and adjust accordingly
     broker_use_ssl = None
     redis_backend_use_ssl = None
 
+    # If using SSL (rediss://), disable SSL validation
     if redis_url.startswith('rediss://'):
-        # Disable SSL validation
         ssl_config = {
             'ssl_cert_reqs': ssl.CERT_NONE  # This disables SSL certificate validation
         }
         broker_use_ssl = ssl_config
         redis_backend_use_ssl = ssl_config
+    elif redis_url.startswith('redis://'):
+        # No SSL, default settings
+        broker_use_ssl = None
+        redis_backend_use_ssl = None
+    else:
+        logging.error("Unsupported Redis URL scheme.")
+        raise RuntimeError("Unsupported Redis URL scheme. Use redis:// or rediss://.")
 
-    # Construct Celery with SSL config passed explicitly
+    # Construct Celery with the appropriate SSL settings
     celery = Celery(
         app.import_name,
         broker=redis_url,
