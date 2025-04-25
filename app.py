@@ -3879,7 +3879,7 @@ def get_projects():
                 update_folder_has_files.delay(project.project_id, folder_id)  # 🔥 Fire-and-forget task
                 folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
             else:
-                folder_link = ""
+                folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
 
             project_data = {
                 "project_id": project.project_id,
