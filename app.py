@@ -3875,7 +3875,7 @@ def get_projects():
                 folder_id = ""
 
             # 🔁 Launch background task instead of checking directly
-            if folder_id:
+            if folder_id and not project.folder_has_files:
                 update_folder_has_files.delay(project.project_id, folder_id)  # 🔥 Fire-and-forget task
                 folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
             else:
