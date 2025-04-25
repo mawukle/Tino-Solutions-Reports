@@ -3874,12 +3874,14 @@ def get_projects():
                 logging.error(f"Error creating folder for project {project.project_id}: {e}")
                 folder_id = ""
 
-            # 🔁 Launch background task instead of checking directly
-            if folder_id and not project.folder_has_files:
-                update_folder_has_files.delay(project.project_id, folder_id)  # 🔥 Fire-and-forget task
-                folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
-            else:
-                folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
+            # Only trigger Celery task if folder hasn't been checked yet (None or False)
+            should_check_folder = folder_id and (project.folder_has_files is None or project.folder_has_files == 0)
+
+            if should_check_folder:
+                update_folder_has_files.delay(project.project_id, folder_id)
+
+            # Only show link if folder_has_files is True
+            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
 
             project_data = {
                 "project_id": project.project_id,
