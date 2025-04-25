@@ -33,7 +33,7 @@ def make_celery():
         broker_use_ssl = ssl_config
         redis_backend_use_ssl = ssl_config
     elif redis_url.startswith('redis://'):
-        # No SSL, default settings
+        # No SSL, default settings for non-SSL
         broker_use_ssl = None
         redis_backend_use_ssl = None
     else:
