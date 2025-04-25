@@ -3812,7 +3812,8 @@ def get_projects():
             projects.amount_paid,
             projects.outstanding_balance,
             projects.expected_final_payment_date,
-            projects.comment
+            projects.comment,
+            projects.folder_has_files  # <-- Add this line
         ).distinct()
 
         # Apply date filters if provided
