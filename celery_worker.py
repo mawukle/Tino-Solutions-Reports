@@ -1,6 +1,7 @@
 import os
 import ssl
 import logging
+import gc
 from flask import Flask
 from celery import Celery
 from google.oauth2.service_account import Credentials
@@ -21,26 +22,14 @@ def make_celery():
         logging.error("REDIS_URL environment variable is not set.")
         raise RuntimeError("REDIS_URL environment variable is required but not found.")
 
-    # Check if Redis URL uses SSL and adjust accordingly
-    broker_use_ssl = None
-    redis_backend_use_ssl = None
-
-    # If using SSL (rediss://), disable SSL validation
+    broker_use_ssl = redis_backend_use_ssl = None
     if redis_url.startswith('rediss://'):
-        ssl_config = {
-            'ssl_cert_reqs': ssl.CERT_NONE  # This disables SSL certificate validation
-        }
+        ssl_config = {'ssl_cert_reqs': ssl.CERT_NONE}
         broker_use_ssl = ssl_config
         redis_backend_use_ssl = ssl_config
-    elif redis_url.startswith('redis://'):
-        # No SSL, default settings for non-SSL
-        broker_use_ssl = None
-        redis_backend_use_ssl = None
-    else:
-        logging.error("Unsupported Redis URL scheme.")
-        raise RuntimeError("Unsupported Redis URL scheme. Use redis:// or rediss://.")
+    elif not redis_url.startswith('redis://'):
+        raise RuntimeError("Unsupported Redis URL scheme.")
 
-    # Construct Celery with the appropriate SSL settings
     celery = Celery(
         app.import_name,
         broker=redis_url,
@@ -59,35 +48,40 @@ def make_celery():
 
 celery = make_celery()
 
-def folder_has_files(folder_id):
-    """Check if the Google Drive folder contains any files."""
+def folder_contains_files(service, folder_id):
     try:
+        response = service.files().list(
+            q=f"'{folder_id}' in parents and trashed = false",
+            pageSize=1,
+            fields="files(id)"
+        ).execute()
+        return bool(response.get("files"))
+    except Exception as e:
+        logging.error(f"Error checking folder contents for folder_id={folder_id}: {e}")
+        return False
+
+@celery.task(bind=True)
+def update_folder_has_files(self, project_id, folder_id):
+    try:
+        # Setup Drive API
         credentials = Credentials.from_service_account_file(
             GOOGLE_CREDENTIALS_FILE,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
 
-        response = service.files().list(
-            q=f"'{folder_id}' in parents and trashed = false",
-            pageSize=1,
-            fields="files(id)"
-        ).execute()
+        # Check folder contents
+        has_files = folder_contains_files(service, folder_id)
 
-        files = response.get("files", [])
-        return len(files) > 0
-
-    except Exception as e:
-        logging.error(f"Error checking folder {folder_id} contents: {e}")
-        return False
-
-@celery.task()
-def update_folder_has_files(project_id, folder_id):
-    try:
-        has_files = folder_has_files(folder_id)
-        project = db.session.query(projects).get(project_id)
+        # Update DB
+        project = db.session.query(projects).filter_by(project_id=project_id).first()
         if project:
             project.folder_has_files = has_files
             db.session.commit()
+
     except Exception as e:
         logging.error(f"Error updating folder_has_files for project {project_id}: {e}")
+
+    finally:
+        # Memory cleanup
+        gc.collect()
