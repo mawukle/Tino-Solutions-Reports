@@ -3813,7 +3813,8 @@ def get_projects():
             projects.outstanding_balance,
             projects.expected_final_payment_date,
             projects.comment,
-            projects.folder_has_files  # <-- Add this line
+            projects.folder_has_files,  # <-- Add this line
+            projects.google_folder_id  # <-- add this line
         ).distinct()
 
         # Apply date filters if provided
