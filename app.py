@@ -3861,7 +3861,7 @@ def get_projects():
 
             folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
 
-            folder_id = project.folder_id  # Just read from database, no API call
+            folder_id = project.google_folder_id  # Just read from database, no API call
 
             # Only trigger Celery task if folder hasn't been checked yet (None or False)
             should_check_folder = folder_id and (project.folder_has_files is None or project.folder_has_files == 0)
