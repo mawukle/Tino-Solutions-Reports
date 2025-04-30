@@ -48,6 +48,7 @@ def make_celery():
 
 celery = make_celery()
 
+# ---------- Google Drive Helper Functions ----------
 def folder_contains_files(service, folder_id):
     try:
         response = service.files().list(
@@ -60,20 +61,68 @@ def folder_contains_files(service, folder_id):
         logging.error(f"Error checking folder contents for folder_id={folder_id}: {e}")
         return False
 
-@celery.task(bind=True)
-def update_folder_has_files(self, project_id, folder_id):
+def get_or_create_folder(service, parent_id, project_id, client_name, town, sales_person):
     try:
-        # Setup Drive API
+        folder_name = f"{client_name}_{town}_{sales_person}_{project_id}"
+        query = (
+            f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' "
+            f"and '{parent_id}' in parents and trashed = false"
+        )
+
+        response = service.files().list(q=query, fields="files(id, name)").execute()
+        folders = response.get('files', [])
+
+        if folders:
+            return folders[0]['id']  # Folder already exists
+
+        file_metadata = {
+            'name': folder_name,
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [parent_id]
+        }
+        folder = service.files().create(body=file_metadata, fields='id').execute()
+        return folder.get('id')
+
+    except Exception as e:
+        logging.error(f"Error creating/getting folder for project {project_id}: {e}")
+        return None
+
+# ---------- Celery Tasks ----------
+@celery.task(bind=True)
+def create_folder_if_needed(self, project_id, client_name, town, sales_person):
+    try:
         credentials = Credentials.from_service_account_file(
             GOOGLE_CREDENTIALS_FILE,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
 
-        # Check folder contents
+        # Create or get folder
+        folder_id = get_or_create_folder(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9", project_id, client_name, town, sales_person)
+
+        # Update project with folder ID
+        if folder_id:
+            project = db.session.query(projects).filter_by(project_id=project_id).first()
+            if project:
+                project.google_folder_id = folder_id
+                db.session.commit()
+
+    except Exception as e:
+        logging.error(f"Error creating folder for project {project_id}: {e}")
+    finally:
+        gc.collect()
+
+@celery.task(bind=True)
+def update_folder_has_files(self, project_id, folder_id):
+    try:
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE,
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        service = build("drive", "v3", credentials=credentials)
+
         has_files = folder_contains_files(service, folder_id)
 
-        # Update DB
         project = db.session.query(projects).filter_by(project_id=project_id).first()
         if project:
             project.folder_has_files = has_files
@@ -81,7 +130,5 @@ def update_folder_has_files(self, project_id, folder_id):
 
     except Exception as e:
         logging.error(f"Error updating folder_has_files for project {project_id}: {e}")
-
     finally:
-        # Memory cleanup
         gc.collect()

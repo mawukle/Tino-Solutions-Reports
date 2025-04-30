@@ -3861,18 +3861,7 @@ def get_projects():
 
             folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
 
-            try:
-                folder_id = get_or_create_folder(
-                    service,
-                    "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",
-                    project.project_id,
-                    project.client_name,
-                    project.town,
-                    project.sales_person
-                )
-            except Exception as e:
-                logging.error(f"Error creating folder for project {project.project_id}: {e}")
-                folder_id = ""
+            folder_id = project.folder_id  # Just read from database, no API call
 
             # Only trigger Celery task if folder hasn't been checked yet (None or False)
             should_check_folder = folder_id and (project.folder_has_files is None or project.folder_has_files == 0)
