@@ -4533,7 +4533,7 @@ def reports():
 
         # Parse the exchange rate from the response
         # Note: Implement the actual parsing logic based on the response structure
-        usd_to_ghs = 13.9  # Placeholder value; replace with actual parsed rate
+        usd_to_ghs = 1  # Placeholder value; replace with actual parsed rate
 
         projects_list = db.session.query(projects).all()
         data = []
