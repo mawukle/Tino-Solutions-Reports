@@ -182,20 +182,17 @@
             });
 
             const months = Object.keys(monthlySales).sort();
-            const allSalesPeople = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown")));
+            const persons = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown"))).sort();
 
-            const datasets = allSalesPeople.map(person => ({
+            const datasets = persons.map(person => ({
                 label: person,
-                data: months.map(m => monthlySales[m][person] || 0),
+                data: months.map(month => monthlySales[month][person] || 0),
                 backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
             }));
 
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'bar',
-                data: {
-                    labels: months,
-                    datasets
-                },
+                data: { labels: months, datasets },
                 options: {
                     responsive: true,
                     plugins: {
@@ -210,7 +207,7 @@
                             stacked: true,
                             title: {
                                 display: true,
-                                text: 'Amount Paid (USD)'
+                                text: 'USD Paid'
                             }
                         }
                     }
@@ -232,26 +229,23 @@
             });
 
             const months = Object.keys(installerMonthly).sort();
-            const allInstallers = Array.from(new Set(projectData.map(p => p.lead_installer || "Unknown")));
+            const installers = Array.from(new Set(projectData.map(p => p.lead_installer || "Unknown"))).sort();
 
-            const datasets = allInstallers.map(installer => ({
+            const datasets = installers.map(installer => ({
                 label: installer,
-                data: months.map(m => installerMonthly[m][installer] || 0),
+                data: months.map(month => installerMonthly[month][installer] || 0),
                 backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
             }));
 
             new Chart(document.getElementById('installerMonthlyChart'), {
                 type: 'bar',
-                data: {
-                    labels: months,
-                    datasets
-                },
+                data: { labels: months, datasets },
                 options: {
                     responsive: true,
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Lead Installer Monthly Projects Started'
+                            text: 'Lead Installer Projects Started (per Month)'
                         }
                     },
                     scales: {
@@ -260,7 +254,7 @@
                             stacked: true,
                             title: {
                                 display: true,
-                                text: 'Number of Projects'
+                                text: 'Projects Started'
                             }
                         }
                     }
