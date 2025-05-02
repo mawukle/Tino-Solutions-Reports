@@ -22,7 +22,7 @@
     <div class="chart-container"><canvas id="startCompletionTrendsChart"></canvas></div>
     <div class="chart-container"><canvas id="salesPersonMonthlyChart"></canvas></div>
     <div class="chart-container"><canvas id="installerMonthlyChart"></canvas></div>
-    
+
 
     <script>
         const projectData = {{ project_data | safe }};
@@ -168,40 +168,30 @@
             });
         })();
 
-        // Chart 6: Sales Person Monthly Performance
+        // Chart 6: Sales Person Monthly Performance (Stacked Bar)
         (() => {
             const monthlySales = {};
 
             projectData.forEach(p => {
                 const month = p.start_date ? p.start_date.slice(0, 7) : null;
-                if (!month || !p.sales_person) return;
+                const person = p.sales_person || "Unknown";
+                if (!month) return;
 
-                const key = `${p.sales_person}_${month}`;
-                if (!monthlySales[key]) {
-                    monthlySales[key] = { invoice_amount: 0, amount_paid: 0 };
-                }
-                monthlySales[key].invoice_amount += p.invoice_amount || 0;
-                monthlySales[key].amount_paid += p.amount_paid || 0;
+                monthlySales[month] = monthlySales[month] || {};
+                monthlySales[month][person] = (monthlySales[month][person] || 0) + (p.amount_paid || 0);
             });
 
-            const grouped = {};
-            Object.keys(monthlySales).forEach(key => {
-                const [person, month] = key.split("_");
-                grouped[person] = grouped[person] || {};
-                grouped[person][month] = monthlySales[key];
-            });
+            const months = Object.keys(monthlySales).sort();
+            const allSalesPeople = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown")));
 
-            const months = Array.from(new Set(Object.values(grouped).flatMap(obj => Object.keys(obj)))).sort();
-            const datasets = Object.entries(grouped).map(([person, values]) => ({
-                label: `${person} (Paid)`,
-                data: months.map(m => (values[m]?.amount_paid || 0)),
-                fill: false,
-                borderWidth: 2,
-                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`
+            const datasets = allSalesPeople.map(person => ({
+                label: person,
+                data: months.map(m => monthlySales[m][person] || 0),
+                backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
             }));
 
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: months,
                     datasets
@@ -213,12 +203,22 @@
                             display: true,
                             text: 'Sales Person Monthly Performance (USD Paid)'
                         }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Amount Paid (USD)'
+                            }
+                        }
                     }
                 }
             });
         })();
 
-        // Chart 7: Lead Installer Monthly Projects Started
+        // Chart 7: Lead Installer Monthly Projects Started (Stacked Bar)
         (() => {
             const installerMonthly = {};
 
@@ -227,28 +227,21 @@
                 const installer = p.lead_installer || "Unknown";
                 if (!month) return;
 
-                const key = `${installer}_${month}`;
-                installerMonthly[key] = (installerMonthly[key] || 0) + 1;
+                installerMonthly[month] = installerMonthly[month] || {};
+                installerMonthly[month][installer] = (installerMonthly[month][installer] || 0) + 1;
             });
 
-            const grouped = {};
-            Object.entries(installerMonthly).forEach(([key, count]) => {
-                const [installer, month] = key.split("_");
-                grouped[installer] = grouped[installer] || {};
-                grouped[installer][month] = count;
-            });
+            const months = Object.keys(installerMonthly).sort();
+            const allInstallers = Array.from(new Set(projectData.map(p => p.lead_installer || "Unknown")));
 
-            const months = Array.from(new Set(Object.values(grouped).flatMap(obj => Object.keys(obj)))).sort();
-            const datasets = Object.entries(grouped).map(([installer, values]) => ({
+            const datasets = allInstallers.map(installer => ({
                 label: installer,
-                data: months.map(m => values[m] || 0),
-                fill: false,
-                borderWidth: 2,
-                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`
+                data: months.map(m => installerMonthly[m][installer] || 0),
+                backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
             }));
 
             new Chart(document.getElementById('installerMonthlyChart'), {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: months,
                     datasets
@@ -258,7 +251,17 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Lead Installer Projects Started (per Month)'
+                            text: 'Lead Installer Monthly Projects Started'
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Projects'
+                            }
                         }
                     }
                 }
