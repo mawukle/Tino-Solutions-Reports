@@ -20,6 +20,9 @@
     <div class="chart-container"><canvas id="statusBreakdownChart"></canvas></div>
     <div class="chart-container"><canvas id="revenueBySalesChart"></canvas></div>
     <div class="chart-container"><canvas id="startCompletionTrendsChart"></canvas></div>
+    <div class="chart-container"><canvas id="salesPersonMonthlyChart"></canvas></div>
+    <div class="chart-container"><canvas id="installerMonthlyChart"></canvas></div>
+    
 
     <script>
         const projectData = {{ project_data | safe }};
@@ -164,6 +167,104 @@
                 }
             });
         })();
+
+        // Chart 6: Sales Person Monthly Performance
+        (() => {
+            const monthlySales = {};
+
+            projectData.forEach(p => {
+                const month = p.start_date ? p.start_date.slice(0, 7) : null;
+                if (!month || !p.sales_person) return;
+
+                const key = `${p.sales_person}_${month}`;
+                if (!monthlySales[key]) {
+                    monthlySales[key] = { invoice_amount: 0, amount_paid: 0 };
+                }
+                monthlySales[key].invoice_amount += p.invoice_amount || 0;
+                monthlySales[key].amount_paid += p.amount_paid || 0;
+            });
+
+            const grouped = {};
+            Object.keys(monthlySales).forEach(key => {
+                const [person, month] = key.split("_");
+                grouped[person] = grouped[person] || {};
+                grouped[person][month] = monthlySales[key];
+            });
+
+            const months = Array.from(new Set(Object.values(grouped).flatMap(obj => Object.keys(obj)))).sort();
+            const datasets = Object.entries(grouped).map(([person, values]) => ({
+                label: `${person} (Paid)`,
+                data: months.map(m => (values[m]?.amount_paid || 0)),
+                fill: false,
+                borderWidth: 2,
+                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`
+            }));
+
+            new Chart(document.getElementById('salesPersonMonthlyChart'), {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Sales Person Monthly Performance (USD Paid)'
+                        }
+                    }
+                }
+            });
+        })();
+
+        // Chart 7: Lead Installer Monthly Projects Started
+        (() => {
+            const installerMonthly = {};
+
+            projectData.forEach(p => {
+                const month = p.start_date ? p.start_date.slice(0, 7) : null;
+                const installer = p.lead_installer || "Unknown";
+                if (!month) return;
+
+                const key = `${installer}_${month}`;
+                installerMonthly[key] = (installerMonthly[key] || 0) + 1;
+            });
+
+            const grouped = {};
+            Object.entries(installerMonthly).forEach(([key, count]) => {
+                const [installer, month] = key.split("_");
+                grouped[installer] = grouped[installer] || {};
+                grouped[installer][month] = count;
+            });
+
+            const months = Array.from(new Set(Object.values(grouped).flatMap(obj => Object.keys(obj)))).sort();
+            const datasets = Object.entries(grouped).map(([installer, values]) => ({
+                label: installer,
+                data: months.map(m => values[m] || 0),
+                fill: false,
+                borderWidth: 2,
+                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`
+            }));
+
+            new Chart(document.getElementById('installerMonthlyChart'), {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Lead Installer Projects Started (per Month)'
+                        }
+                    }
+                }
+            });
+        })();
+
 
         // Download to PDF
         async function downloadPDF() {

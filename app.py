@@ -4527,15 +4527,12 @@ import requests
 @app.route('/reports', methods=['GET'])
 def reports():
     try:
-        # Fetch exchange rate from exchangerate-api.com
         exchange_api_url = 'https://api.exchangerate-api.com/v4/latest/USD'
         response = requests.get(exchange_api_url)
         if response.status_code != 200:
-            raise Exception("Failed to fetch exchange rate data from exchangerate-api.")
-
+            raise Exception("Failed to fetch exchange rate.")
         exchange_data = response.json()
         usd_to_ghs = exchange_data['rates'].get('GHS')
-
         if not usd_to_ghs:
             raise Exception("USD to GHS exchange rate not found.")
 
@@ -4543,19 +4540,20 @@ def reports():
         data = []
         for p in projects_list:
             rate = usd_to_ghs if p.currency == 'GHC' else 1
-            invoice_amount_usd = float(p.invoice_amount or 0) / rate
-            amount_paid_usd = float(p.amount_paid or 0) / rate
-            outstanding_balance_usd = invoice_amount_usd - amount_paid_usd
+            invoice_usd = float(p.invoice_amount or 0) / rate
+            paid_usd = float(p.amount_paid or 0) / rate
+            balance_usd = invoice_usd - paid_usd
 
             data.append({
                 "start_date": safe_date_format(p.start_date),
                 "commissioning_date": safe_date_format(p.commissioning_date),
-                "sales_person": p.sales_person,
+                "sales_person": p.sales_person or "Unknown",
+                "lead_installer": getattr(p, 'lead_installer', "Unknown"),
                 "town": p.town,
-                "invoice_amount": round(invoice_amount_usd, 2),
-                "amount_paid": round(amount_paid_usd, 2),
+                "invoice_amount": round(invoice_usd, 2),
+                "amount_paid": round(paid_usd, 2),
                 "expected_final_payment_date": safe_date_format(p.expected_final_payment_date),
-                "outstanding_balance": round(outstanding_balance_usd, 2)
+                "outstanding_balance": round(balance_usd, 2)
             })
 
         return render_template("reports.html", project_data=json.dumps(data))
