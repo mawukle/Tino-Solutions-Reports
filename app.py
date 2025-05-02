@@ -4522,33 +4522,22 @@ def safe_date_format(value):
         return value  # already a string
     return value.strftime('%Y-%m-%d')  # datetime object
 
-from bs4 import BeautifulSoup
+import requests
 
 @app.route('/reports', methods=['GET'])
 def reports():
     try:
-        # Fetch exchange rate from Bank of Ghana website
-        exchange_api_url = 'https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/'
+        # Fetch exchange rate from exchangerate-api.com
+        exchange_api_url = 'https://api.exchangerate-api.com/v4/latest/USD'
         response = requests.get(exchange_api_url)
         if response.status_code != 200:
-            raise Exception("Failed to fetch exchange rate data.")
+            raise Exception("Failed to fetch exchange rate data from exchangerate-api.")
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        exchange_data = response.json()
+        usd_to_ghs = exchange_data['rates'].get('GHS')
 
-        # Find the table and locate the USD row
-        usd_to_ghs = None
-        table = soup.find('table')
-        if table:
-            rows = table.find_all('tr')
-            for row in rows:
-                cells = row.find_all('td')
-                if cells and 'USD' in cells[0].text.strip():
-                    rate_text = cells[1].text.strip().replace(',', '')
-                    usd_to_ghs = float(rate_text)
-                    break
-
-        if usd_to_ghs is None:
-            raise Exception("USD exchange rate not found in BOG table.")
+        if not usd_to_ghs:
+            raise Exception("USD to GHS exchange rate not found.")
 
         projects_list = db.session.query(projects).all()
         data = []
