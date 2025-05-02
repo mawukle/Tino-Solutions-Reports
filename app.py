@@ -4509,23 +4509,27 @@ def update_bdu():
         return jsonify({"message": "Error updating BDU records"}), 500
 
 
+def safe_date_format(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value  # already a string
+    return value.strftime('%Y-%m-%d')  # datetime object
+
 @app.route('/reports', methods=['GET'])
 def reports():
     try:
-        # Fetch all projects from DB
         projects_list = db.session.query(projects).all()
-
-        # Convert to list of dicts for JSON use in JS
         data = []
         for p in projects_list:
             data.append({
-                "start_date": p.start_date.strftime('%Y-%m-%d') if p.start_date else None,
-                "commissioning_date": p.commissioning_date.strftime('%Y-%m-%d') if p.commissioning_date else None,
+                "start_date": safe_date_format(p.start_date),
+                "commissioning_date": safe_date_format(p.commissioning_date),
                 "sales_person": p.sales_person,
                 "town": p.town,
                 "invoice_amount": float(p.invoice_amount or 0),
                 "amount_paid": float(p.amount_paid or 0),
-                "expected_final_payment_date": p.expected_final_payment_date.strftime('%Y-%m-%d') if p.expected_final_payment_date else None,
+                "expected_final_payment_date": safe_date_format(p.expected_final_payment_date),
                 "outstanding_balance": float(p.outstanding_balance or 0)
             })
 
@@ -4534,7 +4538,6 @@ def reports():
     except Exception as e:
         logging.error(f"Error generating reports: {e}")
         return render_template("reports.html", project_data="[]", error="Could not load data.")
-
 
 
 
