@@ -4509,6 +4509,12 @@ def update_bdu():
         return jsonify({"message": "Error updating BDU records"}), 500
 
 
+import requests
+import json
+import logging
+from flask import render_template
+from datetime import datetime
+
 def safe_date_format(value):
     if value is None:
         return None
@@ -4519,18 +4525,38 @@ def safe_date_format(value):
 @app.route('/reports', methods=['GET'])
 def reports():
     try:
+        # Fetch exchange rate from Bank of Ghana
+        exchange_api_url = 'https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/'
+        response = requests.get(exchange_api_url)
+        if response.status_code != 200:
+            raise Exception("Failed to fetch exchange rate data.")
+
+        # Parse the exchange rate from the response
+        # Note: Implement the actual parsing logic based on the response structure
+        usd_to_ghs = 13.9  # Placeholder value; replace with actual parsed rate
+
         projects_list = db.session.query(projects).all()
         data = []
         for p in projects_list:
+            # Determine the exchange rate based on currency
+            if p.currency == 'GHC':
+                rate = usd_to_ghs
+            else:
+                rate = 1  # USD amounts remain unchanged
+
+            invoice_amount_usd = float(p.invoice_amount or 0) / rate
+            amount_paid_usd = float(p.amount_paid or 0) / rate
+            outstanding_balance_usd = invoice_amount_usd - amount_paid_usd
+
             data.append({
                 "start_date": safe_date_format(p.start_date),
                 "commissioning_date": safe_date_format(p.commissioning_date),
                 "sales_person": p.sales_person,
                 "town": p.town,
-                "invoice_amount": float(p.invoice_amount or 0),
-                "amount_paid": float(p.amount_paid or 0),
+                "invoice_amount": round(invoice_amount_usd, 2),
+                "amount_paid": round(amount_paid_usd, 2),
                 "expected_final_payment_date": safe_date_format(p.expected_final_payment_date),
-                "outstanding_balance": float(p.outstanding_balance or 0)
+                "outstanding_balance": round(outstanding_balance_usd, 2)
             })
 
         return render_template("reports.html", project_data=json.dumps(data))
