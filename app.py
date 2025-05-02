@@ -4522,28 +4522,38 @@ def safe_date_format(value):
         return value  # already a string
     return value.strftime('%Y-%m-%d')  # datetime object
 
+from bs4 import BeautifulSoup
+
 @app.route('/reports', methods=['GET'])
 def reports():
     try:
-        # Fetch exchange rate from Bank of Ghana
+        # Fetch exchange rate from Bank of Ghana website
         exchange_api_url = 'https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/'
         response = requests.get(exchange_api_url)
         if response.status_code != 200:
             raise Exception("Failed to fetch exchange rate data.")
 
-        # Parse the exchange rate from the response
-        # Note: Implement the actual parsing logic based on the response structure
-        usd_to_ghs = 1  # Placeholder value; replace with actual parsed rate
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find the table and locate the USD row
+        usd_to_ghs = None
+        table = soup.find('table')
+        if table:
+            rows = table.find_all('tr')
+            for row in rows:
+                cells = row.find_all('td')
+                if cells and 'USD' in cells[0].text.strip():
+                    rate_text = cells[1].text.strip().replace(',', '')
+                    usd_to_ghs = float(rate_text)
+                    break
+
+        if usd_to_ghs is None:
+            raise Exception("USD exchange rate not found in BOG table.")
 
         projects_list = db.session.query(projects).all()
         data = []
         for p in projects_list:
-            # Determine the exchange rate based on currency
-            if p.currency == 'GHC':
-                rate = usd_to_ghs
-            else:
-                rate = 1  # USD amounts remain unchanged
-
+            rate = usd_to_ghs if p.currency == 'GHC' else 1
             invoice_amount_usd = float(p.invoice_amount or 0) / rate
             amount_paid_usd = float(p.amount_paid or 0) / rate
             outstanding_balance_usd = invoice_amount_usd - amount_paid_usd
