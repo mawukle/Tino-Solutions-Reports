@@ -37,12 +37,25 @@
             return arr.reduce((a, b) => a + (b[key] || 0), 0);
         }
 
-        // Chart 1: Invoice vs Paid by Sales Person
+        // Chart 1: Invoice vs Paid by Month
         (() => {
-            const grouped = groupBy(projectData, 'sales_person');
-            const labels = Object.keys(grouped);
-            const invoiceData = labels.map(l => sum(grouped[l], 'invoice_amount'));
-            const paidData = labels.map(l => sum(grouped[l], 'amount_paid'));
+            const monthly = {};
+
+            projectData.forEach(p => {
+                const month = p.start_date ? p.start_date.slice(0, 7) : null;
+                if (!month) return;
+
+                if (!monthly[month]) {
+                    monthly[month] = { invoice_amount: 0, amount_paid: 0 };
+                }
+
+                monthly[month].invoice_amount += p.invoice_amount || 0;
+                monthly[month].amount_paid += p.amount_paid || 0;
+            });
+
+            const labels = Object.keys(monthly).sort();
+            const invoiceData = labels.map(m => monthly[m].invoice_amount);
+            const paidData = labels.map(m => monthly[m].amount_paid);
 
             new Chart(document.getElementById('invoiceVsPaidChart'), {
                 type: 'bar',
@@ -94,24 +107,35 @@
             });
         })();
 
-        // Chart 4: Revenue by Sales Person
+        // Chart 4: Revenue Over Time
         (() => {
-            const grouped = groupBy(projectData, 'sales_person');
-            const labels = Object.keys(grouped);
-            const revenueData = labels.map(l => sum(grouped[l], 'amount_paid'));
+            const monthlyRevenue = {};
+
+            projectData.forEach(p => {
+                const month = p.commissioning_date ? p.commissioning_date.slice(0, 7) : null;
+                if (!month) return;
+                if (!monthlyRevenue[month]) monthlyRevenue[month] = 0;
+                monthlyRevenue[month] += p.amount_paid || 0;
+            });
+
+            const labels = Object.keys(monthlyRevenue).sort();
+            const revenueData = labels.map(m => monthlyRevenue[m]);
 
             new Chart(document.getElementById('revenueBySalesChart'), {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels,
                     datasets: [{
                         label: 'Revenue (Paid in USD)',
                         data: revenueData,
-                        backgroundColor: 'rgba(54,162,235,0.6)'
+                        borderColor: 'rgba(54,162,235,1)',
+                        backgroundColor: 'rgba(54,162,235,0.2)',
+                        fill: true
                     }]
                 }
             });
         })();
+
 
         // Chart 5: Start and Completion Trends
         (() => {
