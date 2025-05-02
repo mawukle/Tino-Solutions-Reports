@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Reports</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        canvas { margin: 40px auto; display: block; }
+        .chart-container { width: 90%; margin: auto; }
+        button { margin: 20px; display: block; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Tino Solutions Management Report</h1>
+    <button onclick="downloadPDF()">Download PDF</button>
+
+    <div class="chart-container"><canvas id="invoiceVsPaidChart"></canvas></div>
+    <div class="chart-container"><canvas id="balanceDistributionChart"></canvas></div>
+    <div class="chart-container"><canvas id="statusBreakdownChart"></canvas></div>
+    <div class="chart-container"><canvas id="revenueBySalesChart"></canvas></div>
+    <div class="chart-container"><canvas id="startCompletionTrendsChart"></canvas></div>
+
+    <script>
+        const projectData = {{ project_data | safe }};
+
+        function groupBy(arr, key) {
+            return arr.reduce((acc, obj) => {
+                const val = obj[key] || 'Unknown';
+                acc[val] = acc[val] || [];
+                acc[val].push(obj);
+                return acc;
+            }, {});
+        }
+
+        function sum(arr, key) {
+            return arr.reduce((a, b) => a + (b[key] || 0), 0);
+        }
+
+        // Chart 1: Invoice vs Paid by Sales Person
+        (() => {
+            const grouped = groupBy(projectData, 'sales_person');
+            const labels = Object.keys(grouped);
+            const invoiceData = labels.map(l => sum(grouped[l], 'invoice_amount'));
+            const paidData = labels.map(l => sum(grouped[l], 'amount_paid'));
+
+            new Chart(document.getElementById('invoiceVsPaidChart'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Invoice Amount', data: invoiceData, backgroundColor: 'rgba(255,99,132,0.6)' },
+                        { label: 'Amount Paid', data: paidData, backgroundColor: 'rgba(75,192,192,0.6)' }
+                    ]
+                },
+                options: { responsive: true }
+            });
+        })();
+
+        // Chart 2: Outstanding Balance Distribution
+        (() => {
+            const low = projectData.filter(p => p.outstanding_balance > 0 && p.outstanding_balance < 500).length;
+            const mid = projectData.filter(p => p.outstanding_balance >= 500 && p.outstanding_balance <= 2000).length;
+            const high = projectData.filter(p => p.outstanding_balance > 2000).length;
+            const none = projectData.filter(p => p.outstanding_balance <= 0).length;
+
+            new Chart(document.getElementById('balanceDistributionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['<$500', '$500–$2000', '>$2000', 'No Balance'],
+                    datasets: [{
+                        data: [low, mid, high, none],
+                        backgroundColor: ['#ffc107', '#17a2b8', '#dc3545', '#28a745']
+                    }]
+                }
+            });
+        })();
+
+        // Chart 3: Project Status Breakdown
+        (() => {
+            const newProjects = projectData.filter(p => !p.start_date && !p.commissioning_date).length;
+            const ongoing = projectData.filter(p => p.start_date && !p.commissioning_date).length;
+            const completed = projectData.filter(p => p.start_date && p.commissioning_date).length;
+
+            new Chart(document.getElementById('statusBreakdownChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['New', Ongoing', 'Completed'],
+                    datasets: [{
+                        data: [newProjects, ongoing, completed],
+                        backgroundColor: ['#6c757d', '#007bff', '#28a745']
+                    }]
+                }
+            });
+        })();
+
+        // Chart 4: Revenue by Sales Person
+        (() => {
+            const grouped = groupBy(projectData, 'sales_person');
+            const labels = Object.keys(grouped);
+            const revenueData = labels.map(l => sum(grouped[l], 'amount_paid'));
+
+            new Chart(document.getElementById('revenueBySalesChart'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Revenue (Paid)',
+                        data: revenueData,
+                        backgroundColor: 'rgba(54,162,235,0.6)'
+                    }]
+                }
+            });
+        })();
+
+        // Chart 5: Start and Completion Trends
+        (() => {
+            const months = {};
+            projectData.forEach(p => {
+                const start = p.start_date ? p.start_date.slice(0, 7) : null;
+                const end = p.commissioning_date ? p.commissioning_date.slice(0, 7) : null;
+                if (start) months[start] = months[start] || { started: 0, completed: 0 };
+                if (end) months[end] = months[end] || { started: 0, completed: 0 };
+                if (start) months[start].started += 1;
+                if (end) months[end].completed += 1;
+            });
+
+            const sortedMonths = Object.keys(months).sort();
+            const started = sortedMonths.map(m => months[m].started);
+            const completed = sortedMonths.map(m => months[m].completed);
+
+            new Chart(document.getElementById('startCompletionTrendsChart'), {
+                type: 'line',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [
+                        { label: 'Started', data: started, borderColor: 'orange', fill: false },
+                        { label: 'Completed', data: completed, borderColor: 'green', fill: false }
+                    ]
+                }
+            });
+        })();
+
+        // Download to PDF
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const charts = document.querySelectorAll('canvas');
+
+            for (let i = 0; i < charts.length; i++) {
+                const chart = charts[i];
+                const imgData = chart.toDataURL('image/png', 1.0);
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 10, 10, 190, 100);
+            }
+
+            pdf.save('TinoSolutions_Management_Report.pdf');
+        }
+    </script>
+</body>
+</html>
