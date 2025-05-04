@@ -190,6 +190,9 @@
                 const person = p.sales_person || "Unknown";
                 const amount = parseAmount(p.amount_paid);
 
+                console.log(`${person} | Paid: ${p.amount_paid} | USD Paid: ${amount}`);
+
+
                 personsSet.add(person);
 
                 if (!monthlySales[month]) monthlySales[month] = {};
