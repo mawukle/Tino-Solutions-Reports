@@ -222,7 +222,7 @@
                 const data = months.map(month => monthlySales[month][person]);
                 return {
                     label: person,
-                    data,
+                    data: data,
                     fill: false,
                     spanGaps: true,
                     pointRadius: 4,
@@ -242,7 +242,7 @@
                 type: 'line',
                 data: {
                     labels: months,
-                    datasets
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
