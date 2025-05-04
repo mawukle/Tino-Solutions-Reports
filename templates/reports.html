@@ -188,6 +188,9 @@
                 label: person,
                 data: months.map(month => monthlySales[month][person] || 0),
                 fill: false,
+                spanGaps: true,
+                pointRadius: 4,
+                borderWidth: 2,
                 borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
                 tension: 0.3
             }));
@@ -205,6 +208,8 @@
                     },
                     scales: {
                         y: {
+                            beginAtZero: true,
+                            suggestedMax: 1000,
                             title: {
                                 display: true,
                                 text: 'USD Paid'
@@ -235,6 +240,9 @@
                 label: installer,
                 data: months.map(month => installerMonthly[month][installer] || 0),
                 fill: false,
+                spanGaps: true,
+                pointRadius: 4,
+                borderWidth: 2,
                 borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
                 tension: 0.3
             }));
@@ -252,6 +260,8 @@
                     },
                     scales: {
                         y: {
+                            beginAtZero: true,
+                            suggestedMax: 10,
                             title: {
                                 display: true,
                                 text: 'Projects Started'
