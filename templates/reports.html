@@ -168,7 +168,7 @@
             });
         })();
 
-        // Chart 6: Sales Person Monthly Performance (Stacked Bar)
+        // Chart 6: Sales Person Monthly Performance (Line Chart)
         (() => {
             const monthlySales = {};
 
@@ -187,24 +187,24 @@
             const datasets = persons.map(person => ({
                 label: person,
                 data: months.map(month => monthlySales[month][person] || 0),
-                backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
+                fill: false,
+                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                tension: 0.3
             }));
 
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
-                type: 'bar',
+                type: 'line',
                 data: { labels: months, datasets },
                 options: {
                     responsive: true,
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Sales Person Monthly Performance (USD Paid)'
+                            text: 'Sales Person Monthly Revenue (USD)'
                         }
                     },
                     scales: {
-                        x: { stacked: true },
                         y: {
-                            stacked: true,
                             title: {
                                 display: true,
                                 text: 'USD Paid'
@@ -215,7 +215,7 @@
             });
         })();
 
-        // Chart 7: Lead Installer Monthly Projects Started (Stacked Bar)
+        // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
         (() => {
             const installerMonthly = {};
 
@@ -234,24 +234,24 @@
             const datasets = installers.map(installer => ({
                 label: installer,
                 data: months.map(month => installerMonthly[month][installer] || 0),
-                backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`
+                fill: false,
+                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                tension: 0.3
             }));
 
             new Chart(document.getElementById('installerMonthlyChart'), {
-                type: 'bar',
+                type: 'line',
                 data: { labels: months, datasets },
                 options: {
                     responsive: true,
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Lead Installer Projects Started (per Month)'
+                            text: 'Lead Installer Projects Started per Month'
                         }
                     },
                     scales: {
-                        x: { stacked: true },
                         y: {
-                            stacked: true,
                             title: {
                                 display: true,
                                 text: 'Projects Started'
