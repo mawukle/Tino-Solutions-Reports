@@ -172,44 +172,82 @@
         (() => {
             const monthlySales = {};
 
+            // Step 1: Collect monthly totals per sales person
             projectData.forEach(p => {
                 const month = p.start_date ? p.start_date.slice(0, 7) : null;
                 const person = p.sales_person || "Unknown";
                 if (!month) return;
 
-                monthlySales[month] = monthlySales[month] || {};
-                monthlySales[month][person] = (monthlySales[month][person] || 0) + (p.amount_paid || 0);
+                if (!monthlySales[month]) monthlySales[month] = {};
+                if (!monthlySales[month][person]) monthlySales[month][person] = 0;
+
+                monthlySales[month][person] += Number(p.amount_paid || 0);
             });
 
+            // Step 2: Get unique sorted months and sales persons
             const months = Object.keys(monthlySales).sort();
             const persons = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown"))).sort();
 
-            const datasets = persons.map(person => ({
+            // Debugging (optional)
+            console.log("Months:", months);
+            console.log("Sales Persons:", persons);
+            console.log("Monthly Sales Data:", monthlySales);
+
+            // Step 3: Generate consistent colors
+            function getColor(index) {
+                const hue = (index * 360 / persons.length) % 360;
+                return `hsl(${hue}, 70%, 50%)`;
+            }
+
+            // Step 4: Prepare datasets
+            const datasets = persons.map((person, index) => ({
                 label: person,
                 data: months.map(month => monthlySales[month][person] || 0),
                 fill: false,
                 spanGaps: true,
                 pointRadius: 4,
                 borderWidth: 2,
-                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                borderColor: getColor(index),
+                backgroundColor: getColor(index),
                 tension: 0.3
             }));
 
+            // Step 5: Create chart
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
-                data: { labels: months, datasets },
+                data: {
+                    labels: months,
+                    datasets: datasets
+                },
                 options: {
                     responsive: true,
                     plugins: {
                         title: {
                             display: true,
                             text: 'Sales Person Monthly Revenue (USD)'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        legend: {
+                            position: 'bottom'
                         }
                     },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
                     scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        },
                         y: {
                             beginAtZero: true,
-                            suggestedMax: 1000,
                             title: {
                                 display: true,
                                 text: 'USD Paid'
