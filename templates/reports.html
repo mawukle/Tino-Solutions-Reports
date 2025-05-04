@@ -173,12 +173,12 @@
             const monthlySales = {};
 
             projectData.forEach(p => {
-                const month = p.start_date ? p.start_date.slice(0, 7) : null;
+                const month = p.start_date ? new Date(p.start_date).toISOString().slice(0, 7) : null;
                 const person = p.sales_person || "Unknown";
                 if (!month) return;
 
                 monthlySales[month] = monthlySales[month] || {};
-                monthlySales[month][person] = (monthlySales[month][person] || 0) + (p.amount_paid || 0);
+                monthlySales[month][person] = (monthlySales[month][person] || 0) + parseFloat(p.amount_paid || 0);
             });
 
             const months = Object.keys(monthlySales).sort();
@@ -194,6 +194,8 @@
                 borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
                 tension: 0.3
             }));
+
+            console.log({ monthlySales, months, persons, datasets }); // DEBUG
 
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
