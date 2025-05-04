@@ -172,23 +172,21 @@
         (() => {
             const monthlySales = {};
 
-            // Step 1: Helper to clean numeric strings
             const parseAmount = val => {
                 if (typeof val === 'number') return val;
                 if (typeof val === 'string') {
-                    // Remove commas, currency symbols, spaces
                     const cleaned = val.replace(/[^\d.-]/g, '');
                     return parseFloat(cleaned) || 0;
                 }
                 return 0;
             };
 
-            // Step 2: Build monthlySales object
+            // Filter out '0000-00' or missing dates
             projectData.forEach(p => {
-                const month = p.start_date ? p.start_date.slice(0, 7) : null;
-                const person = p.sales_person || "Unknown";
-                if (!month) return;
+                if (!p.start_date || p.start_date.startsWith('0000')) return;
 
+                const month = p.start_date.slice(0, 7);
+                const person = p.sales_person || "Unknown";
                 const amount = parseAmount(p.amount_paid);
 
                 if (!monthlySales[month]) monthlySales[month] = {};
@@ -197,17 +195,14 @@
                 monthlySales[month][person] += amount;
             });
 
-            // Step 3: Get sorted months and unique sales persons
             const months = Object.keys(monthlySales).sort();
             const persons = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown"))).sort();
 
-            // Step 4: Generate distinct visible colors
             function getColor(index) {
                 const hue = (index * 360 / persons.length) % 360;
                 return `hsl(${hue}, 70%, 50%)`;
             }
 
-            // Step 5: Prepare datasets
             const datasets = persons.map((person, index) => ({
                 label: person,
                 data: months.map(month => monthlySales[month][person] || 0),
@@ -220,12 +215,11 @@
                 tension: 0.3
             }));
 
-            // Debugging
-            console.log("Months:", months);
+            // Debug output
+            console.log("Filtered Months:", months);
             console.log("Sales Persons:", persons);
-            console.log("Monthly Sales Data:", monthlySales);
+            console.log("Filtered Monthly Sales Data:", monthlySales);
 
-            // Step 6: Create Chart
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
                 data: {
@@ -270,7 +264,7 @@
                 }
             });
         })();
-        
+                
         // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
         (() => {
             const installerMonthly = {};
