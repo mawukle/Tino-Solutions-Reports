@@ -171,8 +171,8 @@
         // Chart 6: Sales Person Monthly Performance (Line Chart)
         (() => {
             const monthlySales = {};
+            const personsSet = new Set();
 
-            // Helper to clean and convert amount strings like "1,000", "UGX 2,000"
             const parseAmount = val => {
                 if (typeof val === 'number') return val;
                 if (typeof val === 'string') {
@@ -183,13 +183,14 @@
                 return 0;
             };
 
-            // Step 1: Aggregate monthly sales by person
             projectData.forEach(p => {
                 if (!p.start_date || p.start_date.startsWith('0000')) return;
 
                 const month = p.start_date.slice(0, 7);
                 const person = p.sales_person || "Unknown";
                 const amount = parseAmount(p.amount_paid);
+
+                personsSet.add(person);
 
                 if (!monthlySales[month]) monthlySales[month] = {};
                 if (!monthlySales[month][person]) monthlySales[month][person] = 0;
@@ -198,16 +199,24 @@
             });
 
             const months = Object.keys(monthlySales).sort();
-            const persons = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown"))).sort();
+            const persons = Array.from(personsSet).sort();
+
+            // Fill in missing data
+            months.forEach(month => {
+                persons.forEach(person => {
+                    if (!monthlySales[month][person]) {
+                        monthlySales[month][person] = 0;
+                    }
+                });
+            });
 
             function getColor(index) {
                 const hue = (index * 360 / persons.length) % 360;
                 return `hsl(${hue}, 70%, 50%)`;
             }
 
-            // Step 2: Prepare datasets
             const datasets = persons.map((person, index) => {
-                const data = months.map(month => monthlySales[month][person] || 0);
+                const data = months.map(month => monthlySales[month][person]);
                 return {
                     label: person,
                     data,
@@ -221,13 +230,11 @@
                 };
             });
 
-            // Debug output
             console.log("Filtered Months:", months);
             console.log("Sales Persons:", persons);
-            console.log("Filtered Monthly Sales Data:", monthlySales);
+            console.log("Fixed Monthly Sales Data:", monthlySales);
             console.log("Datasets:", datasets);
 
-            // Step 3: Render chart
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
                 data: {
@@ -262,43 +269,16 @@
                             }
                         },
                         y: {
-                            beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'USD Paid'
-                            }
+                                text: 'Revenue (USD)'
+                            },
+                            beginAtZero: true
                         }
                     }
                 }
             });
         })();
-
-        <canvas id="testChart" width="800" height="400"></canvas>
-        const ctx = document.getElementById('testChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['2024-12', '2025-01', '2025-02', '2025-03', '2025-04'],
-                datasets: [{
-                    label: 'Postino',
-                    data: [136726.23, 139602.27, 248420.4, 6896.34, 27961.74],
-                    borderColor: 'blue',
-                    backgroundColor: 'blue',
-                    fill: false,
-                    tension: 0.3,
-                    pointRadius: 5,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Test Revenue'
-                    }
-                }
-            }
-        });
 
 
 
