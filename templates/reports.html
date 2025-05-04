@@ -172,34 +172,42 @@
         (() => {
             const monthlySales = {};
 
-            // Step 1: Collect monthly totals per sales person
+            // Step 1: Helper to clean numeric strings
+            const parseAmount = val => {
+                if (typeof val === 'number') return val;
+                if (typeof val === 'string') {
+                    // Remove commas, currency symbols, spaces
+                    const cleaned = val.replace(/[^\d.-]/g, '');
+                    return parseFloat(cleaned) || 0;
+                }
+                return 0;
+            };
+
+            // Step 2: Build monthlySales object
             projectData.forEach(p => {
                 const month = p.start_date ? p.start_date.slice(0, 7) : null;
                 const person = p.sales_person || "Unknown";
                 if (!month) return;
 
+                const amount = parseAmount(p.amount_paid);
+
                 if (!monthlySales[month]) monthlySales[month] = {};
                 if (!monthlySales[month][person]) monthlySales[month][person] = 0;
 
-                monthlySales[month][person] += Number(p.amount_paid || 0);
+                monthlySales[month][person] += amount;
             });
 
-            // Step 2: Get unique sorted months and sales persons
+            // Step 3: Get sorted months and unique sales persons
             const months = Object.keys(monthlySales).sort();
             const persons = Array.from(new Set(projectData.map(p => p.sales_person || "Unknown"))).sort();
 
-            // Debugging (optional)
-            console.log("Months:", months);
-            console.log("Sales Persons:", persons);
-            console.log("Monthly Sales Data:", monthlySales);
-
-            // Step 3: Generate consistent colors
+            // Step 4: Generate distinct visible colors
             function getColor(index) {
                 const hue = (index * 360 / persons.length) % 360;
                 return `hsl(${hue}, 70%, 50%)`;
             }
 
-            // Step 4: Prepare datasets
+            // Step 5: Prepare datasets
             const datasets = persons.map((person, index) => ({
                 label: person,
                 data: months.map(month => monthlySales[month][person] || 0),
@@ -212,7 +220,12 @@
                 tension: 0.3
             }));
 
-            // Step 5: Create chart
+            // Debugging
+            console.log("Months:", months);
+            console.log("Sales Persons:", persons);
+            console.log("Monthly Sales Data:", monthlySales);
+
+            // Step 6: Create Chart
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
                 data: {
@@ -257,7 +270,7 @@
                 }
             });
         })();
-
+        
         // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
         (() => {
             const installerMonthly = {};
