@@ -4550,7 +4550,7 @@ def reports():
             data.append({
                 "start_date": safe_date_format(p.start_date),
                 "commissioning_date": safe_date_format(p.commissioning_date),
-                "sales_person": (p.sales_person or "Unknown").strip().title(),
+                "sales_person": p.sales_person or "Unknown",
                 "lead_installer": getattr(p, 'lead_installer', "Unknown"),
                 "town": p.town,
                 "invoice_amount": round(invoice_usd, 2),

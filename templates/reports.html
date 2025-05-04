@@ -220,11 +220,6 @@
 
             const datasets = persons.map((person, index) => {
                 const data = months.map(month => monthlySales[month][person]);
-                    const value = monthlySales[month][person];
-                    console.log(`Person: ${person}, Month: ${month}, Value: ${value}`);
-                    return value;
-                };
-
                 return {
                     label: person,
                     data: data,
