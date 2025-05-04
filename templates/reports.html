@@ -272,7 +272,36 @@
                 }
             });
         })();
-                        
+
+        <canvas id="testChart" width="800" height="400"></canvas>
+        const ctx = document.getElementById('testChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['2024-12', '2025-01', '2025-02', '2025-03', '2025-04'],
+                datasets: [{
+                    label: 'Postino',
+                    data: [136726.23, 139602.27, 248420.4, 6896.34, 27961.74],
+                    borderColor: 'blue',
+                    backgroundColor: 'blue',
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Test Revenue'
+                    }
+                }
+            }
+        });
+
+
+
         // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
         (() => {
             const installerMonthly = {};
