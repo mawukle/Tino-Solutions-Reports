@@ -4544,6 +4544,9 @@ def reports():
             paid_usd = float(p.amount_paid or 0) / rate
             balance_usd = invoice_usd - paid_usd
 
+            print(f"{p.sales_person} | Raw Paid: {p.amount_paid} | USD: {paid_usd}")
+
+
             data.append({
                 "start_date": safe_date_format(p.start_date),
                 "commissioning_date": safe_date_format(p.commissioning_date),
