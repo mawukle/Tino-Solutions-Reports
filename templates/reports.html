@@ -172,16 +172,18 @@
         (() => {
             const monthlySales = {};
 
+            // Helper to clean and convert amount strings like "1,000", "UGX 2,000"
             const parseAmount = val => {
                 if (typeof val === 'number') return val;
                 if (typeof val === 'string') {
                     const cleaned = val.replace(/[^\d.-]/g, '');
-                    return parseFloat(cleaned) || 0;
+                    const parsed = parseFloat(cleaned);
+                    return isNaN(parsed) ? 0 : parsed;
                 }
                 return 0;
             };
 
-            // Filter out '0000-00' or missing dates
+            // Step 1: Aggregate monthly sales by person
             projectData.forEach(p => {
                 if (!p.start_date || p.start_date.startsWith('0000')) return;
 
@@ -203,28 +205,34 @@
                 return `hsl(${hue}, 70%, 50%)`;
             }
 
-            const datasets = persons.map((person, index) => ({
-                label: person,
-                data: months.map(month => monthlySales[month][person] || 0),
-                fill: false,
-                spanGaps: true,
-                pointRadius: 4,
-                borderWidth: 2,
-                borderColor: getColor(index),
-                backgroundColor: getColor(index),
-                tension: 0.3
-            }));
+            // Step 2: Prepare datasets
+            const datasets = persons.map((person, index) => {
+                const data = months.map(month => monthlySales[month][person] || 0);
+                return {
+                    label: person,
+                    data,
+                    fill: false,
+                    spanGaps: true,
+                    pointRadius: 4,
+                    borderWidth: 2,
+                    borderColor: getColor(index),
+                    backgroundColor: getColor(index),
+                    tension: 0.3
+                };
+            });
 
             // Debug output
             console.log("Filtered Months:", months);
             console.log("Sales Persons:", persons);
             console.log("Filtered Monthly Sales Data:", monthlySales);
+            console.log("Datasets:", datasets);
 
+            // Step 3: Render chart
             new Chart(document.getElementById('salesPersonMonthlyChart'), {
                 type: 'line',
                 data: {
                     labels: months,
-                    datasets: datasets
+                    datasets
                 },
                 options: {
                     responsive: true,
@@ -264,7 +272,7 @@
                 }
             });
         })();
-                
+                        
         // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
         (() => {
             const installerMonthly = {};
