@@ -4546,6 +4546,9 @@ def reports():
 
         for proj in projects_data:
             # Safely parse commissioning_date if it's a string
+            if not proj.commissioning_date or proj.commissioning_date in ['0000-00-00', '', None]:
+                continue  # skip this project
+
             if isinstance(proj.commissioning_date, str):
                 commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d')
             else:
