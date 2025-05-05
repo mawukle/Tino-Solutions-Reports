@@ -4584,7 +4584,77 @@ def reports():
             for sp in revenue_data
         }
 
-        return render_template('reports.html', labels=chart_labels, data=chart_data)
+        # Initialize new structures
+        invoice_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month: invoice amount}
+        status_data = defaultdict(lambda: defaultdict(int))     # status -> {month: count}
+        completed_per_installer = defaultdict(lambda: defaultdict(int))  # installer -> {month: count}
+        kva_per_installer = defaultdict(lambda: defaultdict(float))
+        kwh_per_installer = defaultdict(lambda: defaultdict(float))
+        kwp_per_installer = defaultdict(lambda: defaultdict(float))
+
+        for proj in projects_data:
+            # Ensure valid date
+            try:
+                commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
+                    if isinstance(proj.commissioning_date, str) else proj.commissioning_date
+                month_year = commissioning_date.strftime('%Y-%m')
+            except:
+                continue
+
+            # Convert invoice amount to USD if needed
+            invoice_amount = float(proj.invoice_amount) if proj.invoice_amount else 0
+            if proj.currency and proj.currency.strip().upper() == 'GHC':
+                invoice_amount = invoice_amount / exchange_rate
+
+            # Total invoice amount per sales person
+            if proj.sales_person:
+                invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
+
+            # Project status tracking
+            start = proj.start_date
+            end = proj.commissioning_date
+            if not start or start in ['0000-00-00', '', None]:
+                status_data['New'][month_year] += 1
+            elif start and (not end or end in ['0000-00-00', '', None]):
+                status_data['Ongoing'][month_year] += 1
+            elif end:
+                status_data['Completed'][month_year] += 1
+
+            # Completed projects per lead installer
+            if proj.lead_installer and proj.commissioning_date:
+                completed_per_installer[proj.lead_installer][month_year] += 1
+
+                # Totals per installer
+                if proj.kVA: kva_per_installer[proj.lead_installer][month_year] += float(proj.kVA)
+                if proj.kWh: kwh_per_installer[proj.lead_installer][month_year] += float(proj.kWh)
+                if proj.kWp: kwp_per_installer[proj.lead_installer][month_year] += float(proj.kWp)
+
+        # Get all unique months
+        all_months = sorted({month for d in [
+            revenue_data, invoice_data, status_data,
+            completed_per_installer, kva_per_installer,
+            kwh_per_installer, kwp_per_installer
+        ] for val in d.values() for month in val})
+
+        def fill_chart_series(data_dict, all_months):
+            return {
+                key: [round(data_dict[key].get(month, 0), 2) for month in all_months]
+                for key in data_dict
+            }
+
+        # Convert all datasets to monthly series
+        chart_data = {
+            'revenue': fill_chart_series(revenue_data, all_months),
+            'invoice': fill_chart_series(invoice_data, all_months),
+            'status': fill_chart_series(status_data, all_months),
+            'completed_per_installer': fill_chart_series(completed_per_installer, all_months),
+            'kva_per_installer': fill_chart_series(kva_per_installer, all_months),
+            'kwh_per_installer': fill_chart_series(kwh_per_installer, all_months),
+            'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months)
+        }
+
+
+        return render_template('reports.html', labels=all_months, data=chart_data)
 
     except Exception as e:
         logging.error(f"Error generating reports: {e}")

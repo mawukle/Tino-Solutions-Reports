@@ -68,6 +68,12 @@
 
     <!-- Chart -->
     <canvas id="revenueChart"></canvas>
+    <canvas id="invoiceChart"></canvas>
+    <canvas id="statusChart"></canvas>
+    <canvas id="completedInstallerChart"></canvas>
+    <canvas id="kvaChart"></canvas>
+    <canvas id="kwhChart"></canvas>
+    <canvas id="kwpChart"></canvas>
 
     <!-- PDF Download -->
     <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
@@ -75,7 +81,8 @@
 
 <script>
     const labels = {{ labels | tojson }};
-    const originalData = {{ data | tojson }};
+    const allData = {{ data | tojson }};
+    const chartInstances = {};
     const colors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8',
         '#f58231', '#911eb4', '#46f0f0', '#f032e6',
@@ -136,6 +143,52 @@
         chartInstance = new Chart(ctx, config);
     }
 
+    function buildChart(canvasId, title, yLabel, datasetObj) {
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        const datasets = Object.entries(datasetObj).map(([label, data], i) => ({
+            label,
+            data,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: colors[i % colors.length]
+        }));
+
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function applyFilters() {
         const selectedPerson = document.getElementById("salesPersonSelect").value;
         const fromMonth = document.getElementById("fromMonth").value;
@@ -178,7 +231,13 @@
     }
 
     // Initial load
-    buildChart(originalData, labels);
+    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', allData.revenue);
+    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', allData.invoice);
+    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', allData.status);
+    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', allData.completed_per_installer);
+    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', allData.kva_per_installer);
+    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', allData.kwh_per_installer);
+    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', allData.kwp_per_installer);
 </script>
 </body>
 </html>
