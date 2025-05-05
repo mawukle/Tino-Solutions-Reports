@@ -91,7 +91,7 @@
 
     let chartInstance;
 
-    function buildChart(filteredData, filteredLabels) {
+    function buildFilteredChart(filteredData, filteredLabels) {
         if (chartInstance) chartInstance.destroy();
 
         const datasets = Object.entries(filteredData).map(([person, values], i) => ({
@@ -215,7 +215,7 @@
             });
         }
 
-        buildChart(filteredData, filteredLabels);
+        buildFilteredChart(filteredData, filteredLabels);
     }
 
     function downloadPDF() {
