@@ -4542,12 +4542,25 @@ def reports():
             projects.sales_person,
             projects.commissioning_date,
             projects.amount_paid,
-            projects.currency
+            projects.invoice_amount,  # ← Add this
+            projects.currency,
+            projects.lead_installer,
+            projects.start_date,
+            projects.kVA,
+            projects.kWh,
+            projects.kWp
         ).filter(
             projects.sales_person.isnot(None),
             projects.commissioning_date.isnot(None),
             projects.amount_paid.isnot(None),
-            projects.currency.isnot(None)
+            projects.invoice_amount.isnot(None),  # ← Add this
+            projects.currency.isnot(None),
+            projects.lead_installer.isnot(None),
+            projects.start_date.isnot(None),
+            projects.kVA.isnot(None),
+            projects.kWh.isnot(None),
+            projects.kWp.isnot(None)
+
         ).all()
 
         # Process data to calculate monthly revenue per sales person
