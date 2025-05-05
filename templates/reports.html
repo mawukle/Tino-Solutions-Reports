@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         .container_1 {
             padding: 20px;
@@ -17,42 +18,88 @@
         .message {
             color: red;
         }
+        .filters {
+            margin: 10px 0;
+        }
+        select, input[type="month"] {
+            margin-right: 10px;
+            padding: 4px;
+        }
+        .button-download {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="container_1">
-        <img src="/static/logo.png" alt="Logo" class="logo">
-        <a href="/projects" class="back-link">← Back to Projects</a>
-        <h1>TINO SOLUTIONS LIMITED<br>MONTHLY SALES REPORT</h1>
+<div class="container_1">
+    <img src="/static/logo.png" alt="Logo" class="logo">
+    <a href="/projects" class="back-link">← Back to Projects</a>
+    <h1>TINO SOLUTIONS LIMITED<br>MONTHLY SALES REPORT</h1>
 
-        {% if message %}
-        <p class="message">{{ message }}</p>
-        {% endif %}
+    {% if message %}
+    <p class="message">{{ message }}</p>
+    {% endif %}
 
-        <canvas id="revenueChart"></canvas>
+    <!-- Filters -->
+    <div class="filters">
+        <label for="salesPersonSelect">Sales Person:</label>
+        <select id="salesPersonSelect">
+            <option value="all">All</option>
+            {% for person in data.keys() %}
+            <option value="{{ person }}">{{ person }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="fromMonth">From:</label>
+        <input type="month" id="fromMonth">
+
+        <label for="toMonth">To:</label>
+        <input type="month" id="toMonth">
+
+        <button onclick="applyFilters()">Apply Filters</button>
     </div>
 
-    <script>
-        const labels = {{ labels | tojson }};
-        const data = {
-            labels: labels,
-            datasets: [
-                {% for person, values in data.items() %}
-                {
-                    label: "{{ person }}",
-                    data: {{ values | tojson }},
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3,
-                    borderColor: `hsl({{ loop.index0 * 60 }}, 70%, 50%)`
-                },
-                {% endfor %}
-            ]
-        };
+    <!-- Chart -->
+    <canvas id="revenueChart"></canvas>
+
+    <!-- PDF Download -->
+    <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
+</div>
+
+<script>
+    const labels = {{ labels | tojson }};
+    const originalData = {{ data | tojson }};
+    const colors = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8',
+        '#f58231', '#911eb4', '#46f0f0', '#f032e6',
+        '#bcf60c', '#fabebe', '#008080', '#e6beff'
+    ];
+
+    let chartInstance;
+
+    function buildChart(filteredData, filteredLabels) {
+        if (chartInstance) chartInstance.destroy();
+
+        const datasets = Object.entries(filteredData).map(([person, values], i) => ({
+            label: person,
+            data: values,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: colors[i % colors.length]
+        }));
 
         const config = {
             type: 'line',
-            data: data,
+            data: {
+                labels: filteredLabels,
+                datasets: datasets
+            },
             options: {
                 responsive: true,
                 plugins: {
@@ -82,7 +129,53 @@
             }
         };
 
-        new Chart(document.getElementById('revenueChart'), config);
-    </script>
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        chartInstance = new Chart(ctx, config);
+    }
+
+    function applyFilters() {
+        const selectedPerson = document.getElementById("salesPersonSelect").value;
+        const fromMonth = document.getElementById("fromMonth").value;
+        const toMonth = document.getElementById("toMonth").value;
+
+        const filteredLabels = labels.filter(label => {
+            if (fromMonth && label < fromMonth) return false;
+            if (toMonth && label > toMonth) return false;
+            return true;
+        });
+
+        let filteredData = {};
+        if (selectedPerson === "all") {
+            for (const person in originalData) {
+                filteredData[person] = filteredLabels.map(month => {
+                    const idx = labels.indexOf(month);
+                    return originalData[person][idx] ?? 0;
+                });
+            }
+        } else {
+            filteredData[selectedPerson] = filteredLabels.map(month => {
+                const idx = labels.indexOf(month);
+                return originalData[selectedPerson][idx] ?? 0;
+            });
+        }
+
+        buildChart(filteredData, filteredLabels);
+    }
+
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const canvas = document.getElementById('revenueChart');
+        const chartImg = canvas.toDataURL("image/jpeg", 1.0);
+        const pdf = new jsPDF();
+
+        pdf.setFontSize(18);
+        pdf.text("Monthly Sales Report", 15, 20);
+        pdf.addImage(chartImg, 'JPEG', 10, 30, 190, 100);
+        pdf.save("monthly_sales_report.pdf");
+    }
+
+    // Initial load
+    buildChart(originalData, labels);
+</script>
 </body>
 </html>
