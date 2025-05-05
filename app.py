@@ -4524,6 +4524,16 @@ def safe_date_format(value):
 
 import requests
 
+def get_usd_to_ghc_rate():
+    try:
+        response = requests.get("https://api.exchangerate-api.com/v4/latest/USD")
+        data = response.json()
+        return data["rates"].get("GHS", 1)  # default to 1 if not found
+    except Exception as e:
+        logging.error(f"Error fetching exchange rate: {e}")
+        return 1  # Fallback to 1 to avoid crashes
+
+
 @app.route('/reports')
 def reports():
     try:
@@ -4531,11 +4541,13 @@ def reports():
         projects_data = db.session.query(
             projects.sales_person,
             projects.commissioning_date,
-            projects.amount_paid
+            projects.amount_paid,
+            projects.currency
         ).filter(
             projects.sales_person.isnot(None),
             projects.commissioning_date.isnot(None),
-            projects.amount_paid.isnot(None)
+            projects.amount_paid.isnot(None),
+            projects.currency.isnot(None)
         ).all()
 
         # Process data to calculate monthly revenue per sales person
@@ -4544,18 +4556,24 @@ def reports():
 
         revenue_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month-year: revenue}
 
+        exchange_rate = get_usd_to_ghc_rate()  # e.g., 1 USD = 12 GHS
+
         for proj in projects_data:
-            # Safely parse commissioning_date if it's a string
+            # Skip invalid dates
             if not proj.commissioning_date or proj.commissioning_date in ['0000-00-00', '', None]:
-                continue  # skip this project
+                continue
 
-            if isinstance(proj.commissioning_date, str):
-                commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d')
-            else:
-                commissioning_date = proj.commissioning_date
-
+            # Convert commissioning_date safely
+            commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
+                if isinstance(proj.commissioning_date, str) else proj.commissioning_date
             month_year = commissioning_date.strftime('%Y-%m')
-            revenue_data[proj.sales_person][month_year] += float(proj.amount_paid)
+
+            # Convert amount to USD if needed
+            amount_paid = float(proj.amount_paid)
+            if proj.currency.strip().upper() == 'GHC':
+                amount_paid = amount_paid / exchange_rate  # Convert to USD
+
+            revenue_data[proj.sales_person][month_year] += round(amount_paid, 2)
         # Extract all unique months in sorted order
         all_months = sorted({month for sp_data in revenue_data.values() for month in sp_data})
 
