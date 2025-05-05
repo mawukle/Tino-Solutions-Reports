@@ -4545,9 +4545,14 @@ def reports():
         revenue_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month-year: revenue}
 
         for proj in projects_data:
-            month_year = proj.commissioning_date.strftime('%Y-%m')  # e.g., '2025-03'
-            revenue_data[proj.sales_person][month_year] += float(proj.amount_paid)
+            # Safely parse commissioning_date if it's a string
+            if isinstance(proj.commissioning_date, str):
+                commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d')
+            else:
+                commissioning_date = proj.commissioning_date
 
+            month_year = commissioning_date.strftime('%Y-%m')
+            revenue_data[proj.sales_person][month_year] += float(proj.amount_paid)
         # Extract all unique months in sorted order
         all_months = sorted({month for sp_data in revenue_data.values() for month in sp_data})
 
