@@ -12,8 +12,10 @@
             padding: 20px;
         }
         canvas {
-            max-width: 100%;
-            height: auto;
+            width: 100% !important;
+            height: auto !important; /* remove or override */
+            aspect-ratio: 1 / 1; /* new addition */
+            max-width: 800px;
         }
         .message {
             color: red;
@@ -102,6 +104,7 @@
             },
             options: {
                 responsive: true,
+                aspectRatio: 1,
                 plugins: {
                     title: {
                         display: true,
