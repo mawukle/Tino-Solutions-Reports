@@ -162,6 +162,9 @@ class projects(db.Model):
     expected_final_payment_date = db.Column(db.DATE, nullable=True)
     comment = db.Column(db.TEXT, nullable=True)
     folder_has_files = db.Column(db.Boolean, default=False)  # <- Added this line
+    kVA = db.Column(db.Float, default=0)
+    kWh = db.Column(db.Float, default=0)
+    kWp = db.Column(db.Float, default=0)
 
 
     def __repr__(self):
