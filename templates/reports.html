@@ -2,357 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Project Reports</title>
+    <title>Revenue Reports</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        canvas { margin: 40px auto; display: block; }
-        .chart-container { width: 90%; margin: auto; }
-        button { margin: 20px; display: block; }
+        .container_1 {
+            padding: 20px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .message {
+            color: red;
+        }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Tino Solutions Management Report</h1>
-    <button onclick="downloadPDF()">Download PDF</button>
+    <div class="container_1">
+        <img src="/static/logo.png" alt="Logo" class="logo">
+        <a href="/projects" class="back-link">← Back to Projects</a>
+        <h1>TINO SOLUTIONS LIMITED<br>MONTHLY SALES REPORT</h1>
 
-    <div class="chart-container"><canvas id="invoiceVsPaidChart"></canvas></div>
-    <div class="chart-container"><canvas id="balanceDistributionChart"></canvas></div>
-    <div class="chart-container"><canvas id="statusBreakdownChart"></canvas></div>
-    <div class="chart-container"><canvas id="revenueBySalesChart"></canvas></div>
-    <div class="chart-container"><canvas id="startCompletionTrendsChart"></canvas></div>
-    <div class="chart-container"><canvas id="salesPersonMonthlyChart"></canvas></div>
-    <div class="chart-container"><canvas id="installerMonthlyChart"></canvas></div>
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
 
+        <canvas id="revenueChart"></canvas>
+    </div>
 
     <script>
-        const projectData = {{ project_data | safe }};
-
-        function groupBy(arr, key) {
-            return arr.reduce((acc, obj) => {
-                const val = obj[key] || 'Unknown';
-                acc[val] = acc[val] || [];
-                acc[val].push(obj);
-                return acc;
-            }, {});
-        }
-
-        function sum(arr, key) {
-            return arr.reduce((a, b) => a + (b[key] || 0), 0);
-        }
-
-        // Chart 1: Invoice vs Paid by Month
-        (() => {
-            const monthly = {};
-
-            projectData.forEach(p => {
-                const month = p.start_date ? p.start_date.slice(0, 7) : null;
-                if (!month) return;
-
-                if (!monthly[month]) {
-                    monthly[month] = { invoice_amount: 0, amount_paid: 0 };
-                }
-
-                monthly[month].invoice_amount += p.invoice_amount || 0;
-                monthly[month].amount_paid += p.amount_paid || 0;
-            });
-
-            const labels = Object.keys(monthly).sort();
-            const invoiceData = labels.map(m => monthly[m].invoice_amount);
-            const paidData = labels.map(m => monthly[m].amount_paid);
-
-            new Chart(document.getElementById('invoiceVsPaidChart'), {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Invoice Amount (USD)', data: invoiceData, backgroundColor: 'rgba(255,99,132,0.6)' },
-                        { label: 'Amount Paid (USD)', data: paidData, backgroundColor: 'rgba(75,192,192,0.6)' }
-                    ]
-                },
-                options: { responsive: true }
-            });
-        })();
-
-        // Chart 2: Outstanding Balance Distribution
-        (() => {
-            const low = projectData.filter(p => p.outstanding_balance > 0 && p.outstanding_balance < 500).length;
-            const mid = projectData.filter(p => p.outstanding_balance >= 500 && p.outstanding_balance <= 2000).length;
-            const high = projectData.filter(p => p.outstanding_balance > 2000).length;
-            const none = projectData.filter(p => p.outstanding_balance <= 0).length;
-
-            new Chart(document.getElementById('balanceDistributionChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['<$500', '$500–$2000', '>$2000', 'No Balance'],
-                    datasets: [{
-                        data: [low, mid, high, none],
-                        backgroundColor: ['#ffc107', '#17a2b8', '#dc3545', '#28a745']
-                    }]
-                }
-            });
-        })();
-
-        // Chart 3: Project Status Breakdown
-        (() => {
-            const newProjects = projectData.filter(p => !p.start_date && !p.commissioning_date).length;
-            const ongoing = projectData.filter(p => p.start_date && !p.commissioning_date).length;
-            const completed = projectData.filter(p => p.start_date && p.commissioning_date).length;
-
-            new Chart(document.getElementById('statusBreakdownChart'), {
-                type: 'pie',
-                data: {
-                    labels: ['New', 'Ongoing', 'Completed'],
-                    datasets: [{
-                        data: [newProjects, ongoing, completed],
-                        backgroundColor: ['#6c757d', '#007bff', '#28a745']
-                    }]
-                }
-            });
-        })();
-
-        // Chart 4: Revenue Over Time
-        (() => {
-            const monthlyRevenue = {};
-
-            projectData.forEach(p => {
-                const month = p.commissioning_date ? p.commissioning_date.slice(0, 7) : null;
-                if (!month) return;
-                if (!monthlyRevenue[month]) monthlyRevenue[month] = 0;
-                monthlyRevenue[month] += p.amount_paid || 0;
-            });
-
-            const labels = Object.keys(monthlyRevenue).sort();
-            const revenueData = labels.map(m => monthlyRevenue[m]);
-
-            new Chart(document.getElementById('revenueBySalesChart'), {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Revenue (Paid in USD)',
-                        data: revenueData,
-                        borderColor: 'rgba(54,162,235,1)',
-                        backgroundColor: 'rgba(54,162,235,0.2)',
-                        fill: true
-                    }]
-                }
-            });
-        })();
-
-
-        // Chart 5: Start and Completion Trends
-        (() => {
-            const months = {};
-            projectData.forEach(p => {
-                const start = p.start_date ? p.start_date.slice(0, 7) : null;
-                const end = p.commissioning_date ? p.commissioning_date.slice(0, 7) : null;
-                if (start) months[start] = months[start] || { started: 0, completed: 0 };
-                if (end) months[end] = months[end] || { started: 0, completed: 0 };
-                if (start) months[start].started += 1;
-                if (end) months[end].completed += 1;
-            });
-
-            const sortedMonths = Object.keys(months).sort();
-            const started = sortedMonths.map(m => months[m].started);
-            const completed = sortedMonths.map(m => months[m].completed);
-
-            new Chart(document.getElementById('startCompletionTrendsChart'), {
-                type: 'line',
-                data: {
-                    labels: sortedMonths,
-                    datasets: [
-                        { label: 'Started', data: started, borderColor: 'orange', fill: false },
-                        { label: 'Completed', data: completed, borderColor: 'green', fill: false }
-                    ]
-                }
-            });
-        })();
-
-        // Chart 6: Sales Person Monthly Performance (Line Chart)
-        (() => {
-            const monthlySales = {};
-            const personsSet = new Set();
-
-            const parseAmount = val => {
-                if (typeof val === 'number') return val;
-                if (typeof val === 'string') {
-                    const cleaned = val.replace(/[^\d.-]/g, '');
-                    const parsed = parseFloat(cleaned);
-                    return isNaN(parsed) ? 0 : parsed;
-                }
-                return 0;
-            };
-
-            projectData.forEach(p => {
-                if (!p.start_date || p.start_date.startsWith('0000')) return;
-
-                const month = p.start_date.slice(0, 7);
-                const person = p.sales_person || "Unknown";
-                const amount = parseAmount(p.amount_paid);
-
-                //console.log(`${person} | Paid: ${p.amount_paid} | USD Paid: ${amount}`);
-
-
-                personsSet.add(person);
-
-                if (!monthlySales[month]) monthlySales[month] = {};
-                if (!monthlySales[month][person]) monthlySales[month][person] = 0;
-
-                monthlySales[month][person] += amount;
-            });
-
-            const months = Object.keys(monthlySales).sort();
-            const persons = Array.from(personsSet).sort();
-
-            // Fill in missing data
-            months.forEach(month => {
-                persons.forEach(person => {
-                    if (!monthlySales[month][person]) {
-                        monthlySales[month][person] = 0;
-                    }
-                });
-            });
-
-            function getColor(index) {
-                const hue = (index * 360 / persons.length) % 360;
-                return `hsl(${hue}, 70%, 50%)`;
-            }
-
-            const datasets = persons.map((person, index) => {
-                const data = months.map(month => monthlySales[month][person]);
-                return {
-                    label: person,
-                    data: data,
-                    fill: false,
-                    spanGaps: true,
-                    pointRadius: 4,
+        const labels = {{ labels | tojson }};
+        const data = {
+            labels: labels,
+            datasets: [
+                {% for person, values in data.items() %}
+                {
+                    label: "{{ person }}",
+                    data: {{ values | tojson }},
                     borderWidth: 2,
-                    borderColor: getColor(index),
-                    backgroundColor: getColor(index),
-                    tension: 0.3
-                };
-            });
-
-            console.log("Filtered Months:", months);
-            console.log("Sales Persons:", persons);
-            console.log("Fixed Monthly Sales Data:", monthlySales);
-            console.log("Datasets:", datasets);
-
-            new Chart(document.getElementById('salesPersonMonthlyChart'), {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: datasets
+                    fill: false,
+                    tension: 0.3,
+                    borderColor: `hsl({{ loop.index0 * 60 }}, 70%, 50%)`
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
+                {% endfor %}
+            ]
+        };
+
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Total Revenue by Sales Person (Month-on-Month)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Sales Person Monthly Revenue (USD)'
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        legend: {
-                            position: 'bottom'
+                            text: 'Amount Paid (Revenue)'
                         }
                     },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Month'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Revenue (USD)'
-                            },
-                            beginAtZero: true
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
                         }
                     }
                 }
-            });
-        })();
-
-
-
-        // Chart 7: Lead Installer Monthly Projects Started (Line Chart)
-        (() => {
-            const installerMonthly = {};
-
-            projectData.forEach(p => {
-                const month = p.start_date ? p.start_date.slice(0, 7) : null;
-                const installer = p.lead_installer || "Unknown";
-                if (!month) return;
-
-                installerMonthly[month] = installerMonthly[month] || {};
-                installerMonthly[month][installer] = (installerMonthly[month][installer] || 0) + 1;
-            });
-
-            const months = Object.keys(installerMonthly).sort();
-            const installers = Array.from(new Set(projectData.map(p => p.lead_installer || "Unknown"))).sort();
-
-            const datasets = installers.map(installer => ({
-                label: installer,
-                data: months.map(month => installerMonthly[month][installer] || 0),
-                fill: false,
-                spanGaps: true,
-                pointRadius: 4,
-                borderWidth: 2,
-                borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
-                tension: 0.3
-            }));
-
-            new Chart(document.getElementById('installerMonthlyChart'), {
-                type: 'line',
-                data: { labels: months, datasets },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Lead Installer Projects Started per Month'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            suggestedMax: 10,
-                            title: {
-                                display: true,
-                                text: 'Projects Started'
-                            }
-                        }
-                    }
-                }
-            });
-        })();
-
-
-        // Download to PDF
-        async function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const charts = document.querySelectorAll('canvas');
-
-            for (let i = 0; i < charts.length; i++) {
-                const chart = charts[i];
-                const imgData = chart.toDataURL('image/png', 1.0);
-                if (i !== 0) pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 10, 10, 190, 100);
             }
+        };
 
-            pdf.save('TinoSolutions_Management_Report.pdf');
-        }
+        new Chart(document.getElementById('revenueChart'), config);
     </script>
 </body>
 </html>

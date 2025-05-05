@@ -4524,46 +4524,45 @@ def safe_date_format(value):
 
 import requests
 
-@app.route('/reports', methods=['GET'])
+@app.route('/reports')
 def reports():
     try:
-        exchange_api_url = 'https://api.exchangerate-api.com/v4/latest/USD'
-        response = requests.get(exchange_api_url)
-        if response.status_code != 200:
-            raise Exception("Failed to fetch exchange rate.")
-        exchange_data = response.json()
-        usd_to_ghs = exchange_data['rates'].get('GHS')
-        if not usd_to_ghs:
-            raise Exception("USD to GHS exchange rate not found.")
+        # Get all completed projects (with valid commissioning date and invoice info)
+        projects_data = db.session.query(
+            projects.sales_person,
+            projects.commissioning_date,
+            projects.amount_paid
+        ).filter(
+            projects.sales_person.isnot(None),
+            projects.commissioning_date.isnot(None),
+            projects.amount_paid.isnot(None)
+        ).all()
 
-        projects_list = db.session.query(projects).all()
-        data = []
-        for p in projects_list:
-            rate = usd_to_ghs if p.currency == 'GHC' else 1
-            invoice_usd = float(p.invoice_amount or 0) / rate
-            paid_usd = float(p.amount_paid or 0) / rate
-            balance_usd = invoice_usd - paid_usd
+        # Process data to calculate monthly revenue per sales person
+        from collections import defaultdict
+        import calendar
 
-            print(f"{p.sales_person} | Raw Paid: {p.amount_paid} | USD: {paid_usd}")
+        revenue_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month-year: revenue}
 
+        for proj in projects_data:
+            month_year = proj.commissioning_date.strftime('%Y-%m')  # e.g., '2025-03'
+            revenue_data[proj.sales_person][month_year] += float(proj.amount_paid)
 
-            data.append({
-                "start_date": safe_date_format(p.start_date),
-                "commissioning_date": safe_date_format(p.commissioning_date),
-                "sales_person": p.sales_person or "Unknown",
-                "lead_installer": getattr(p, 'lead_installer', "Unknown"),
-                "town": p.town,
-                "invoice_amount": round(invoice_usd, 2),
-                "amount_paid": round(paid_usd, 2),
-                "expected_final_payment_date": safe_date_format(p.expected_final_payment_date),
-                "outstanding_balance": round(balance_usd, 2)
-            })
+        # Extract all unique months in sorted order
+        all_months = sorted({month for sp_data in revenue_data.values() for month in sp_data})
 
-        return render_template("reports.html", project_data=json.dumps(data))
+        # Prepare chart data
+        chart_labels = all_months
+        chart_data = {
+            sp: [round(revenue_data[sp].get(month, 0), 2) for month in all_months]
+            for sp in revenue_data
+        }
+
+        return render_template('reports.html', labels=chart_labels, data=chart_data)
 
     except Exception as e:
         logging.error(f"Error generating reports: {e}")
-        return render_template("reports.html", project_data="[]", error="Could not load data.")
+        return render_template('reports.html', message='Failed to load report', labels=[], data={})
 
 
 
