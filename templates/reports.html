@@ -146,23 +146,28 @@
     function buildChart(canvasId, title, yLabel, datasetObj) {
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        const labelsX = Object.keys(datasetObj);
-        const data = labelsX.map(label => {
-            const monthlyValues = datasetObj[label] || [];
-            return monthlyValues.reduce((sum, val) => sum + val, 0); // Cumulative value across all months
+        const xLabels = Object.keys(datasetObj);  // e.g., sales persons or installers
+        const datasets = [];
+
+        if (xLabels.length === 0 || labels.length === 0) return;
+
+        labels.forEach((month, i) => {
+            const data = xLabels.map(person => datasetObj[person][i] ?? 0);
+            datasets.push({
+                label: month,
+                data: data,
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1,
+                stack: 'stack1'  // Important for stacking
+            });
         });
 
         const ctx = document.getElementById(canvasId).getContext('2d');
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labelsX,
-                datasets: [{
-                    label: title,
-                    data: data,
-                    backgroundColor: labelsX.map((_, i) => colors[i % colors.length]),
-                    borderWidth: 1
-                }]
+                labels: xLabels,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -178,12 +183,14 @@
                 },
                 scales: {
                     x: {
+                        stacked: true,  // ← enable stacking on x
                         title: {
                             display: true,
                             text: 'Legend Items (e.g., Sales Persons)'
                         }
                     },
                     y: {
+                        stacked: true,  // ← enable stacking on y
                         beginAtZero: true,
                         title: {
                             display: true,
@@ -237,15 +244,13 @@
     }
 
     // Initial load
-    window.onload = function () {
-        buildFilteredChart(allData.revenue, labels);
-        buildChart("invoiceChart", "Total Invoice Amount per Sales Person (Cumulative)", "Invoice Amount (USD)", allData.invoice);
-        buildChart("statusChart", "Project Status Count (Cumulative)", "Number of Projects", allData.status);
-        buildChart("completedInstallerChart", "Projects Completed per Installer (Cumulative)", "Completed Projects", allData.completed_per_installer);
-        buildChart("kvaChart", "Total kVA Installed per Installer (Cumulative)", "kVA", allData.kva_per_installer);
-        buildChart("kwhChart", "Total kWh Installed per Installer (Cumulative)", "kWh", allData.kwh_per_installer);
-        buildChart("kwpChart", "Total kWp Installed per Installer (Cumulative)", "kWp", allData.kwp_per_installer);
-    };
+    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', allData.revenue);
+    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', allData.invoice);
+    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', allData.status);
+    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', allData.completed_per_installer);
+    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', allData.kva_per_installer);
+    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', allData.kwh_per_installer);
+    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', allData.kwp_per_installer);
 </script>
 </body>
 </html>
