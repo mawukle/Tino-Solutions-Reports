@@ -219,28 +219,12 @@
         const fromMonth = document.getElementById("fromMonth").value;
         const toMonth = document.getElementById("toMonth").value;
 
-        const filteredLabels = labels.filter(label => {
-            if (fromMonth && label < fromMonth) return false;
-            if (toMonth && label > toMonth) return false;
-            return true;
-        });
+        const url = new URL(window.location.href);
+        url.searchParams.set("sales_person", selectedPerson);
+        if (fromMonth) url.searchParams.set("from", fromMonth);
+        if (toMonth) url.searchParams.set("to", toMonth);
 
-        let filteredData = {};
-        if (selectedPerson === "all") {
-            for (const person in originalData) {
-                filteredData[person] = filteredLabels.map(month => {
-                    const idx = labels.indexOf(month);
-                    return originalData[person][idx] ?? 0;
-                });
-            }
-        } else {
-            filteredData[selectedPerson] = filteredLabels.map(month => {
-                const idx = labels.indexOf(month);
-                return originalData[selectedPerson][idx] ?? 0;
-            });
-        }
-
-        buildFilteredChart(filteredData, filteredLabels);
+        window.location.href = url.toString();  // Reload with filters
     }
 
     function downloadPDF() {

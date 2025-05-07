@@ -4536,13 +4536,18 @@ def get_usd_to_ghc_rate():
 
 @app.route('/reports')
 def reports():
+    # Get filter parameters from query string
+    selected_sales_person = request.args.get('sales_person', 'all')
+    from_month = request.args.get('from')
+    to_month = request.args.get('to')
+
     try:
-        # Get all completed projects (with valid commissioning date and invoice info)
+        # Fetch all needed projects
         projects_data = db.session.query(
             projects.sales_person,
             projects.commissioning_date,
             projects.amount_paid,
-            projects.invoice_amount,  # ← Add this
+            projects.invoice_amount,
             projects.currency,
             projects.lead_installer,
             projects.start_date,
@@ -4553,134 +4558,103 @@ def reports():
             projects.sales_person.isnot(None),
             projects.commissioning_date.isnot(None),
             projects.amount_paid.isnot(None),
-            projects.invoice_amount.isnot(None),  # ← Add this
+            projects.invoice_amount.isnot(None),
             projects.currency.isnot(None),
             projects.lead_installer.isnot(None),
             projects.start_date.isnot(None),
             projects.kVA.isnot(None),
             projects.kWh.isnot(None),
             projects.kWp.isnot(None)
-
         ).all()
 
-        # Process data to calculate monthly revenue per sales person
-        from collections import defaultdict
-        import calendar
+        # Initialize structures
+        exchange_rate = get_usd_to_ghc_rate()
+        def month_str(date_obj): return date_obj.strftime('%Y-%m')
 
-        revenue_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month-year: revenue}
-
-        exchange_rate = get_usd_to_ghc_rate()  # e.g., 1 USD = 12 GHS
-
-        for proj in projects_data:
-            # Skip invalid dates
-            if not proj.commissioning_date or proj.commissioning_date in ['0000-00-00', '', None]:
-                continue
-
-            # Convert commissioning_date safely
-            commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
-                if isinstance(proj.commissioning_date, str) else proj.commissioning_date
-            month_year = commissioning_date.strftime('%Y-%m')
-
-            # Convert amount to USD if needed
-            amount_paid = float(proj.amount_paid)
-            if proj.currency.strip().upper() == 'GHC':
-                amount_paid = amount_paid / exchange_rate  # Convert to USD
-
-            revenue_data[proj.sales_person][month_year] += round(amount_paid, 2)
-        # Extract all unique months in sorted order
-        all_months = sorted({month for sp_data in revenue_data.values() for month in sp_data})
-
-        # Prepare chart data
-        chart_labels = all_months
-        chart_data = {
-            sp: [round(revenue_data[sp].get(month, 0), 2) for month in all_months]
-            for sp in revenue_data
-        }
-
-        # Initialize new structures
-        invoice_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month: invoice amount}
-        status_data = defaultdict(lambda: defaultdict(int))     # status -> {month: count}
-        completed_per_installer = defaultdict(lambda: defaultdict(int))  # installer -> {month: count}
+        revenue_data = defaultdict(lambda: defaultdict(float))
+        invoice_data = defaultdict(lambda: defaultdict(float))
+        status_data = defaultdict(lambda: defaultdict(int))
+        completed_per_installer = defaultdict(lambda: defaultdict(int))
         kva_per_installer = defaultdict(lambda: defaultdict(float))
         kwh_per_installer = defaultdict(lambda: defaultdict(float))
         kwp_per_installer = defaultdict(lambda: defaultdict(float))
 
+        all_months = set()
+
         for proj in projects_data:
-            # Ensure valid date
             try:
-                commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
-                    if isinstance(proj.commissioning_date, str) else proj.commissioning_date
-                month_year = commissioning_date.strftime('%Y-%m')
-            except:
+                commissioning_date = proj.commissioning_date if isinstance(proj.commissioning_date, datetime) else datetime.strptime(proj.commissioning_date, '%Y-%m-%d')
+                month = month_str(commissioning_date)
+            except Exception:
                 continue
 
-            # Convert invoice amount to USD if needed
-            invoice_amount = float(proj.invoice_amount) if proj.invoice_amount else 0
-            if proj.currency and proj.currency.strip().upper() == 'GHC':
-                invoice_amount = invoice_amount / exchange_rate
+            all_months.add(month)
 
-            # Total invoice amount per sales person
-            if proj.sales_person:
-                invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
+            # Check month filters
+            if from_month and month < from_month:
+                continue
+            if to_month and month > to_month:
+                continue
 
-            # Project status tracking
-            start = proj.start_date
-            end = proj.commissioning_date
+            # Check sales person filter
+            if selected_sales_person != 'all' and proj.sales_person != selected_sales_person:
+                continue
 
-            # Normalize invalid dates
-            invalid_dates = ['0000-00-00', '', None]
+            # Convert currencies
+            amount_paid = float(proj.amount_paid or 0)
+            invoice_amount = float(proj.invoice_amount or 0)
+            if proj.currency.strip().upper() == 'GHC':
+                amount_paid /= exchange_rate
+                invoice_amount /= exchange_rate
 
-            # Convert to month_year string (e.g., "2025-05")
-            if start and start not in invalid_dates:
-                start_month_year = start.strftime('%Y-%m')
-                if start_month_year == month_year:
-                    #if not end or end in invalid_dates:
-                    status_data['Ongoing'][month_year] += 1
+            # Revenue and Invoice charts
+            revenue_data[proj.sales_person][month] += round(amount_paid, 2)
+            invoice_data[proj.sales_person][month] += round(invoice_amount, 2)
 
-            if end and end not in invalid_dates:
-                end_month_year = end.strftime('%Y-%m')
-                if end_month_year == month_year:
-                    status_data['Completed'][month_year] += 1
+            # Status breakdown
+            if proj.start_date:
+                start = proj.start_date if isinstance(proj.start_date, datetime) else datetime.strptime(proj.start_date, '%Y-%m-%d')
+                start_month = month_str(start)
+                if not proj.commissioning_date or proj.commissioning_date in ['0000-00-00', '', None]:
+                    status_data['Ongoing'][start_month] += 1
+            if proj.commissioning_date:
+                status_data['Completed'][month] += 1
 
-            # Completed projects per lead installer
-            if proj.lead_installer and proj.commissioning_date:
-                completed_per_installer[proj.lead_installer][month_year] += 1
+            # Completed projects per installer
+            if proj.lead_installer:
+                completed_per_installer[proj.lead_installer][month] += 1
+                kva_per_installer[proj.lead_installer][month] += float(proj.kVA or 0)
+                kwh_per_installer[proj.lead_installer][month] += float(proj.kWh or 0)
+                kwp_per_installer[proj.lead_installer][month] += float(proj.kWp or 0)
 
-                # Totals per installer
-                if proj.kVA: kva_per_installer[proj.lead_installer][month_year] += float(proj.kVA)
-                if proj.kWh: kwh_per_installer[proj.lead_installer][month_year] += float(proj.kWh)
-                if proj.kWp: kwp_per_installer[proj.lead_installer][month_year] += float(proj.kWp)
+        # Sorted list of all months in use
+        all_months = sorted(all_months)
 
-        # Get all unique months
-        all_months = sorted({month for d in [
-            revenue_data, invoice_data, status_data,
-            completed_per_installer, kva_per_installer,
-            kwh_per_installer, kwp_per_installer
-        ] for val in d.values() for month in val})
-
-        def fill_chart_series(data_dict, all_months):
+        def transform(data):
             return {
-                key: [round(data_dict[key].get(month, 0), 2) for month in all_months]
-                for key in data_dict
+                key: [round(data[key].get(month, 0), 2) for month in all_months]
+                for key in data
             }
 
-        # Convert all datasets to monthly series
         chart_data = {
-            'revenue': fill_chart_series(revenue_data, all_months),
-            'invoice': fill_chart_series(invoice_data, all_months),
-            'status': fill_chart_series(status_data, all_months),
-            'completed_per_installer': fill_chart_series(completed_per_installer, all_months),
-            'kva_per_installer': fill_chart_series(kva_per_installer, all_months),
-            'kwh_per_installer': fill_chart_series(kwh_per_installer, all_months),
-            'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months)
+            'revenue': transform(revenue_data),
+            'invoice': transform(invoice_data),
+            'status': transform(status_data),
+            'completed_per_installer': transform(completed_per_installer),
+            'kva_per_installer': transform(kva_per_installer),
+            'kwh_per_installer': transform(kwh_per_installer),
+            'kwp_per_installer': transform(kwp_per_installer),
         }
 
-
-        return render_template('reports.html', labels=all_months, data=chart_data)
+        return render_template(
+            'reports.html',
+            labels=all_months,
+            data=chart_data,
+            message='',
+        )
 
     except Exception as e:
-        logging.error(f"Error generating reports: {e}")
-        return render_template('reports.html', message='Failed to load report', labels=[], data={})
+        return render_template('reports.html', labels=[], data={}, message=str(e))
 
 
 
