@@ -4634,8 +4634,8 @@ def reports():
             if start and start not in invalid_dates:
                 start_month_year = start.strftime('%Y-%m')
                 if start_month_year == month_year:
-                    if not end or end in invalid_dates:
-                        status_data['Ongoing'][month_year] += 1
+                    #if not end or end in invalid_dates:
+                    status_data['Ongoing'][month_year] += 1
 
             if end and end not in invalid_dates:
                 end_month_year = end.strftime('%Y-%m')
