@@ -237,13 +237,15 @@
     }
 
     // Initial load
-    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', allData.revenue);
-    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', allData.invoice);
-    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', allData.status);
-    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', allData.completed_per_installer);
-    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', allData.kva_per_installer);
-    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', allData.kwh_per_installer);
-    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', allData.kwp_per_installer);
+    window.onload = function () {
+        buildFilteredChart(allData.revenue, labels);
+        buildChart("invoiceChart", "Total Invoice Amount per Sales Person (Cumulative)", "Invoice Amount (USD)", allData.invoice);
+        buildChart("statusChart", "Project Status Count (Cumulative)", "Number of Projects", allData.status);
+        buildChart("completedInstallerChart", "Projects Completed per Installer (Cumulative)", "Completed Projects", allData.completed_per_installer);
+        buildChart("kvaChart", "Total kVA Installed per Installer (Cumulative)", "kVA", allData.kva_per_installer);
+        buildChart("kwhChart", "Total kWh Installed per Installer (Cumulative)", "kWh", allData.kwh_per_installer);
+        buildChart("kwpChart", "Total kWp Installed per Installer (Cumulative)", "kWp", allData.kwp_per_installer);
+    };
 </script>
 </body>
 </html>
