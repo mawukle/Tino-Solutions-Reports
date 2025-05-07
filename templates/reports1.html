@@ -146,28 +146,21 @@
     function buildChart(canvasId, title, yLabel, datasetObj) {
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        // Transpose datasetObj: keys become x-axis labels (e.g., sales persons), data grouped by month
-        const xLabels = Object.keys(datasetObj);
-        const datasets = [];
-
-        if (xLabels.length === 0 || labels.length === 0) return;
-
-        labels.forEach((month, i) => {
-            const data = xLabels.map(person => datasetObj[person][i] ?? 0);
-            datasets.push({
-                label: month,
-                data,
-                backgroundColor: colors[i % colors.length],
-                borderWidth: 1
-            });
-        });
+        const datasets = Object.entries(datasetObj).map(([label, data], i) => ({
+            label,
+            data,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: colors[i % colors.length]
+        }));
 
         const ctx = document.getElementById(canvasId).getContext('2d');
         chartInstances[canvasId] = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: xLabels,  // e.g., sales persons or installers
-                datasets: datasets  // One dataset per month
+                labels: labels,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -175,25 +168,20 @@
                     title: {
                         display: true,
                         text: title
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false
                     }
                 },
                 scales: {
-                    x: {
-                        stacked: false,
-                        title: {
-                            display: true,
-                            text: 'Legend Items (e.g., Sales Persons)'
-                        }
-                    },
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: yLabel
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
                         }
                     }
                 }
