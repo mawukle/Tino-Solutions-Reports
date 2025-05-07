@@ -146,28 +146,23 @@
     function buildChart(canvasId, title, yLabel, datasetObj) {
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        // Transpose datasetObj: keys become x-axis labels (e.g., sales persons), data grouped by month
-        const xLabels = Object.keys(datasetObj);
-        const datasets = [];
-
-        if (xLabels.length === 0 || labels.length === 0) return;
-
-        labels.forEach((month, i) => {
-            const data = xLabels.map(person => datasetObj[person][i] ?? 0);
-            datasets.push({
-                label: month,
-                data,
-                backgroundColor: colors[i % colors.length],
-                borderWidth: 1
-            });
+        const labelsX = Object.keys(datasetObj);
+        const data = labelsX.map(label => {
+            const monthlyValues = datasetObj[label] || [];
+            return monthlyValues.reduce((sum, val) => sum + val, 0); // Cumulative value across all months
         });
 
         const ctx = document.getElementById(canvasId).getContext('2d');
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: xLabels,  // e.g., sales persons or installers
-                datasets: datasets  // One dataset per month
+                labels: labelsX,
+                datasets: [{
+                    label: title,
+                    data: data,
+                    backgroundColor: labelsX.map((_, i) => colors[i % colors.length]),
+                    borderWidth: 1
+                }]
             },
             options: {
                 responsive: true,
@@ -183,7 +178,6 @@
                 },
                 scales: {
                     x: {
-                        stacked: false,
                         title: {
                             display: true,
                             text: 'Legend Items (e.g., Sales Persons)'
