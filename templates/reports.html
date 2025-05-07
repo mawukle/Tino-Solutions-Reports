@@ -82,6 +82,7 @@
 <script>
     const labels = {{ labels | tojson }};
     const allData = {{ data | tojson }};
+    const originalData = allData.revenue;
     const chartInstances = {};
     const colors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8',
@@ -94,53 +95,64 @@
     function buildFilteredChart(filteredData, filteredLabels) {
         if (chartInstance) chartInstance.destroy();
 
-        const datasets = Object.entries(filteredData).map(([person, values], i) => ({
-            label: person,
-            data: values,
-            borderWidth: 2,
-            fill: false,
-            tension: 0.3,
-            borderColor: colors[i % colors.length]
-        }));
+        const xLabels = Object.keys(filteredData);  // sales persons
+        const datasets = [];
 
-        const config = {
-            type: 'line',
+        if (xLabels.length === 0 || filteredLabels.length === 0) return;
+
+        filteredLabels.forEach((month, i) => {
+            const data = xLabels.map(person => {
+                const idx = labels.indexOf(month);
+                return filteredData[person][idx] ?? 0;
+            });
+
+            datasets.push({
+                label: month,
+                data: data,
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1,
+                stack: 'stack1'
+            });
+        });
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
             data: {
-                labels: filteredLabels,
+                labels: xLabels,
                 datasets: datasets
             },
             options: {
                 responsive: true,
-                aspectRatio: 1,
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Total Revenue by Sales Person (Month-on-Month)'
+                        text: 'Total Revenue by Sales Person (Filtered)'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
                     }
                 },
                 scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Sales Person'
+                        }
+                    },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: 'Amount Paid (Revenue)'
-                        },
-                        ticks: {
-                            stepSize: 10000
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Month'
                         }
                     }
                 }
             }
-        };
-
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        chartInstance = new Chart(ctx, config);
+        });
     }
 
     function buildChart(canvasId, title, yLabel, datasetObj) {
