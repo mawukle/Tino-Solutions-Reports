@@ -4626,12 +4626,21 @@ def reports():
             # Project status tracking
             start = proj.start_date
             end = proj.commissioning_date
-            if not start or start in ['0000-00-00', '', None]:
-                status_data['New'][month_year] += 1
-            elif start and (not end or end in ['0000-00-00', '', None]):
-                status_data['Ongoing'][month_year] += 1
-            elif end:
-                status_data['Completed'][month_year] += 1
+
+            # Normalize invalid dates
+            invalid_dates = ['0000-00-00', '', None]
+
+            # Convert to month_year string (e.g., "2025-05")
+            if start and start not in invalid_dates:
+                start_month_year = start.strftime('%Y-%m')
+                if start_month_year == month_year:
+                    if not end or end in invalid_dates:
+                        status_data['Ongoing'][month_year] += 1
+
+            if end and end not in invalid_dates:
+                end_month_year = end.strftime('%Y-%m')
+                if end_month_year == month_year:
+                    status_data['Completed'][month_year] += 1
 
             # Completed projects per lead installer
             if proj.lead_installer and proj.commissioning_date:
