@@ -155,7 +155,7 @@
         });
     }
 
-    function buildChart(canvasId, title, yLabel, datasetObj) {
+    function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
         const xLabels = Object.keys(datasetObj);  // e.g., sales persons or installers
@@ -163,7 +163,7 @@
 
         if (xLabels.length === 0 || labels.length === 0) return;
 
-        labels.forEach((month, i) => {
+        monthsToShow.forEach((month, i) => {
             const data = xLabels.map(person => datasetObj[person][i] ?? 0);
             datasets.push({
                 label: month,
@@ -243,13 +243,13 @@
         }
 
         // Build each chart using filtered data
-        buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue));
-        buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice));
-        buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status));
-        buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer));
-        buildChart("kvaChart", "Total kVA per Installer", "kVA", filterDataSet(allData.kva_per_installer));
-        buildChart("kwhChart", "Total kWh per Installer", "kWh", filterDataSet(allData.kwh_per_installer));
-        buildChart("kwpChart", "Total kWp per Installer", "kWp", filterDataSet(allData.kwp_per_installer));
+        buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
+        buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice), filteredLabels);
+        buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels);
+        buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels);
+        buildChart("kvaChart", "Total kVA per Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels);
+        buildChart("kwhChart", "Total kWh per Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels);
+        buildChart("kwpChart", "Total kWp per Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels);
     }
 
     function downloadPDF() {
