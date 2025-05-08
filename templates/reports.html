@@ -264,14 +264,35 @@
         pdf.save("monthly_sales_report.pdf");
     }
 
-    // Initial load
-    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', allData.revenue);
-    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', allData.invoice);
-    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', allData.status);
-    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', allData.completed_per_installer);
-    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', allData.kva_per_installer);
-    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', allData.kwh_per_installer);
-    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', allData.kwp_per_installer);
+    // Initial load: Filter labels from January of the current year
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-indexed
+    const filteredLabels = labels.filter(label => {
+        const [year, month] = label.split("-");
+        return parseInt(year) === currentYear && parseInt(month) - 1 <= currentMonth;
+    });
+
+    function filterDataSetForInitialLoad(dataSet) {
+        const result = {};
+        for (const key in dataSet) {
+            const originalArray = dataSet[key];
+            const filteredArray = filteredLabels.map(month => {
+                const idx = labels.indexOf(month);
+                return originalArray[idx] ?? 0;
+            });
+            result[key] = filteredArray;
+        }
+        return result;
+    }
+
+    // Initial load with filtered data
+    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
+    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', filterDataSetForInitialLoad(allData.invoice), filteredLabels);
+    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels);
+    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels);
+    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels);
+    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels);
+    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
 </script>
 </body>
 </html>
