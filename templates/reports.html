@@ -67,13 +67,13 @@
     </div>
 
     <!-- Chart -->
-    <canvas id="revenueChart"></canvas>
-    <canvas id="invoiceChart"></canvas>
-    <canvas id="statusChart"></canvas>
-    <canvas id="completedInstallerChart"></canvas>
-    <canvas id="kvaChart"></canvas>
-    <canvas id="kwhChart"></canvas>
-    <canvas id="kwpChart"></canvas>
+    <canvas id="revenueChart" style="display:none;"></canvas>
+    <canvas id="invoiceChart" style="display:none;"></canvas>
+    <canvas id="statusChart" style="display:none;"></canvas>
+    <canvas id="completedInstallerChart" style="display:none;"></canvas>
+    <canvas id="kvaChart" style="display:none;"></canvas>
+    <canvas id="kwhChart" style="display:none;"></canvas>
+    <canvas id="kwpChart" style="display:none;"></canvas>
 
     <!-- PDF Download -->
     <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
@@ -156,12 +156,18 @@
     }
 
     function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        const xLabels = Object.keys(datasetObj);  // e.g., sales persons or installers
+        const xLabels = Object.keys(datasetObj);
         const datasets = [];
 
-        if (xLabels.length === 0 || labels.length === 0) return;
+        if (xLabels.length === 0 || monthsToShow.length === 0) {
+            canvas.style.display = "none";  // Hide if no data
+            return;
+        }
 
         monthsToShow.forEach((month, i) => {
             const data = xLabels.map(person => datasetObj[person][i] ?? 0);
@@ -170,11 +176,18 @@
                 data: data,
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1,
-                stack: 'stack1'  // Important for stacking
+                stack: 'stack1'
             });
         });
 
-        const ctx = document.getElementById(canvasId).getContext('2d');
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
+        if (!hasData) {
+            canvas.style.display = "none";  // Hide empty chart
+            return;
+        }
+
+        canvas.style.display = "block";  // Show if it has data
+
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -195,14 +208,14 @@
                 },
                 scales: {
                     x: {
-                        stacked: true,  // ← enable stacking on x
+                        stacked: true,
                         title: {
                             display: true,
                             text: 'Legend Items (e.g., Sales Persons)'
                         }
                     },
                     y: {
-                        stacked: true,  // ← enable stacking on y
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
