@@ -229,7 +229,6 @@
         function filterDataSet(dataSet) {
             const result = {};
             for (const key in dataSet) {
-                // If a specific person is selected, skip other keys
                 if (selectedPerson !== "all" && key !== selectedPerson) continue;
 
                 const originalArray = dataSet[key];
@@ -237,7 +236,11 @@
                     const idx = labels.indexOf(month);
                     return originalArray[idx] ?? 0;
                 });
-                result[key] = filteredArray;
+
+                // Only include if at least one non-zero value
+                if (filteredArray.some(val => val !== 0)) {
+                    result[key] = filteredArray;
+                }
             }
             return result;
         }
@@ -280,7 +283,10 @@
                 const idx = labels.indexOf(month);
                 return originalArray[idx] ?? 0;
             });
-            result[key] = filteredArray;
+
+            if (filteredArray.some(val => val !== 0)) {
+                result[key] = filteredArray;
+            }
         }
         return result;
     }
