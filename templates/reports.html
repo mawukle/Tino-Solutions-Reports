@@ -50,7 +50,7 @@
     <!-- Filters -->
     <div class="filters">
         <label for="salesPersonSelect">Sales Person:</label>
-        <select id="salesPersonSelect">
+        <select id="salesPersonSelect" multiple size="5">
             <option value="all">All</option>
             {% for person in data.keys() %}
             <option value="{{ person }}">{{ person }}</option>
@@ -64,6 +64,15 @@
         <input type="month" id="toMonth">
 
         <button onclick="applyFilters()">Apply Filters</button>
+        <div style="margin-top:10px;">
+            <label><input type="checkbox" class="chart-toggle" value="revenueChart" checked> Revenue Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="invoiceChart" checked> Invoice Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="statusChart" checked> Status Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="completedInstallerChart" checked> Completed Installer Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="kvaChart" checked> kVA Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="kwhChart" checked> kWh Chart</label>
+            <label><input type="checkbox" class="chart-toggle" value="kwpChart" checked> kWp Chart</label>
+        </div>
     </div>
 
     <!-- Chart -->
@@ -228,7 +237,8 @@
     }
 
     function applyFilters() {
-        const selectedPerson = document.getElementById("salesPersonSelect").value;
+        const selectedOptions = Array.from(document.getElementById("salesPersonSelect").selectedOptions);
+        const selectedPersons = selectedOptions.map(opt => opt.value);
         const fromMonth = document.getElementById("fromMonth").value;
         const toMonth = document.getElementById("toMonth").value;
 
@@ -242,7 +252,7 @@
         function filterDataSet(dataSet) {
             const result = {};
             for (const key in dataSet) {
-                if (selectedPerson !== "all" && key !== selectedPerson) continue;
+                if (!selectedPersons.includes("all") && !selectedPersons.includes(key)) continue;
 
                 const originalArray = dataSet[key];
                 const filteredArray = filteredLabels.map(month => {
@@ -250,7 +260,6 @@
                     return originalArray[idx] ?? 0;
                 });
 
-                // Only include if at least one non-zero value
                 if (filteredArray.some(val => val !== 0)) {
                     result[key] = filteredArray;
                 }
@@ -258,14 +267,51 @@
             return result;
         }
 
-        // Build each chart using filtered data
-        buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
-        buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice), filteredLabels);
-        buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels);
-        buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels);
-        buildChart("kvaChart", "Total kVA per Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels);
-        buildChart("kwhChart", "Total kWh per Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels);
-        buildChart("kwpChart", "Total kWp per Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels);
+        // Get selected chart IDs from checkboxes
+        const selectedCharts = Array.from(document.querySelectorAll('.chart-toggle:checked')).map(cb => cb.value);
+
+        // Conditionally build selected charts
+        if (selectedCharts.includes("revenueChart")) {
+            buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
+        } else {
+            document.getElementById("revenueChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("invoiceChart")) {
+            buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice), filteredLabels);
+        } else {
+            document.getElementById("invoiceChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("statusChart")) {
+            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels);
+        } else {
+            document.getElementById("statusChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("completedInstallerChart")) {
+            buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels);
+        } else {
+            document.getElementById("completedInstallerChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("kvaChart")) {
+            buildChart("kvaChart", "Total kVA per Lead Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels);
+        } else {
+            document.getElementById("kvaChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("kwhChart")) {
+            buildChart("kwhChart", "Total kWh per Lead Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels);
+        } else {
+            document.getElementById("kwhChart").style.display = "none";
+        }
+
+        if (selectedCharts.includes("kwpChart")) {
+            buildChart("kwpChart", "Total kWp per Lead Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels);
+        } else {
+            document.getElementById("kwpChart").style.display = "none";
+        }
     }
 
     function downloadPDF() {
@@ -304,14 +350,35 @@
         return result;
     }
 
-    // Initial load with filtered data
-    buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
-    buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', filterDataSetForInitialLoad(allData.invoice), filteredLabels);
-    buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels);
-    buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels);
-    buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels);
-    buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels);
-    buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
+    const selectedChartsInit = Array.from(document.querySelectorAll('.chart-toggle:checked')).map(cb => cb.value);
+
+    if (selectedChartsInit.includes("revenueChart")) {
+        buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("invoiceChart")) {
+        buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', filterDataSetForInitialLoad(allData.invoice), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("statusChart")) {
+        buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("completedInstallerChart")) {
+        buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("kvaChart")) {
+        buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("kwhChart")) {
+        buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("kwpChart")) {
+        buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
+    }
 </script>
 </body>
 </html>
