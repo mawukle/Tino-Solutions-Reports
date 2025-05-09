@@ -253,6 +253,8 @@
         });
     }
 
+
+
     function applyFilters() {
         const selectedPersons = ["all"];  // Always include all persons
         const fromMonth = document.getElementById("fromMonth").value;
@@ -419,22 +421,38 @@
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
 
-    function buildStackedSummaryChart(canvasId, title, groupedData, yLabel) {
+    function buildStackedSummaryChart(canvasId, title, dataObject, yLabel) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        const months = Object.keys(groupedData);  // e.g., ["2025-01", "2025-02", ...]
-        const categories = Object.keys(groupedData[months[0]]); // e.g., ["Invoice", "Paid"]
+        const months = Object.keys(dataObject || {});
+        const categories = new Set();
 
-        const datasets = categories.map((category, i) => ({
-            label: category,
-            data: months.map(month => groupedData[month][category] ?? 0),
+        // Collect all category labels across all months
+        months.forEach(month => {
+            if (dataObject[month]) {
+                Object.keys(dataObject[month]).forEach(cat => categories.add(cat));
+            }
+        });
+
+        const categoryList = Array.from(categories);
+        const datasets = categoryList.map((cat, i) => ({
+            label: cat,
+            data: months.map(month => dataObject[month]?.[cat] ?? 0),
             backgroundColor: colors[i % colors.length],
             borderWidth: 1,
             stack: 'stack1'
         }));
+
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
+        if (!hasData) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        canvas.style.display = "block";
 
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
