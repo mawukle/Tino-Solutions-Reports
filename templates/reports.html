@@ -49,7 +49,7 @@
 
     <!-- Filters -->
     <div class="filters">
-        <label for="salesPersonSelect">Sales Person:</label>
+        <label for="salesPersonSelect">Filter by Sales Person:</label>
         <select id="salesPersonSelect" multiple size="5">
             <option value="all">All</option>
             {% for person in data.keys() %}
@@ -57,6 +57,18 @@
             {% endfor %}
         </select>
 
+        <label for="chartSelect">Select Charts to Display:</label>
+        <select id="chartSelect" class="chart-toggle" multiple size="7">
+            <option value="revenueChart" selected>Revenue Chart</option>
+            <option value="invoiceChart" selected>Invoice Chart</option>
+            <option value="statusChart" selected>Status Chart</option>
+            <option value="completedInstallerChart" selected>Completed Installer Chart</option>
+            <option value="kvaChart" selected>kVA Chart</option>
+            <option value="kwhChart" selected>kWh Chart</option>
+            <option value="kwpChart" selected>kWp Chart</option>
+        </select>
+
+        <br><br>
         <label for="fromMonth">From:</label>
         <input type="month" id="fromMonth">
 
@@ -64,15 +76,6 @@
         <input type="month" id="toMonth">
 
         <button onclick="applyFilters()">Apply Filters</button>
-        <div style="margin-top:10px;">
-            <label><input type="checkbox" class="chart-toggle" value="revenueChart" checked> Revenue Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="invoiceChart" checked> Invoice Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="statusChart" checked> Status Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="completedInstallerChart" checked> Completed Installer Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="kvaChart" checked> kVA Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="kwhChart" checked> kWh Chart</label>
-            <label><input type="checkbox" class="chart-toggle" value="kwpChart" checked> kWp Chart</label>
-        </div>
     </div>
 
     <!-- Chart -->
@@ -268,7 +271,7 @@
         }
 
         // Get selected chart IDs from checkboxes
-        const selectedCharts = Array.from(document.querySelectorAll('.chart-toggle:checked')).map(cb => cb.value);
+        const selectedCharts = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
         // Conditionally build selected charts
         if (selectedCharts.includes("revenueChart")) {
@@ -350,7 +353,7 @@
         return result;
     }
 
-    const selectedChartsInit = Array.from(document.querySelectorAll('.chart-toggle:checked')).map(cb => cb.value);
+    const selectedChartsInit = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
     if (selectedChartsInit.includes("revenueChart")) {
         buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
