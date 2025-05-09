@@ -253,6 +253,72 @@
         });
     }
 
+    function buildStackedSummaryChart(canvasId, title, groupedData, yLabel) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        const months = Object.keys(groupedData);
+        const keys = Object.keys(groupedData[months[0]] || {});
+        const datasets = [];
+
+        keys.forEach((key, i) => {
+            const data = months.map(month => (groupedData[month]?.[key] ?? 0));
+            datasets.push({
+                label: key,
+                data: data,
+                backgroundColor: colors[i % colors.length],
+                stack: 'stack1'
+            });
+        });
+
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
+        if (!hasData) {
+            canvas.style.display = "none"; // hide if no data
+            return;
+        }
+
+        canvas.style.display = "block";
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
 
 
     function applyFilters() {
