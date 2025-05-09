@@ -4703,8 +4703,12 @@ def reports():
         for p in projects_data:
             if not p.start_date:
                 continue
-            start_date = datetime.strptime(p.start_date, '%Y-%m-%d') if isinstance(p.start_date, str) else p.start_date
-            month = start_date.strftime("%Y-%m")
+            if p.start_date and p.start_date != '0000-00-00':
+                start_date = datetime.strptime(p.start_date, '%Y-%m-%d') if isinstance(p.start_date, str) else p.start_date
+                month = start_date.strftime("%Y-%m")
+            else:
+                # Handle missing/invalid date, e.g., skip or log
+                continue
 
             # Invoice and Paid amounts (USD normalized)
             invoice_amt = float(p.invoice_amount) if p.invoice_amount else 0
