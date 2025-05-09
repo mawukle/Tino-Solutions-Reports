@@ -49,13 +49,6 @@
 
     <!-- Filters -->
     <div class="filters">
-        <label for="salesPersonSelect">Filter by Sales Person:</label>
-        <select id="salesPersonSelect" multiple size="5">
-            <option value="all">All</option>
-            {% for person in data.keys() %}
-            <option value="{{ person }}">{{ person }}</option>
-            {% endfor %}
-        </select>
 
         <label for="chartSelect">Select Charts to Display:</label>
         <select id="chartSelect" class="chart-toggle" multiple size="7">
@@ -240,8 +233,7 @@
     }
 
     function applyFilters() {
-        const selectedOptions = Array.from(document.getElementById("salesPersonSelect").selectedOptions);
-        const selectedPersons = selectedOptions.map(opt => opt.value);
+        const selectedPersons = ["all"];  // Always include all persons
         const fromMonth = document.getElementById("fromMonth").value;
         const toMonth = document.getElementById("toMonth").value;
 
