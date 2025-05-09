@@ -4725,8 +4725,8 @@ def reports():
             capacity_by_month[month]["kWp"] += float(p.kWp or 0)
 
         # Attach to chart_data
-        chart_data["revenue_summary_by_month"] = dict(revenue_by_month)
-        chart_data["capacity_summary_by_month"] = dict(capacity_by_month)
+        chart_data["revenue_summary_by_month"] = dict(revenue_by_month) if revenue_by_month else {}
+        chart_data["capacity_summary_by_month"] = dict(capacity_by_month) if capacity_by_month else {}
 
         return render_template('reports.html', labels=all_months, data=chart_data)
 

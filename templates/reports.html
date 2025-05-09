@@ -259,7 +259,12 @@
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        const months = Object.keys(groupedData);
+        const months = Object.keys(groupedData || {});
+        if (months.length === 0 || !groupedData[months[0]]) {
+            canvas.style.display = "none";
+            return;
+        }
+
         const keys = Object.keys(groupedData[months[0]] || {});
         const datasets = [];
 
