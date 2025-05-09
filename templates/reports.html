@@ -35,6 +35,22 @@
             border: none;
             cursor: pointer;
         }
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .filter-row label,
+        .filter-row select,
+        .filter-row input,
+        .filter-row button {
+            margin: 0;
+        }
+        .chart-toggle {
+            min-width: 200px;
+        }        
     </style>
 </head>
 <body>
@@ -49,26 +65,26 @@
 
     <!-- Filters -->
     <div class="filters">
+        <div class="filter-row">
+            <label for="chartSelect">Select Charts to Display:</label>
+            <select id="chartSelect" class="chart-toggle" multiple size="7">
+                <option value="revenueChart" selected>Revenue Chart</option>
+                <option value="invoiceChart" selected>Invoice Chart</option>
+                <option value="statusChart" selected>Status Chart</option>
+                <option value="completedInstallerChart" selected>Completed Installer Chart</option>
+                <option value="kvaChart" selected>kVA Chart</option>
+                <option value="kwhChart" selected>kWh Chart</option>
+                <option value="kwpChart" selected>kWp Chart</option>
+            </select>
 
-        <label for="chartSelect">Select Charts to Display:</label>
-        <select id="chartSelect" class="chart-toggle" multiple size="7">
-            <option value="revenueChart" selected>Revenue Chart</option>
-            <option value="invoiceChart" selected>Invoice Chart</option>
-            <option value="statusChart" selected>Status Chart</option>
-            <option value="completedInstallerChart" selected>Completed Installer Chart</option>
-            <option value="kvaChart" selected>kVA Chart</option>
-            <option value="kwhChart" selected>kWh Chart</option>
-            <option value="kwpChart" selected>kWp Chart</option>
-        </select>
+            <label for="fromMonth">From:</label>
+            <input type="month" id="fromMonth">
 
-        <br><br>
-        <label for="fromMonth">From:</label>
-        <input type="month" id="fromMonth">
+            <label for="toMonth">To:</label>
+            <input type="month" id="toMonth">
 
-        <label for="toMonth">To:</label>
-        <input type="month" id="toMonth">
-
-        <button onclick="applyFilters()">Apply Filters</button>
+            <button onclick="applyFilters()">Apply Filters</button>
+        </div>
     </div>
 
     <!-- Chart -->
