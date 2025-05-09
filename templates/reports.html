@@ -67,7 +67,7 @@
     <div class="filters">
         <div class="filter-row">
             <label for="chartSelect">Select Charts to Display:</label>
-            <select id="chartSelect" class="chart-toggle" multiple size="7">
+            <select id="chartSelect" class="chart-toggle" multiple size="9">
                 <option value="revenueChart" selected>Revenue Chart</option>
                 <option value="invoiceChart" selected>Invoice Chart</option>
                 <option value="statusChart" selected>Status Chart</option>
@@ -75,6 +75,8 @@
                 <option value="kvaChart" selected>kVA Chart</option>
                 <option value="kwhChart" selected>kWh Chart</option>
                 <option value="kwpChart" selected>kWp Chart</option>
+                <option value="totalRevenueChart" selected>Total Revenue Chart</option>
+                <option value="installedCapacitiesChart" selected>Installed Capacities Chart</option>
             </select>
 
             <label for="fromMonth">From:</label>
@@ -457,55 +459,54 @@
 
         buildStackedSummaryChart("totalCapacityChart", "Total Installed Capacities", allData.total_capacity_summary, "Capacity");
     }
-</script>
-<script>
-const revenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
-new Chart(revenueCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Total Invoice (USD)', 'Total Paid (USD)'],
-        datasets: [{
-            label: 'Revenue Overview',
-            data: [
-                {{ data['totals']['invoice_usd'] }},
-                {{ data['totals']['paid_usd'] }}
-            ],
-            backgroundColor: ['#ff6384', '#36a2eb']
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'USD' } }
+
+    const revenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Invoice (USD)', 'Total Paid (USD)'],
+            datasets: [{
+                label: 'Revenue Overview',
+                data: [
+                    {{ data['totals']['invoice_usd'] }},
+                    {{ data['totals']['paid_usd'] }}
+                ],
+                backgroundColor: ['#ff6384', '#36a2eb']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'USD' } }
+            }
         }
-    }
-});
-</script>
-<script>
-const capacityCtx = document.getElementById('installedCapacitiesChart').getContext('2d');
-new Chart(capacityCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Total kVA', 'Total kWh', 'Total kWp'],
-        datasets: [{
-            label: 'Installed Capacities',
-            data: [
-                {{ data['totals']['total_kva'] }},
-                {{ data['totals']['total_kwh'] }},
-                {{ data['totals']['total_kwp'] }}
-            ],
-            backgroundColor: ['#4bc0c0', '#9966ff', '#ff9f40']
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Capacity' } }
+    });
+
+
+    const capacityCtx = document.getElementById('installedCapacitiesChart').getContext('2d');
+    new Chart(capacityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Total kVA', 'Total kWh', 'Total kWp'],
+            datasets: [{
+                label: 'Installed Capacities',
+                data: [
+                    {{ data['totals']['total_kva'] }},
+                    {{ data['totals']['total_kwh'] }},
+                    {{ data['totals']['total_kwp'] }}
+                ],
+                backgroundColor: ['#4bc0c0', '#9966ff', '#ff9f40']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Capacity' } }
+            }
         }
-    }
-});
+    });
 </script>
 
 </body>
