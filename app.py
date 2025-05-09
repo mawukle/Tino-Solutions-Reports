@@ -4696,6 +4696,32 @@ def reports():
             "total_kwp": round(total_kwp, 2)
         }
 
+        # Summary data for revenue and capacity by month (from start_date)
+        revenue_by_month = defaultdict(lambda: {"Invoice Amount": 0, "Amount Paid": 0})
+        capacity_by_month = defaultdict(lambda: {"kVA": 0, "kWh": 0, "kWp": 0})
+
+        for p in projects_data:
+            if not p.start_date:
+                continue
+            month = p.start_date.strftime("%Y-%m")
+
+            # Invoice and Paid amounts (USD normalized)
+            invoice_amt = float(p.invoice_amount) if p.invoice_amount else 0
+            paid_amt = float(p.amount_paid) if p.amount_paid else 0
+            if p.currency.strip().upper() == 'GHC':
+                invoice_amt /= exchange_rate
+                paid_amt /= exchange_rate
+
+            revenue_by_month[month]["Invoice Amount"] += round(invoice_amt, 2)
+            revenue_by_month[month]["Amount Paid"] += round(paid_amt, 2)
+
+            capacity_by_month[month]["kVA"] += float(p.kVA or 0)
+            capacity_by_month[month]["kWh"] += float(p.kWh or 0)
+            capacity_by_month[month]["kWp"] += float(p.kWp or 0)
+
+        # Attach to chart_data
+        chart_data["revenue_summary_by_month"] = dict(revenue_by_month)
+        chart_data["capacity_summary_by_month"] = dict(capacity_by_month)
 
         return render_template('reports.html', labels=all_months, data=chart_data)
 
