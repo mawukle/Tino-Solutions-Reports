@@ -180,6 +180,64 @@
             }
         });
     }
+    // Total Revenue Chart (Single Bar Chart)
+    const totalRevenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
+    new Chart(totalRevenueCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Invoice Amount (USD)', 'Total Amount Paid (USD)'],
+            datasets: [{
+                label: 'USD',
+                data: [
+                    allData.totals.invoice_usd,
+                    allData.totals.paid_usd
+                ],
+                backgroundColor: ['#36a2eb', '#4caf50']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Total Revenue Generated'
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Installed Capacities Chart
+    const installedCapacitiesCtx = document.getElementById('installedCapacitiesChart').getContext('2d');
+    new Chart(installedCapacitiesCtx, {
+        type: 'bar',
+        data: {
+            labels: ['kVA', 'kWh', 'kWp'],
+            datasets: [{
+                label: 'Installed Capacities',
+                data: [
+                    allData.totals.total_kva,
+                    allData.totals.total_kwh,
+                    allData.totals.total_kwp
+                ],
+                backgroundColor: ['#ff6384', '#ffcd56', '#36a2eb']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Total Installed Capacities'
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
 
     function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
