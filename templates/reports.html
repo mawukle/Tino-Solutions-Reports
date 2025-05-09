@@ -255,6 +255,11 @@
 
     function buildStackedSummaryChart(canvasId, title, groupedData, yLabel) {
         const canvas = document.getElementById(canvasId);
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            console.warn(`Canvas element with ID "${canvasId}" not found.`);
+            return;
+        }
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
