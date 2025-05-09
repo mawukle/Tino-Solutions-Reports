@@ -96,7 +96,7 @@
     <canvas id="kwhChart" style="display:none;"></canvas>
     <canvas id="kwpChart" style="display:none;"></canvas>
     <canvas id="totalRevenueChart"></canvas>
-    <canvas id="totalCapacityChart"></canvas>
+    <canvas id="installedCapacitiesChart"></canvas>
 
 
     <!-- PDF Download -->
@@ -458,7 +458,6 @@
         buildStackedSummaryChart("totalCapacityChart", "Total Installed Capacities", allData.total_capacity_summary, "Capacity");
     }
 </script>
-<canvas id="totalRevenueChart"></canvas>
 <script>
 const revenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
 new Chart(revenueCtx, {
@@ -483,7 +482,6 @@ new Chart(revenueCtx, {
     }
 });
 </script>
-<canvas id="installedCapacitiesChart"></canvas>
 <script>
 const capacityCtx = document.getElementById('installedCapacitiesChart').getContext('2d');
 new Chart(capacityCtx, {
