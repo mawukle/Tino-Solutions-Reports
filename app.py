@@ -4728,6 +4728,13 @@ def reports():
         chart_data["revenue_summary_by_month"] = dict(revenue_by_month) if revenue_by_month else {}
         chart_data["capacity_summary_by_month"] = dict(capacity_by_month) if capacity_by_month else {}
 
+        import pprint
+        pp = pprint.PrettyPrinter(indent=2)
+        logging.info("chart_data['totals'] = %s", pp.pformat(chart_data["totals"]))
+        logging.info("chart_data['revenue_summary_by_month'] = %s", pp.pformat(chart_data["revenue_summary_by_month"]))
+        logging.info("chart_data['capacity_summary_by_month'] = %s", pp.pformat(chart_data["capacity_summary_by_month"]))
+
+
         return render_template('reports.html', labels=all_months, data=chart_data)
 
     except Exception as e:
