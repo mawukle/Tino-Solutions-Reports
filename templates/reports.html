@@ -394,21 +394,28 @@
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
 
-    function buildSummaryChart(canvasId, title, labels, values, yLabel) {
+    function buildStackedSummaryChart(canvasId, title, groupedData, yLabel) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
+
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        const months = Object.keys(groupedData);  // e.g., ["2025-01", "2025-02", ...]
+        const categories = Object.keys(groupedData[months[0]]); // e.g., ["Invoice", "Paid"]
+
+        const datasets = categories.map((category, i) => ({
+            label: category,
+            data: months.map(month => groupedData[month][category] ?? 0),
+            backgroundColor: colors[i % colors.length],
+            borderWidth: 1,
+            stack: 'stack1'
+        }));
 
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
-                datasets: [{
-                    label: title,
-                    data: values,
-                    backgroundColor: colors.slice(0, labels.length),
-                    borderWidth: 1
-                }]
+                labels: months,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -424,12 +431,14 @@
                 },
                 scales: {
                     x: {
+                        stacked: true,
                         title: {
                             display: true,
-                            text: 'Category'
+                            text: 'Month'
                         }
                     },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
@@ -444,21 +453,9 @@
     // After DOM loads or inside applyFilters()
     const totalData = allData.totals;
     if (totalData) {
-        buildSummaryChart(
-            'totalRevenueChart',
-            'Total Revenue Generated',
-            ['Invoice Amount (USD)', 'Amount Paid (USD)'],
-            [totalData.invoice_usd, totalData.paid_usd],
-            'USD'
-        );
+        buildStackedSummaryChart("totalRevenueChart", "Total Revenue Generated", allData.total_revenue_summary, "Amount (USD)");
 
-        buildSummaryChart(
-            'totalCapacityChart',
-            'Total Installed Capacities',
-            ['kVA', 'kWh', 'kWp'],
-            [totalData.total_kva, totalData.total_kwh, totalData.total_kwp],
-            'Capacity'
-        );
+        buildStackedSummaryChart("totalCapacityChart", "Total Installed Capacities", allData.total_capacity_summary, "Capacity");
     }
 </script>
 
