@@ -4675,6 +4675,27 @@ def reports():
             'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months)
         }
 
+        # Totals for new charts
+        total_invoice_usd = sum([
+            float(p.invoice_amount) / exchange_rate if p.currency.upper() == 'GHC' else float(p.invoice_amount)
+            for p in projects_data if p.invoice_amount
+        ])
+        total_paid_usd = sum([
+            float(p.amount_paid) / exchange_rate if p.currency.upper() == 'GHC' else float(p.amount_paid)
+            for p in projects_data if p.amount_paid
+        ])
+        total_kva = sum([float(p.kVA) for p in projects_data if p.kVA])
+        total_kwh = sum([float(p.kWh) for p in projects_data if p.kWh])
+        total_kwp = sum([float(p.kWp) for p in projects_data if p.kWp])
+
+        chart_data["totals"] = {
+            "invoice_usd": round(total_invoice_usd, 2),
+            "paid_usd": round(total_paid_usd, 2),
+            "total_kva": round(total_kva, 2),
+            "total_kwh": round(total_kwh, 2),
+            "total_kwp": round(total_kwp, 2)
+        }
+
 
         return render_template('reports.html', labels=all_months, data=chart_data)
 

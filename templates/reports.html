@@ -50,7 +50,7 @@
         }
         .chart-toggle {
             min-width: 200px;
-        }        
+        }
     </style>
 </head>
 <body>
@@ -95,6 +95,9 @@
     <canvas id="kvaChart" style="display:none;"></canvas>
     <canvas id="kwhChart" style="display:none;"></canvas>
     <canvas id="kwpChart" style="display:none;"></canvas>
+    <canvas id="totalRevenueChart"></canvas>
+    <canvas id="totalCapacityChart"></canvas>
+
 
     <!-- PDF Download -->
     <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
@@ -390,6 +393,74 @@
     if (selectedChartsInit.includes("kwpChart")) {
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
+
+    function buildSummaryChart(canvasId, title, labels, values, yLabel) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Category'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // After DOM loads or inside applyFilters()
+    const totalData = allData.totals;
+    if (totalData) {
+        buildSummaryChart(
+            'totalRevenueChart',
+            'Total Revenue Generated',
+            ['Invoice Amount (USD)', 'Amount Paid (USD)'],
+            [totalData.invoice_usd, totalData.paid_usd],
+            'USD'
+        );
+
+        buildSummaryChart(
+            'totalCapacityChart',
+            'Total Installed Capacities',
+            ['kVA', 'kWh', 'kWp'],
+            [totalData.total_kva, totalData.total_kwh, totalData.total_kwp],
+            'Capacity'
+        );
+    }
 </script>
+
 </body>
 </html>
