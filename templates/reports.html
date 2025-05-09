@@ -496,53 +496,6 @@
         buildStackedSummaryChart("totalCapacityChart", "Total Installed Capacities", allData.total_capacity_summary, "Capacity");
     }
 
-    const revenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
-    new Chart(revenueCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Total Invoice (USD)', 'Total Paid (USD)'],
-            datasets: [{
-                label: 'Revenue Overview',
-                data: [
-                    {{ data['totals']['invoice_usd'] }},
-                    {{ data['totals']['paid_usd'] }}
-                ],
-                backgroundColor: ['#ff6384', '#36a2eb']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'USD' } }
-            }
-        }
-    });
-
-
-    const capacityCtx = document.getElementById('installedCapacitiesChart').getContext('2d');
-    new Chart(capacityCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Total kVA', 'Total kWh', 'Total kWp'],
-            datasets: [{
-                label: 'Installed Capacities',
-                data: [
-                    {{ data['totals']['total_kva'] }},
-                    {{ data['totals']['total_kwh'] }},
-                    {{ data['totals']['total_kwp'] }}
-                ],
-                backgroundColor: ['#4bc0c0', '#9966ff', '#ff9f40']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Capacity' } }
-            }
-        }
-    });
 </script>
 
 </body>
