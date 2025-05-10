@@ -97,8 +97,8 @@
     <canvas id="kvaChart" style="display:none;"></canvas>
     <canvas id="kwhChart" style="display:none;"></canvas>
     <canvas id="kwpChart" style="display:none;"></canvas>
-    <canvas id="totalRevenueChart"></canvas>
-    <canvas id="installedCapacitiesChart"></canvas>
+    <canvas id="totalRevenueChart" style="display:none;"></canvas>
+    <canvas id="installedCapacitiesChart" style="display:none;"></canvas>
 
 
     <!-- PDF Download -->
@@ -485,14 +485,14 @@
 
         // NEW: Total Revenue Chart
         if (selectedCharts.includes("totalRevenueChart")) {
-            buildStackedSummaryChart("totalRevenueChart", "Total Revenue Generated", filterGroupedData(allData.total_revenue), "Amount (USD)");
+            buildChart("totalRevenueChart", "Total Revenue Generated", "Amount (USD)", filterGroupedData(allData.total_revenue), filteredLabels);
         } else {
             document.getElementById("totalRevenueChart").style.display = "none";
         }
 
         // NEW: Installed Capacities Chart
         if (selectedCharts.includes("installedCapacitiesChart")) {
-            buildStackedSummaryChart("installedCapacitiesChart", "Total Installed Capacities", filterGroupedData(allData.installed_capacities), "Capacity");
+            buildChart("installedCapacitiesChart", "Total Installed Capacities", "Capacity", filterGroupedData(allData.installed_capacities), filteredLabels);
         } else {
             document.getElementById("installedCapacitiesChart").style.display = "none";
         }
@@ -564,13 +564,12 @@
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
 
+    if (selectedChartsInit.includes("totalRevenueChart")) {
+        buildChart("totalRevenueChart", "Total Revenue Generated", "Amount (USD)", filterDataSetForInitialLoad(allData.total_revenue_summary), filteredLabels);
+    }
 
-    // After DOM loads or inside applyFilters()
-    const totalData = allData.totals;
-    if (totalData) {
-        buildStackedSummaryChart("totalRevenueChart", "Total Revenue Generated", allData.total_revenue_summary, "Amount (USD)");
-
-        buildStackedSummaryChart("installedCapacitiesChart", "Total Installed Capacities", allData.total_capacity_summary, "Capacity");
+    if (selectedChartsInit.includes("installedCapacitiesChart")) {
+        buildChart("installedCapacitiesChart", "Total Installed Capacities", "Capacity", filterDataSetForInitialLoad(allData.total_capacity_summary), filteredLabels);
     }
 
 </script>
