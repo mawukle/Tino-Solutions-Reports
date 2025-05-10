@@ -4604,6 +4604,9 @@ def reports():
         kva_per_installer = defaultdict(lambda: defaultdict(float))
         kwh_per_installer = defaultdict(lambda: defaultdict(float))
         kwp_per_installer = defaultdict(lambda: defaultdict(float))
+        total_revenue = defaultdict(lambda: defaultdict(float))
+        installed_capacities = defaultdict(lambda: defaultdict(float))
+
 
         for proj in projects_data:
             # Ensure valid date
@@ -4655,7 +4658,7 @@ def reports():
         all_months = sorted({month for d in [
             revenue_data, invoice_data, status_data,
             completed_per_installer, kva_per_installer,
-            kwh_per_installer, kwp_per_installer
+            kwh_per_installer, kwp_per_installer, total_revenue, installed_capacities
         ] for val in d.values() for month in val})
 
         def fill_chart_series(data_dict, all_months):
@@ -4672,7 +4675,10 @@ def reports():
             'completed_per_installer': fill_chart_series(completed_per_installer, all_months),
             'kva_per_installer': fill_chart_series(kva_per_installer, all_months),
             'kwh_per_installer': fill_chart_series(kwh_per_installer, all_months),
-            'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months)
+            'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months),
+            'total_revenue': fill_chart_series(total_revenue, all_months),
+            'installed_capacities': fill_chart_series(installed_capacities, all_months)
+
         }
 
         # Totals for new charts
