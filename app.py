@@ -4749,16 +4749,8 @@ def reports():
         # Attach to chart_data
         chart_data["revenue_summary_by_month"] = dict(revenue_by_month) if revenue_by_month else {}
         chart_data["capacity_summary_by_month"] = dict(capacity_by_month) if capacity_by_month else {}
-        chart_data['total_revenue'] = {
-            "Invoice Amount": [list of values per month],
-            "Amount Paid": [list of values per month]
-        }
-
-        chart_data['installed_capacities'] = {
-            "kVA": [list of values per month],
-            "kWh": [list of values per month],
-            "kWp": [list of values per month]
-        }
+        chart_data["total_revenue"] = dict(revenue_by_month) if revenue_by_month else {}
+        chart_data["installed_capacities"] = dict(capacity_by_month) if capacity_by_month else {}
 
         import pprint
         pp = pprint.PrettyPrinter(indent=2)
