@@ -4645,6 +4645,22 @@ def reports():
                 if end_month_year == month_year:
                     status_data['Completed'][month_year] += 1
 
+            # Convert amount paid to USD if needed
+            amount_paid = float(proj.amount_paid) if proj.amount_paid else 0
+            if proj.currency and proj.currency.strip().upper() == 'GHC':
+                amount_paid = amount_paid / exchange_rate
+
+
+            # Populate total_revenue (invoice vs paid)
+            total_revenue['Invoice Amount'][month_year] += round(invoice_amount, 2)
+            total_revenue['Amount Paid'][month_year] += round(amount_paid, 2)
+
+            # Populate installed_capacities
+            installed_capacities['kVA'][month_year] += float(proj.kVA)
+            installed_capacities['kWh'][month_year] += float(proj.kWh)
+            installed_capacities['kWp'][month_year] += float(proj.kWp)
+
+
             # Completed projects per lead installer
             if proj.lead_installer and proj.commissioning_date:
                 completed_per_installer[proj.lead_installer][month_year] += 1
@@ -4733,6 +4749,16 @@ def reports():
         # Attach to chart_data
         chart_data["revenue_summary_by_month"] = dict(revenue_by_month) if revenue_by_month else {}
         chart_data["capacity_summary_by_month"] = dict(capacity_by_month) if capacity_by_month else {}
+        chart_data['total_revenue'] = {
+            "Invoice Amount": [list of values per month],
+            "Amount Paid": [list of values per month]
+        }
+
+        chart_data['installed_capacities'] = {
+            "kVA": [list of values per month],
+            "kWh": [list of values per month],
+            "kWp": [list of values per month]
+        }
 
         import pprint
         pp = pprint.PrettyPrinter(indent=2)
