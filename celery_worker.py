@@ -8,6 +8,8 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from models import db, projects
 from drive_uploader import upload_to_drive
+from googleapiclient.http import MediaIoBaseUpload
+import io
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
@@ -149,18 +151,32 @@ def update_folder_has_files(self, project_id, folder_id):
     finally:
         gc.collect()
 
-@celery.task(bind=True, time_limit=120)
-def upload_files_to_drive(self, folder_id, file_paths):
+@celery.task(bind=True)
+def upload_files_to_drive(self, folder_id, file_data):
     try:
         credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
+            GOOGLE_DRIVE_CREDENTIALS,
             scopes=["https://www.googleapis.com/auth/drive.file"]
         )
         service = build("drive", "v3", credentials=credentials)
 
-        for path in file_paths:
-            upload_to_drive(path, os.path.basename(path), folder_id)
-            os.remove(path)  # Clean up
+        for file_info in file_data:
+            file_metadata = {
+                'name': file_info['filename'],
+                'parents': [folder_id]
+            }
+
+            media = MediaIoBaseUpload(
+                io.BytesIO(file_info['content']),
+                mimetype='application/octet-stream',
+                resumable=True
+            )
+
+            service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
 
     except Exception as e:
         logging.error(f"Upload failed: {e}")

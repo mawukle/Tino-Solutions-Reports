@@ -4360,7 +4360,7 @@ def upload_file_to_folder():
     upload_files_to_drive.delay(folder_id, file_paths)
 
     return jsonify({"message": "Upload processing started"}), 202
-"""
+
 
 #from werkzeug.utils import secure_filename  # Add this import at the top of app.py
 #import os
@@ -4401,7 +4401,34 @@ def upload_file_to_folder():
             if os.path.exists(path):
                 os.remove(path)
         return jsonify({"error": str(e)}), 500
+"""
 
+@app.route("/upload_file_to_folder", methods=["POST"])
+def upload_file_to_folder():
+    folder_id = request.form.get("folder_id")
+    if not folder_id:
+        return jsonify({"error": "Folder ID required"}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    files = request.files.getlist("file")
+    if not files or all(file.filename == '' for file in files):
+        return jsonify({"error": "No selected files"}), 400
+
+    # Process files directly without saving to disk
+    file_data = []
+    for file in files:
+        if file and allowed_file(file.filename):
+            file_data.append({
+                'filename': secure_filename(file.filename),
+                'content': file.read()
+            })
+
+    # Process in background
+    upload_files_to_drive.delay(folder_id, file_data)
+
+    return jsonify({"message": "Upload processing started"}), 202
 
 def folder_has_files(folder_id):
     """Check if the given Google Drive folder contains any files."""
