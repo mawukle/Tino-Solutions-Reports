@@ -31,7 +31,7 @@ pymysql.install_as_MySQLdb()
 
 # Load environment variables from .env file
 load_dotenv()
-
+"""
 # Set up Redis as the Celery broker and result backend
 redis_url = os.getenv("REDIS_URL")
 
@@ -41,7 +41,7 @@ if not redis_url:
 
 app.config['CELERY_BROKER_URL'] = redis_url
 app.config['CELERY_RESULT_BACKEND'] = redis_url
-
+"""
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)  # Set to INFO for production
