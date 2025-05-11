@@ -90,6 +90,7 @@ def get_or_create_folder(service, parent_id, project_id, client_name, town, sale
 # ---------- Celery Tasks ----------
 @celery.task(bind=True)
 def create_folder_if_needed(self, project_id, client_name, town, sales_person):
+    logging.info(f"Starting folder creation task for project {project_id}")
     try:
         credentials = Credentials.from_service_account_file(
             GOOGLE_CREDENTIALS_FILE,
@@ -106,6 +107,11 @@ def create_folder_if_needed(self, project_id, client_name, town, sales_person):
             if project:
                 project.google_folder_id = folder_id
                 db.session.commit()
+                logging.info(f"Folder created for project {project_id}: {folder_id}")
+            else:
+                logging.error(f"Project with ID {project_id} not found.")
+        else:
+            logging.error(f"Folder creation failed for project {project_id}")
 
     except Exception as e:
         logging.error(f"Error creating folder for project {project_id}: {e}")
