@@ -165,3 +165,36 @@ def upload_files_to_drive(self, folder_id, file_paths):
     except Exception as e:
         logging.error(f"Upload failed: {e}")
         raise self.retry(exc=e)
+
+@celery.task(bind=True)
+def upload_files_to_drive(self, folder_id, file_paths):
+    """Process file uploads to Google Drive in background"""
+    try:
+        # Validate inputs
+        if not folder_id:
+            raise ValueError("Missing folder_id")
+        if not file_paths:
+            raise ValueError("No files to upload")
+
+        # Process each file
+        for file_path in file_paths:
+            if not os.path.exists(file_path):
+                logging.error(f"File not found: {file_path}")
+                continue
+
+            filename = os.path.basename(file_path)
+            logging.info(f"Uploading {filename} to folder {folder_id}")
+            upload_to_drive(file_path, filename, folder_id)
+
+    except Exception as e:
+        logging.error(f"Upload failed: {str(e)}", exc_info=True)
+        raise self.retry(exc=e)
+
+    finally:
+        # Clean up files
+        for path in file_paths:
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+            except Exception as e:
+                logging.error(f"Error cleaning up {path}: {str(e)}")
