@@ -4428,7 +4428,12 @@ def upload_file_to_folder():
             file.seek(0)  # Rewind file pointer if needed elsewhere
 
     upload_files_to_drive.delay(folder_id, file_data)
-    return jsonify({"message": "Upload processing started"}), 202
+
+    # Redirect to projects.html after successful upload
+    return redirect(url_for("get_projects"))
+
+
+    #return jsonify({"message": "Upload processing started"}), 202
 
 def folder_has_files(folder_id):
     """Check if the given Google Drive folder contains any files."""
