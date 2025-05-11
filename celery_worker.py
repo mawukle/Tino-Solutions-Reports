@@ -151,66 +151,43 @@ def update_folder_has_files(self, project_id, folder_id):
     finally:
         gc.collect()
 
+
 @celery.task(bind=True)
 def upload_files_to_drive(self, folder_id, file_data):
+    """Process file uploads to Google Drive using in-memory files"""
     try:
         credentials = Credentials.from_service_account_file(
-            GOOGLE_DRIVE_CREDENTIALS,
+            GOOGLE_CREDENTIALS_FILE,
             scopes=["https://www.googleapis.com/auth/drive.file"]
         )
         service = build("drive", "v3", credentials=credentials)
 
         for file_info in file_data:
-            file_metadata = {
-                'name': file_info['filename'],
-                'parents': [folder_id]
-            }
+            try:
+                file_content = io.BytesIO(file_info['content'])
+                file_metadata = {
+                    'name': file_info['filename'],
+                    'parents': [folder_id]
+                }
 
-            media = MediaIoBaseUpload(
-                io.BytesIO(file_info['content']),
-                mimetype='application/octet-stream',
-                resumable=True
-            )
+                media = MediaIoBaseUpload(
+                    file_content,
+                    mimetype='application/octet-stream',
+                    resumable=True
+                )
 
-            service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields='id'
-            ).execute()
+                service.files().create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields='id'
+                ).execute()
 
-    except Exception as e:
-        logging.error(f"Upload failed: {e}")
-        raise self.retry(exc=e)
+                logging.info(f"Successfully uploaded {file_info['filename']}")
 
-@celery.task(bind=True)
-def upload_files_to_drive(self, folder_id, file_paths):
-    """Process file uploads to Google Drive in background"""
-    try:
-        # Validate inputs
-        if not folder_id:
-            raise ValueError("Missing folder_id")
-        if not file_paths:
-            raise ValueError("No files to upload")
-
-        # Process each file
-        for file_path in file_paths:
-            if not os.path.exists(file_path):
-                logging.error(f"File not found: {file_path}")
+            except Exception as e:
+                logging.error(f"Failed to upload {file_info['filename']}: {str(e)}")
                 continue
 
-            filename = os.path.basename(file_path)
-            logging.info(f"Uploading {filename} to folder {folder_id}")
-            upload_to_drive(file_path, filename, folder_id)
-
     except Exception as e:
-        logging.error(f"Upload failed: {str(e)}", exc_info=True)
+        logging.error(f"Drive service error: {str(e)}")
         raise self.retry(exc=e)
-
-    finally:
-        # Clean up files
-        for path in file_paths:
-            try:
-                if path and os.path.exists(path):
-                    os.remove(path)
-            except Exception as e:
-                logging.error(f"Error cleaning up {path}: {str(e)}")

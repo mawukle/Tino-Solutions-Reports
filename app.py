@@ -4403,6 +4403,7 @@ def upload_file_to_folder():
         return jsonify({"error": str(e)}), 500
 """
 
+
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
     folder_id = request.form.get("folder_id")
@@ -4416,18 +4417,17 @@ def upload_file_to_folder():
     if not files or all(file.filename == '' for file in files):
         return jsonify({"error": "No selected files"}), 400
 
-    # Process files directly without saving to disk
+    # Prepare file data for Celery task
     file_data = []
     for file in files:
         if file and allowed_file(file.filename):
             file_data.append({
                 'filename': secure_filename(file.filename),
-                'content': file.read()
+                'content': file.read()  # Read file content into memory
             })
+            file.seek(0)  # Rewind file pointer if needed elsewhere
 
-    # Process in background
     upload_files_to_drive.delay(folder_id, file_data)
-
     return jsonify({"message": "Upload processing started"}), 202
 
 def folder_has_files(folder_id):
