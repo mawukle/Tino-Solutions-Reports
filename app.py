@@ -26,6 +26,8 @@ from flask_mail import Mail, Message
 from drive_uploader import upload_to_drive, GOOGLE_DRIVE_FOLDER_ID
 from decimal import Decimal
 from celery_worker import update_folder_has_files, create_folder_if_needed  # 👈 make sure this import is at the top
+from werkzeug.utils import secure_filename
+
 
 
 pymysql.install_as_MySQLdb()
@@ -2353,12 +2355,12 @@ def autocomplete_client():
 
     return jsonify(client_name_list)
 """
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+#def allowed_file(filename):
+#    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # Define the allowed extensions for file uploads
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+#ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 #UPLOAD_FOLDER = 'static/uploads'  # Adjust this path according to your setup
 
 def allowed_file(filename):
@@ -4334,7 +4336,7 @@ def upload_file_to_folder():
     return redirect(url_for("get_projects"))
 
     #return jsonify({"message": "Upload successful", "files": uploaded_files})
-"""
+
 
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
@@ -4358,8 +4360,48 @@ def upload_file_to_folder():
     upload_files_to_drive.delay(folder_id, file_paths)
 
     return jsonify({"message": "Upload processing started"}), 202
+"""
 
-    
+#from werkzeug.utils import secure_filename  # Add this import at the top of app.py
+#import os
+
+@app.route("/upload_file_to_folder", methods=["POST"])
+def upload_file_to_folder():
+    folder_id = request.form.get("folder_id")
+    if not folder_id:
+        return jsonify({"error": "Folder ID required"}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    files = request.files.getlist("file")
+    if not files or all(file.filename == '' for file in files):
+        return jsonify({"error": "No selected files"}), 400
+
+    # Ensure upload folder exists
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    file_paths = []
+    for file in files:
+        if file and allowed_file(file.filename):  # Add allowed_file check if needed
+            filename = secure_filename(file.filename)
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(path)
+            file_paths.append(path)
+
+    try:
+        upload_files_to_drive.delay(folder_id, file_paths)
+        return jsonify({
+            "message": "Upload processing started",
+            "files": [os.path.basename(p) for p in file_paths]
+        }), 202
+    except Exception as e:
+        # Clean up files if background task fails to queue
+        for path in file_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        return jsonify({"error": str(e)}), 500
+
 
 def folder_has_files(folder_id):
     """Check if the given Google Drive folder contains any files."""
