@@ -7,6 +7,7 @@ from celery import Celery
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from models import db, projects
+from drive_uploader import upload_to_drive
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
