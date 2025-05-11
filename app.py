@@ -3997,6 +3997,15 @@ def update_projects():
                     comment=project.get('comment', '')
                 )
                 db.session.add(new_project)
+                db.session.flush()  # Ensure we get a project_id
+
+                # Trigger folder creation
+                create_folder_if_needed.delay(
+                    new_project.project_id,
+                    new_project.client_name,
+                    new_project.town,
+                    new_project.sales_person
+                )
 
                 if new_project.lead_installer and new_project.start_date:
                     ongoing_projects.append(new_project)
