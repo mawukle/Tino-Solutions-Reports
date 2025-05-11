@@ -11,7 +11,7 @@ GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"  # Change t
 GOOGLE_DRIVE_FOLDER_ID = "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9"  # Change this to your folder ID
 """
 def upload_to_drive(file_path, file_name, folder_id):
-    """Uploads a file to Google Drive and returns the file URL."""
+    #Uploads a file to Google Drive and returns the file URL.
     credentials = Credentials.from_service_account_file(GOOGLE_CREDENTIALS_FILE, scopes=["https://www.googleapis.com/auth/drive.file"])
     service = build("drive", "v3", credentials=credentials)
 
