@@ -25,6 +25,7 @@ from urllib.parse import urlparse
 from flask_mail import Mail, Message
 from drive_uploader import upload_to_drive, GOOGLE_DRIVE_FOLDER_ID
 from decimal import Decimal
+from celery_worker import update_folder_has_files, create_folder_if_needed  # 👈 make sure this import is at the top
 
 
 pymysql.install_as_MySQLdb()
@@ -3779,7 +3780,6 @@ def serialize_row(row):
         return dict(row)  # Fallback for other iterable key-value pairs
 
 
-from celery_worker import update_folder_has_files, create_folder_if_needed  # 👈 make sure this import is at the top
 
 from flask import request, render_template
 from datetime import datetime, timedelta
@@ -4000,12 +4000,15 @@ def update_projects():
                 db.session.flush()  # Ensure we get a project_id
 
                 # Trigger folder creation
-                create_folder_if_needed.delay(
-                    new_project.project_id,
-                    new_project.client_name,
-                    new_project.town,
-                    new_project.sales_person
-                )
+                try:
+                    create_folder_if_needed.delay(
+                        new_project.project_id,
+                        new_project.client_name,
+                        new_project.town,
+                        new_project.sales_person
+                    )
+                except Exception as e:
+                    logging.error(f"Failed to queue folder creation: {e}")
 
                 if new_project.lead_installer and new_project.start_date:
                     ongoing_projects.append(new_project)
@@ -4296,7 +4299,7 @@ def get_or_create_folder(service, parent_folder_id, project_id, client_name, tow
 
 
 
-
+"""
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
     folder_id = request.form.get("folder_id")
@@ -4331,6 +4334,32 @@ def upload_file_to_folder():
     return redirect(url_for("get_projects"))
 
     #return jsonify({"message": "Upload successful", "files": uploaded_files})
+"""
+
+@app.route("/upload_file_to_folder", methods=["POST"])
+def upload_file_to_folder():
+    folder_id = request.form.get("folder_id")
+    if not folder_id:
+        return jsonify({"error": "Folder ID required"}), 400
+
+    # Just validate and pass to Celery
+    files = request.files.getlist("file")
+    if not files:
+        return jsonify({"error": "No files uploaded"}), 400
+
+    # Save files temporarily (or better, stream directly)
+    file_paths = []
+    for file in files:
+        path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+        file.save(path)
+        file_paths.append(path)
+
+    # Process in background
+    upload_files_to_drive.delay(folder_id, file_paths)
+
+    return jsonify({"message": "Upload processing started"}), 202
+
+    
 
 def folder_has_files(folder_id):
     """Check if the given Google Drive folder contains any files."""

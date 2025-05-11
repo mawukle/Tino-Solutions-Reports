@@ -48,6 +48,15 @@ def make_celery():
 
 celery = make_celery()
 
+# In celery_worker.py after creating the celery instance
+celery.conf.update(
+    worker_max_memory_per_child=200000,  # 200MB in KB
+    worker_max_tasks_per_child=10,       # Restart after 10 tasks
+    worker_concurrency=2,                # Only 2 concurrent tasks
+    broker_pool_limit=1,                 # Reduce Redis connections
+    worker_prefetch_multiplier=1         # Only prefetch 1 task per worker
+)
+
 # ---------- Google Drive Helper Functions ----------
 def folder_contains_files(service, folder_id):
     try:
@@ -138,3 +147,17 @@ def update_folder_has_files(self, project_id, folder_id):
         logging.error(f"Error updating folder_has_files for project {project_id}: {e}")
     finally:
         gc.collect()
+
+@celery.task(bind=True, time_limit=120)
+def upload_files_to_drive(self, folder_id, file_paths):
+    try:
+        credentials = Credentials.from_service_account_file(...)
+        service = build("drive", "v3", credentials=credentials)
+
+        for path in file_paths:
+            upload_to_drive(path, os.path.basename(path), folder_id)
+            os.remove(path)  # Clean up
+
+    except Exception as e:
+        logging.error(f"Upload failed: {e}")
+        raise self.retry(exc=e)
