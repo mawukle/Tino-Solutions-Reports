@@ -4432,7 +4432,6 @@ def upload_file_to_folder():
     # Redirect to projects.html after successful upload
     return redirect(url_for("get_projects"))
 
-
     #return jsonify({"message": "Upload processing started"}), 202
 
 def folder_has_files(folder_id):
@@ -4447,6 +4446,15 @@ def folder_has_files(folder_id):
     except Exception as e:
         print(f"Error checking folder contents: {e}")
         return False
+
+
+@app.route('/create_missing_folders', methods=['POST'])
+def trigger_create_missing_folders():
+    try:
+        create_missing_folders.delay()
+        return jsonify({"message": "Started creating missing folders"}), 202
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 from datetime import datetime, timedelta

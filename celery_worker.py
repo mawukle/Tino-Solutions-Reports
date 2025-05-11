@@ -74,31 +74,55 @@ def folder_contains_files(service, folder_id):
         return False
 
 def get_or_create_folder(service, parent_id, project_id, client_name, town, sales_person):
+    """Get or create a folder, ensuring no duplicates"""
     try:
-        folder_name = f"{client_name}_{town}_{sales_person}_{project_id}"
+        # Clean inputs and create consistent folder name
+        folder_name = f"{client_name.strip()}_{town.strip()}_{sales_person.strip()}_{project_id}"
+        folder_name = "".join(c for c in folder_name if c not in r'\/:*?"<>|')  # Remove invalid chars
+
+        # First check if the project already has a valid folder
+        existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
+        if existing_project and existing_project.google_folder_id:
+            # Verify the folder exists in Drive
+            try:
+                folder = service.files().get(
+                    fileId=existing_project.google_folder_id,
+                    fields='id'
+                ).execute()
+                return existing_project.google_folder_id  # Valid existing folder
+            except:
+                pass  # Folder doesn't exist, will create new one
+
+        # Search for existing folder by name
         query = (
             f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' "
-            f"and '{parent_id}' in parents and trashed = false"
+            f"and '{parent_id}' in parents and trashed=false"
         )
+        result = service.files().list(
+            q=query,
+            fields="files(id,name)",
+            pageSize=1
+        ).execute()
 
-        response = service.files().list(q=query, fields="files(id, name)").execute()
-        folders = response.get('files', [])
+        if result.get('files'):
+            return result['files'][0]['id']  # Return existing folder
 
-        if folders:
-            return folders[0]['id']  # Folder already exists
-
-        file_metadata = {
+        # Create new folder
+        folder_metadata = {
             'name': folder_name,
             'mimeType': 'application/vnd.google-apps.folder',
             'parents': [parent_id]
         }
-        folder = service.files().create(body=file_metadata, fields='id').execute()
+        folder = service.files().create(
+            body=folder_metadata,
+            fields='id'
+        ).execute()
+
         return folder.get('id')
 
     except Exception as e:
-        logging.error(f"Error creating/getting folder for project {project_id}: {e}")
+        logging.error(f"Error in get_or_create_folder: {e}")
         return None
-
 # ---------- Celery Tasks ----------
 @celery.task(bind=True)
 def create_folder_if_needed(self, project_id, client_name, town, sales_person):
@@ -190,4 +214,53 @@ def upload_files_to_drive(self, folder_id, file_data):
 
     except Exception as e:
         logging.error(f"Drive service error: {str(e)}")
+        raise self.retry(exc=e)
+
+
+@celery.task(bind=True)
+def create_missing_folders(self):
+    """Task to create Google Drive folders for projects that don't have them"""
+    try:
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE,
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        service = build("drive", "v3", credentials=credentials)
+
+        # Get all projects without folders
+        projects_without_folders = db.session.query(projects).filter(
+            (projects.google_folder_id == None) |
+            (projects.google_folder_id == '')
+        ).all()
+
+        for project in projects_without_folders:
+            try:
+                if not all([project.client_name, project.town, project.sales_person]):
+                    continue  # Skip incomplete projects
+
+                folder_id = get_or_create_folder(
+                    service,
+                    "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",  # Parent folder ID
+                    project.project_id,
+                    project.client_name,
+                    project.town,
+                    project.sales_person
+                )
+
+                if folder_id:
+                    project.google_folder_id = folder_id
+                    db.session.commit()
+                    logging.info(f"Created folder for project {project.project_id}: {folder_id}")
+                else:
+                    logging.error(f"Failed to create folder for project {project.project_id}")
+
+            except Exception as e:
+                logging.error(f"Error processing project {project.project_id}: {e}")
+                db.session.rollback()
+                continue
+
+        return f"Processed {len(projects_without_folders)} projects"
+
+    except Exception as e:
+        logging.error(f"Error in create_missing_folders task: {e}")
         raise self.retry(exc=e)
