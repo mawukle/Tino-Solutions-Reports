@@ -151,7 +151,10 @@ def update_folder_has_files(self, project_id, folder_id):
 @celery.task(bind=True, time_limit=120)
 def upload_files_to_drive(self, folder_id, file_paths):
     try:
-        credentials = Credentials.from_service_account_file(...)
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE,
+            scopes=["https://www.googleapis.com/auth/drive.file"]
+        )
         service = build("drive", "v3", credentials=credentials)
 
         for path in file_paths:
