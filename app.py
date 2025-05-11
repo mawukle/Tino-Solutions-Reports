@@ -4448,7 +4448,7 @@ def folder_has_files(folder_id):
         return False
 
 
-@app.route('/create_missing_folders', methods=['POST'])
+@app.route('/create_missing_folders', methods=['GET', 'POST'])
 def trigger_create_missing_folders():
     try:
         create_missing_folders.delay()
