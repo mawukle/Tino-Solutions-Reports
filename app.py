@@ -3779,7 +3779,7 @@ def serialize_row(row):
         return dict(row)  # Fallback for other iterable key-value pairs
 
 
-from celery_worker import update_folder_has_files  # 👈 make sure this import is at the top
+from celery_worker import update_folder_has_files, create_folder_if_needed  # 👈 make sure this import is at the top
 
 from flask import request, render_template
 from datetime import datetime, timedelta
