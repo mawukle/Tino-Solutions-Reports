@@ -367,24 +367,33 @@
         }
     }
 
-    // And add this new function to handle the special revenue chart:
+    // Replace the createRevenueSummaryChart function with this new version:
     function createRevenueSummaryChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        const filteredMonths = monthsToShow.filter(month => datasetObj[month]);
+        // First organize the data by metric (Invoice/Paid) then by month
+        const metrics = {
+            "Invoice Amount": {},
+            "Amount Paid": {}
+        };
 
-        if (filteredMonths.length === 0) {
-            canvas.style.display = "none";
-            return;
-        }
+        // Filter months and populate the metrics data
+        monthsToShow.forEach(month => {
+            if (datasetObj[month]) {
+                metrics["Invoice Amount"][month] = datasetObj[month][0];
+                metrics["Amount Paid"][month] = datasetObj[month][1];
+            }
+        });
 
-        const invoiceData = filteredMonths.map(month => datasetObj[month][0]);
-        const paidData = filteredMonths.map(month => datasetObj[month][1]);
+        // Check if we have any data
+        const hasData = monthsToShow.some(month =>
+            (metrics["Invoice Amount"][month] || 0) > 0 ||
+            (metrics["Amount Paid"][month] || 0) > 0
+        );
 
-        const hasData = invoiceData.some(val => val !== 0) || paidData.some(val => val !== 0);
         if (!hasData) {
             canvas.style.display = "none";
             return;
@@ -392,24 +401,24 @@
 
         canvas.style.display = "block";
 
+        // Prepare datasets - one for each month
+        const datasets = monthsToShow.map((month, i) => {
+            return {
+                label: month,
+                data: [
+                    metrics["Invoice Amount"][month] || 0,
+                    metrics["Amount Paid"][month] || 0
+                ],
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1
+            };
+        });
+
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: filteredMonths,
-                datasets: [
-                    {
-                        label: 'Invoice Amount',
-                        data: invoiceData,
-                        backgroundColor: '#36a2eb',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Amount Paid',
-                        data: paidData,
-                        backgroundColor: '#ff6384',
-                        borderWidth: 1
-                    }
-                ]
+                labels: ["Invoice Amount", "Amount Paid"],
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -425,12 +434,14 @@
                 },
                 scales: {
                     x: {
+                        stacked: true,
                         title: {
                             display: true,
-                            text: 'Month'
+                            text: 'Revenue Type'
                         }
                     },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
@@ -441,7 +452,6 @@
             }
         });
     }
-
 
 
     function downloadPDF() {
