@@ -570,17 +570,18 @@
 
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         const pageWidth = pdf.internal.pageSize.getWidth();
-        const margin = 15;
-        const chartHeight = 80;
-        const chartWidth = pageWidth - margin * 2;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const chartMaxWidth = pageWidth - 2 * margin;
+        const chartMaxHeight = pageHeight - 2 * margin - 10; // extra space for title
         let yPosition = 20;
 
         // Set title
-        pdf.setFontSize(18);
+        pdf.setFontSize(16);
         pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES REPORT", pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 15;
+        yPosition += 10;
 
         // Get all visible charts
         const visibleCharts = Array.from(document.querySelectorAll('canvas'))
@@ -596,17 +597,30 @@
             if (index > 0) {
                 pdf.addPage(); // Add new page for each chart after the first one
                 yPosition = margin;
+                pdf.setFontSize(16);
+                pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES REPORT", pageWidth / 2, yPosition, { align: 'center' });
+                yPosition += 10;
             }
 
             const chartImg = canvas.toDataURL("image/jpeg", 1.0);
-            pdf.addImage(chartImg, 'JPEG', margin, yPosition, chartWidth, chartHeight);
+            const aspectRatio = canvas.width / canvas.height;
+
+            let imgWidth = chartMaxWidth;
+            let imgHeight = chartMaxWidth / aspectRatio;
+
+            if (imgHeight > chartMaxHeight) {
+                imgHeight = chartMaxHeight;
+                imgWidth = chartMaxHeight * aspectRatio;
+            }
+
+            const x = (pageWidth - imgWidth) / 2;
+            pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
 
             // Add chart title below the chart
             const chartTitle = getChartTitle(canvas.id);
             if (chartTitle) {
-                yPosition += chartHeight + 5;
                 pdf.setFontSize(12);
-                pdf.text(chartTitle, pageWidth / 2, yPosition, { align: 'center' });
+                pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
             }
         });
 
@@ -621,7 +635,7 @@
         }
         return '';
     }
-    
+
     // Initial load: Filter labels from January of the current year
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth(); // 0-indexed
