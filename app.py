@@ -4856,7 +4856,7 @@ def reports():
             'kwh_per_installer': fill_chart_series(kwh_per_installer, all_months),
             'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months),
             'total_revenue': fill_chart_series(total_revenue, all_months),
-            'installed_capacities': fill_chart_series(installed_capacities, all_months)
+            'installed_capacities': dict(installed_capacities)  # Keep original structure
 
         }
 

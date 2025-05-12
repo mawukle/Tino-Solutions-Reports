@@ -466,30 +466,48 @@
         // Reorganize the data by month first, then by capacity type
         const monthlyData = {};
 
-        // The datasetObj comes from fill_chart_series, so it's in the format:
+        // The datasetObj now comes in the original format:
         // {
-        //   'kVA': [value1, value2, ...],
-        //   'kWh': [value1, value2, ...],
-        //   'kWp': [value1, value2, ...]
+        //   'kVA': {'2023-01': 100, '2023-02': 200},
+        //   'kWh': {'2023-01': 150, '2023-02': 250},
+        //   'kWp': {'2023-01': 50, '2023-02': 75}
         // }
 
-        // Reconstruct the monthly data
-        monthsToShow.forEach((month, monthIndex) => {
-            monthlyData[month] = {
-                'kVA': datasetObj['kVA'] ? datasetObj['kVA'][monthIndex] || 0 : 0,
-                'kWh': datasetObj['kWh'] ? datasetObj['kWh'][monthIndex] || 0 : 0,
-                'kWp': datasetObj['kWp'] ? datasetObj['kWp'][monthIndex] || 0 : 0
-            };
+        // Get all capacity types
+        const capacityTypes = ['kVA', 'kWh', 'kWp'];
+
+        // Organize by month
+        capacityTypes.forEach(type => {
+            if (datasetObj[type]) {
+                for (const month in datasetObj[type]) {
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = {
+                            'kVA': 0,
+                            'kWh': 0,
+                            'kWp': 0
+                        };
+                    }
+                    monthlyData[month][type] = datasetObj[type][month];
+                }
+            }
         });
 
+        // Filter months based on monthsToShow
+        const filteredMonths = monthsToShow.filter(month => monthlyData[month]);
+
+        if (filteredMonths.length === 0) {
+            canvas.style.display = "none";
+            return;
+        }
+
         // Prepare datasets - one for each month
-        const datasets = monthsToShow.map((month, i) => {
+        const datasets = filteredMonths.map((month, i) => {
             return {
                 label: month,
                 data: [
-                    monthlyData[month]['kVA'],
-                    monthlyData[month]['kWh'],
-                    monthlyData[month]['kWp']
+                    monthlyData[month]['kVA'] || 0,
+                    monthlyData[month]['kWh'] || 0,
+                    monthlyData[month]['kWp'] || 0
                 ],
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1
@@ -519,7 +537,12 @@
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw} ${context.label}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -542,7 +565,7 @@
             }
         });
     }
-
+    
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const canvas = document.getElementById('revenueChart');
