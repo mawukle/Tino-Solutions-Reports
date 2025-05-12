@@ -341,11 +341,23 @@
         }
 
         // NEW: Total Revenue Chart
+        // With this:
         if (selectedCharts.includes("totalRevenueChart")) {
-            buildChart("totalRevenueChart", "Total Revenue Generated", "Amount (USD)", filterGroupedData(allData.total_revenue), filteredLabels);
+            // Transform the revenue_summary_by_month data to match expected format
+            const revenueData = {};
+            for (const month in allData.revenue_summary_by_month) {
+                revenueData[month] = [
+                    allData.revenue_summary_by_month[month]["Invoice Amount"],
+                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                ];
+            }
+
+            // Create a special chart for revenue summary
+            createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
         } else {
             document.getElementById("totalRevenueChart").style.display = "none";
         }
+
 
         // NEW: Installed Capacities Chart
         if (selectedCharts.includes("installedCapacitiesChart")) {
@@ -354,6 +366,83 @@
             document.getElementById("installedCapacitiesChart").style.display = "none";
         }
     }
+
+    // And add this new function to handle the special revenue chart:
+    function createRevenueSummaryChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        const filteredMonths = monthsToShow.filter(month => datasetObj[month]);
+
+        if (filteredMonths.length === 0) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        const invoiceData = filteredMonths.map(month => datasetObj[month][0]);
+        const paidData = filteredMonths.map(month => datasetObj[month][1]);
+
+        const hasData = invoiceData.some(val => val !== 0) || paidData.some(val => val !== 0);
+        if (!hasData) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        canvas.style.display = "block";
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: filteredMonths,
+                datasets: [
+                    {
+                        label: 'Invoice Amount',
+                        data: invoiceData,
+                        backgroundColor: '#36a2eb',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Amount Paid',
+                        data: paidData,
+                        backgroundColor: '#ff6384',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
 
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
@@ -421,8 +510,19 @@
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
 
+    // With this:
     if (selectedChartsInit.includes("totalRevenueChart")) {
-        buildChart("totalRevenueChart", "Total Revenue Generated", "Amount (USD)", filterDataSetForInitialLoad(allData.total_revenue_summary), filteredLabels);
+        // Transform the revenue_summary_by_month data to match expected format
+        const revenueData = {};
+        for (const month in allData.revenue_summary_by_month) {
+            if (filteredLabels.includes(month)) {
+                revenueData[month] = [
+                    allData.revenue_summary_by_month[month]["Invoice Amount"],
+                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                ];
+            }
+        }
+        createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
     }
 
     if (selectedChartsInit.includes("installedCapacitiesChart")) {
