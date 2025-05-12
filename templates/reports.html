@@ -574,7 +574,6 @@
         Object.keys(chartInstances).forEach(chartId => {
             if (chartInstances[chartId]) {
                 originalTooltipSettings[chartId] = chartInstances[chartId].options.plugins.tooltip;
-                // Disable tooltips for PDF generation
                 chartInstances[chartId].options.plugins.tooltip = {
                     enabled: false
                 };
@@ -592,6 +591,9 @@
             const chartMaxWidth = pageWidth - 2 * margin;
             const chartMaxHeight = pageHeight - 2 * margin - 10;
             let yPosition = 20;
+
+            // Set white text color for the dark background
+            pdf.setTextColor(255, 255, 255);
 
             // Set title
             pdf.setFontSize(16);
@@ -613,6 +615,7 @@
                 if (index > 0) {
                     pdf.addPage();
                     yPosition = margin;
+                    pdf.setTextColor(255, 255, 255); // Ensure white text on new page
                     pdf.setFontSize(16);
                     pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
                     yPosition += 10;
@@ -642,11 +645,11 @@
 
             pdf.save("monthly_sales_report.pdf");
 
-            // Restore tooltips after a short delay
+            // Restore tooltips
             setTimeout(() => {
                 restoreTooltips(originalTooltipSettings);
             }, 500);
-        }, 300); // Short delay to ensure charts are updated
+        }, 300);
 
         function restoreTooltips(settings) {
             Object.keys(settings).forEach(chartId => {
