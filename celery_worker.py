@@ -270,3 +270,51 @@ def create_missing_folders(self):
     except Exception as e:
         logging.error(f"Critical error in create_missing_folders: {e}", exc_info=True)
         raise self.retry(exc=e)
+
+@celery.task(bind=True)
+def rename_project_folder_task(self, project_id, client_name, town, sales_person):
+    """Async task to rename a project folder in Google Drive"""
+    try:
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE,
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        service = build("drive", "v3", credentials=credentials)
+
+        # Get the project to ensure it still exists and has a folder ID
+        with app.app_context():
+            project = db.session.query(projects).filter_by(project_id=project_id).first()
+            if not project or not project.google_folder_id:
+                logging.warning(f"Project {project_id} not found or missing folder ID")
+                return False
+
+            # Generate the expected folder name
+            expected_name = f"{client_name.strip()}_{town.strip()}_{sales_person.strip()}_{project_id}"
+            expected_name = "".join(c for c in expected_name if c not in r'\/:*?"<>|')
+
+            try:
+                # Get current folder name from Google Drive
+                folder = service.files().get(
+                    fileId=project.google_folder_id,
+                    fields="name"
+                ).execute()
+
+                current_name = folder.get('name', '')
+
+                if current_name != expected_name:
+                    # Update folder name if it doesn't match
+                    service.files().update(
+                        fileId=project.google_folder_id,
+                        body={'name': expected_name}
+                    ).execute()
+                    logging.info(f"Renamed folder for project {project_id} to {expected_name}")
+                    return True
+                return False
+
+            except Exception as e:
+                logging.error(f"Error renaming folder for project {project_id}: {e}")
+                raise self.retry(exc=e, countdown=60, max_retries=3)
+
+    except Exception as e:
+        logging.error(f"Critical error in rename_project_folder_task: {e}")
+        raise self.retry(exc=e, countdown=60, max_retries=3)

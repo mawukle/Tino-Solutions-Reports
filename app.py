@@ -3934,6 +3934,7 @@ def update_projects():
         data = request.json.get('projects', [])
         ongoing_projects = []  # Track projects that just moved to "Ongoing"
         completed_projects = []  # Track projects that just moved to "Completed"
+        folder_rename_tasks = []  # Track folder rename tasks
 
         for project in data:
             project_id = project.get('project_id')
@@ -3941,19 +3942,22 @@ def update_projects():
             if project_id:  # Updating an existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
+                    # Track fields that affect folder name before changes
+                    old_fields = {
+                        'client_name': existing_project.client_name,
+                        'town': existing_project.town,
+                        'sales_person': existing_project.sales_person
+                    }
+
                     # Preserve existing values if not provided in the request
                     project_fields = {
                         'client_name': project.get('client_name', existing_project.client_name),
                         'town': project.get('town', existing_project.town),
                         'phone_number': project.get('phone_number', existing_project.phone_number),
                         'sales_person': project.get('sales_person') if 'sales_person' in project else existing_project.sales_person,
-                        #'sales_person': project.get('sales_person', existing_project.sales_person) if project.get('sales_person') else existing_project.sales_person,
                         'lead_installer': project.get('lead_installer') if 'lead_installer' in project else existing_project.lead_installer,
-                        #'lead_installer': project.get('lead_installer', existing_project.lead_installer) if project.get('lead_installer') else existing_project.lead_installer,
                         'start_date': project.get('start_date', existing_project.start_date),
-                        #'start_date': project.get('start_date', existing_project.start_date) if project.get('start_date') else existing_project.start_date,
                         'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date),
-                        #'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date) if project.get('commissioning_date') else existing_project.commissioning_date,
                         'invoice_image_url': project.get('invoice_image_url', existing_project.invoice_image_url),
                         'google_coordinates': project.get('google_coordinates', existing_project.google_coordinates),
                         'currency': project.get('currency', existing_project.currency),
@@ -3971,6 +3975,27 @@ def update_projects():
                     # Apply updates to the existing project
                     for key, value in project_fields.items():
                         setattr(existing_project, key, value)
+
+                    # Check if folder needs renaming
+                    if (existing_project.google_folder_id and
+                        (project.get('client_name') is not None or
+                         project.get('town') is not None or
+                         project.get('sales_person') is not None)):
+
+                        # Check if any folder-related fields actually changed
+                        if (project_fields['client_name'] != old_fields['client_name'] or
+                            project_fields['town'] != old_fields['town'] or
+                            project_fields['sales_person'] != old_fields['sales_person']):
+
+                            # Queue async folder rename task
+                            task = rename_project_folder_task.delay(
+                                project_id=project_id,
+                                client_name=project_fields['client_name'],
+                                town=project_fields['town'],
+                                sales_person=project_fields['sales_person']
+                            )
+                            folder_rename_tasks.append(task)
+                            logging.info(f"Queued folder rename for project {project_id}")
 
                     # Check if project just moved to "Ongoing"
                     if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
@@ -4027,12 +4052,15 @@ def update_projects():
         for project in completed_projects:
             send_completed_project_email_notification(project)
 
-        return jsonify({"message": "Projects updated successfully"})
+        return jsonify({
+            "message": "Projects updated successfully",
+            "folder_rename_tasks": len(folder_rename_tasks)
+        })
 
     except Exception as e:
         logging.error(f"Error updating projects: {e}")
+        db.session.rollback()
         return jsonify({"message": "Error updating projects"}), 500
-
 
 def format_date_with_suffix(date_obj):
     if not date_obj:
