@@ -571,150 +571,140 @@
     function downloadPDF() {
         const originalSettings = {};
 
+        // 1) Capture & override each chart's text settings
         Object.keys(chartInstances).forEach(chartId => {
             const chart = chartInstances[chartId];
-            if (chart) {
-                originalSettings[chartId] = {
-                    tooltip: chart.options.plugins.tooltip,
-                    legendColor: chart.options.plugins.legend?.labels?.color,
-                    titleColor: chart.options.plugins.title?.color,
-                    xAxisColor: chart.options.scales?.x?.ticks?.color,
-                    yAxisColor: chart.options.scales?.y?.ticks?.color,
-                    xAxisTitleColor: chart.options.scales?.x?.title?.color,
-                    yAxisTitleColor: chart.options.scales?.y?.title?.color,
-                    xAxisGridColor: chart.options.scales?.x?.grid?.color,
-                    yAxisGridColor: chart.options.scales?.y?.grid?.color,
-                };
+            if (!chart) return;
 
-                // Disable tooltips
-                chart.options.plugins.tooltip = { enabled: false };
+            originalSettings[chartId] = {
+                tooltip: chart.options.plugins.tooltip,
+                legendColor: chart.options.plugins.legend?.labels?.color,
+                titleColor: chart.options.plugins.title?.color,
+                xTitleColor: chart.options.scales?.x?.title?.color,
+                yTitleColor: chart.options.scales?.y?.title?.color,
+                xTicksColor: chart.options.scales?.x?.ticks?.color,
+                yTicksColor: chart.options.scales?.y?.ticks?.color,
+                xGridColor: chart.options.scales?.x?.grid?.color,
+                yGridColor: chart.options.scales?.y?.grid?.color
+            };
 
-                // Set white for legend, title, axis ticks, axis titles, and grid lines
-                if (chart.options.plugins.legend?.labels) {
-                    chart.options.plugins.legend.labels.color = '#FFFFFF';
-                }
-                if (chart.options.plugins.title) {
-                    chart.options.plugins.title.color = '#FFFFFF';
-                }
-                if (chart.options.scales?.x) {
-                    chart.options.scales.x.ticks.color = '#FFFFFF';
-                    if (chart.options.scales.x.title) {
-                        chart.options.scales.x.title.color = '#FFFFFF';
-                    }
-                    if (chart.options.scales.x.grid) {
-                        chart.options.scales.x.grid.color = '#FFFFFF';
-                    }
-                }
-                if (chart.options.scales?.y) {
-                    chart.options.scales.y.ticks.color = '#FFFFFF';
-                    if (chart.options.scales.y.title) {
-                        chart.options.scales.y.title.color = '#FFFFFF';
-                    }
-                    if (chart.options.scales.y.grid) {
-                        chart.options.scales.y.grid.color = '#FFFFFF';
-                    }
-                }
+            // Disable tooltip
+            chart.options.plugins.tooltip = { enabled: false };
 
-                chart.update();
-            }
+            // White-out every text element & gridline
+            if (chart.options.plugins.legend?.labels) chart.options.plugins.legend.labels.color = '#FFFFFF';
+            if (chart.options.plugins.title)                   chart.options.plugins.title.color = '#FFFFFF';
+
+            ['x','y'].forEach(axis => {
+                const scale = chart.options.scales[axis];
+                if (!scale) return;
+                scale.title.color = '#FFFFFF';
+                scale.ticks.color = '#FFFFFF';
+                scale.grid.color  = '#FFFFFF';
+            });
+
+            chart.update();
         });
 
+        // 2) Short pause to let Chart.js repaint
         setTimeout(() => {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
+            const W = pdf.internal.pageSize.getWidth();
+            const H = pdf.internal.pageSize.getHeight();
             const margin = 10;
-            const chartMaxWidth = pageWidth - 2 * margin;
-            const chartMaxHeight = pageHeight - 2 * margin - 10;
-            let yPosition = 20;
+            const chartW = W - 2*margin;
+            const chartH = H - 2*margin - 20; // extra space for heading
+            let y = 20;
 
-            pdf.setTextColor(255, 255, 255);
-            pdf.setFontSize(16);
-            pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-            yPosition += 10;
+            // — Draw heading text in white, centered —
+            pdf.setTextColor(255,255,255);
+            pdf.setFontSize(18);
+            pdf.text("TINO SOLUTIONS LIMITED",           W/2, y, { align: 'center' });
+            pdf.text("MONTHLY SALES AND PROJECTS REPORT", W/2, y+8, { align: 'center' });
 
-            const visibleCharts = Array.from(document.querySelectorAll('canvas'))
-                .filter(canvas => canvas.style.display !== 'none');
+            // — Draw logo top-right on first page —
+            const logoImg = document.querySelector('.logo');
+            if (logoImg && logoImg.complete) {
+                // create an offscreen canvas to grab logo dataURL
+                const tmp = document.createElement('canvas');
+                tmp.width  = logoImg.naturalWidth;
+                tmp.height = logoImg.naturalHeight;
+                tmp.getContext('2d').drawImage(logoImg, 0, 0);
+                const logoData = tmp.toDataURL('image/png');
+                const logoWidth  = 30; // mm
+                const logoHeight = (logoImg.naturalHeight / logoImg.naturalWidth)*logoWidth;
+                pdf.addImage(logoData, 'PNG', W - margin - logoWidth,  y-8, logoWidth, logoHeight);
+            }
 
-            if (visibleCharts.length === 0) {
-                alert('No charts are currently visible to export');
-                restoreChartSettings(originalSettings);
+            // Advance y past heading
+            y += 20;
+
+            // Gather visible canvases
+            const canvases = Array.from(document.querySelectorAll('canvas'))
+                .filter(c => c.style.display !== 'none');
+
+            if (canvases.length === 0) {
+                alert('No charts to export');
+                restoreCharts();
                 return;
             }
 
-            visibleCharts.forEach((canvas, index) => {
-                if (index > 0) {
+            // 3) Loop through each chart image
+            canvases.forEach((canvas, idx) => {
+                if (idx > 0) {
                     pdf.addPage();
-                    yPosition = margin;
-                    pdf.setTextColor(255, 255, 255);
-                    pdf.setFontSize(16);
-                    pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-                    yPosition += 10;
+                    y = margin;
                 }
 
-                const chartImg = canvas.toDataURL("image/jpeg", 1.0);
-                const aspectRatio = canvas.width / canvas.height;
+                // ensure white heading repeated on each page
+                pdf.setTextColor(255,255,255);
+                pdf.setFontSize(18);
+                pdf.text("TINO SOLUTIONS LIMITED",           W/2, y, { align: 'center' });
+                pdf.text("MONTHLY SALES AND PROJECTS REPORT", W/2, y+8, { align: 'center' });
+                y += 20;
 
-                let imgWidth = chartMaxWidth;
-                let imgHeight = chartMaxWidth / aspectRatio;
-
-                if (imgHeight > chartMaxHeight) {
-                    imgHeight = chartMaxHeight;
-                    imgWidth = chartMaxHeight * aspectRatio;
+                // embed chart image
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const ratio = canvas.width / canvas.height;
+                let w = chartW, h = chartW / ratio;
+                if (h > chartH) {
+                    h = chartH;
+                    w = chartH * ratio;
                 }
+                pdf.addImage(imgData, 'JPEG', (W - w)/2, y, w, h);
 
-                const x = (pageWidth - imgWidth) / 2;
-                pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
-
-                const chartTitle = getChartTitle(canvas.id);
-                if (chartTitle) {
+                // chart title underneath
+                const title = getChartTitle(canvas.id);
+                if (title) {
                     pdf.setFontSize(12);
-                    pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
+                    pdf.text(title, W/2, y + h + 6, { align: 'center' });
                 }
             });
 
+            // Save PDF
             pdf.save("monthly_sales_report.pdf");
 
-            setTimeout(() => {
-                restoreChartSettings(originalSettings);
-            }, 500);
+            // Restore original chart settings
+            setTimeout(restoreCharts, 500);
+
         }, 300);
 
-        function restoreChartSettings(settings) {
-            Object.keys(settings).forEach(chartId => {
-                const chart = chartInstances[chartId];
-                if (chart) {
-                    const opts = settings[chartId];
-                    chart.options.plugins.tooltip = opts.tooltip;
-
-                    if (chart.options.plugins.legend?.labels) {
-                        chart.options.plugins.legend.labels.color = opts.legendColor;
-                    }
-                    if (chart.options.plugins.title) {
-                        chart.options.plugins.title.color = opts.titleColor;
-                    }
-                    if (chart.options.scales?.x) {
-                        chart.options.scales.x.ticks.color = opts.xAxisColor;
-                        if (chart.options.scales.x.title) {
-                            chart.options.scales.x.title.color = opts.xAxisTitleColor;
-                        }
-                        if (chart.options.scales.x.grid) {
-                            chart.options.scales.x.grid.color = opts.xAxisGridColor;
-                        }
-                    }
-                    if (chart.options.scales?.y) {
-                        chart.options.scales.y.ticks.color = opts.yAxisColor;
-                        if (chart.options.scales.y.title) {
-                            chart.options.scales.y.title.color = opts.yAxisTitleColor;
-                        }
-                        if (chart.options.scales.y.grid) {
-                            chart.options.scales.y.grid.color = opts.yAxisGridColor;
-                        }
-                    }
-
-                    chart.update();
-                }
+        // Helper to restore all charts
+        function restoreCharts() {
+            Object.entries(originalSettings).forEach(([id, opts]) => {
+                const chart = chartInstances[id];
+                if (!chart) return;
+                chart.options.plugins.tooltip = opts.tooltip;
+                chart.options.plugins.legend.labels.color = opts.legendColor;
+                chart.options.plugins.title.color = opts.titleColor;
+                chart.options.scales.x.title.color = opts.xTitleColor;
+                chart.options.scales.y.title.color = opts.yTitleColor;
+                chart.options.scales.x.ticks.color = opts.xTicksColor;
+                chart.options.scales.y.ticks.color = opts.yTicksColor;
+                chart.options.scales.x.grid.color  = opts.xGridColor;
+                chart.options.scales.y.grid.color  = opts.yGridColor;
+                chart.update();
             });
         }
     }
