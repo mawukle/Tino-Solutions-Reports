@@ -13,9 +13,8 @@
         }
         canvas {
             width: 100% !important;
-            height: auto !important; /* remove or override */
-            aspect-ratio: 1 / 1; /* new addition */
-            /*max-width: 800px;*/
+            height: auto !important;
+            aspect-ratio: 1 / 1;
         }
         .message {
             color: red;
@@ -100,13 +99,21 @@
     <canvas id="totalRevenueChart" style="display:none;"></canvas>
     <canvas id="installedCapacitiesChart" style="display:none;"></canvas>
 
-
     <!-- PDF Download -->
     <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
 </div>
 
 <script>
-    const labels = {{ labels | tojson }};
+    // Month name mapping
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Function to format YYYY-MM as "Jan 2025"
+    function formatMonth(monthStr) {
+        const [year, month] = monthStr.split('-');
+        return `${monthNames[parseInt(month) - 1]} ${year}`;
+    }
+
+    const labels = {{ labels | tojson }}.map(formatMonth);
     const allData = {{ data | tojson }};
     const originalData = allData.revenue;
     const chartInstances = {};
@@ -121,7 +128,7 @@
     function buildFilteredChart(filteredData, filteredLabels) {
         if (chartInstance) chartInstance.destroy();
 
-        const xLabels = Object.keys(filteredData);  // sales persons
+        const xLabels = Object.keys(filteredData);
         const datasets = [];
 
         if (xLabels.length === 0 || filteredLabels.length === 0) return;
@@ -157,7 +164,12 @@
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -191,7 +203,7 @@
         const datasets = [];
 
         if (xLabels.length === 0 || monthsToShow.length === 0) {
-            canvas.style.display = "none";  // Hide if no data
+            canvas.style.display = "none";
             return;
         }
 
@@ -208,11 +220,11 @@
 
         const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
         if (!hasData) {
-            canvas.style.display = "none";  // Hide empty chart
+            canvas.style.display = "none";
             return;
         }
 
-        canvas.style.display = "block";  // Show if it has data
+        canvas.style.display = "block";
 
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
@@ -229,7 +241,12 @@
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -253,19 +270,27 @@
         });
     }
 
-
-
     function applyFilters() {
-        const selectedPersons = ["all"];  // Always include all persons
+        const selectedPersons = ["all"];
         const fromMonth = document.getElementById("fromMonth").value;
         const toMonth = document.getElementById("toMonth").value;
 
-        // Filter the months (labels)
-        const filteredLabels = labels.filter(label => {
-            if (fromMonth && label < fromMonth) return false;
-            if (toMonth && label > toMonth) return false;
+        // Convert input months to YYYY-MM format for comparison
+        const fromDate = fromMonth ? new Date(fromMonth) : null;
+        const toDate = toMonth ? new Date(toMonth) : null;
+
+        // Filter the months (original YYYY-MM format)
+        const originalLabels = {{ labels | tojson }};
+        const filteredOriginalLabels = originalLabels.filter(label => {
+            const [year, month] = label.split('-');
+            const date = new Date(year, month-1);
+            if (fromDate && date < fromDate) return false;
+            if (toDate && date > toDate) return false;
             return true;
         });
+
+        // Convert filtered labels to formatted version
+        const filteredLabels = filteredOriginalLabels.map(formatMonth);
 
         function filterDataSet(dataSet) {
             const result = {};
@@ -273,8 +298,8 @@
                 if (!selectedPersons.includes("all") && !selectedPersons.includes(key)) continue;
 
                 const originalArray = dataSet[key];
-                const filteredArray = filteredLabels.map(month => {
-                    const idx = labels.indexOf(month);
+                const filteredArray = filteredOriginalLabels.map(month => {
+                    const idx = originalLabels.indexOf(month);
                     return originalArray[idx] ?? 0;
                 });
 
@@ -287,7 +312,7 @@
 
         function filterGroupedData(dataSet) {
             const result = {};
-            for (const month of filteredLabels) {
+            for (const month of filteredOriginalLabels) {
                 if (dataSet[month]) {
                     result[month] = dataSet[month];
                 }
@@ -295,7 +320,6 @@
             return result;
         }
 
-        // Get selected chart IDs from checkboxes
         const selectedCharts = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
         if (selectedCharts.includes("revenueChart")) {
@@ -340,27 +364,21 @@
             document.getElementById("kwpChart").style.display = "none";
         }
 
-        // NEW: Total Revenue Chart
-        // With this:
         if (selectedCharts.includes("totalRevenueChart")) {
-            // Transform the revenue_summary_by_month data to match expected format
             const revenueData = {};
             for (const month in allData.revenue_summary_by_month) {
-                revenueData[month] = [
-                    allData.revenue_summary_by_month[month]["Invoice Amount"],
-                    allData.revenue_summary_by_month[month]["Amount Paid"]
-                ];
+                if (filteredOriginalLabels.includes(month)) {
+                    revenueData[month] = [
+                        allData.revenue_summary_by_month[month]["Invoice Amount"],
+                        allData.revenue_summary_by_month[month]["Amount Paid"]
+                    ];
+                }
             }
-
-            // Create a special chart for revenue summary
             createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
         } else {
             document.getElementById("totalRevenueChart").style.display = "none";
         }
 
-
-        // NEW: Installed Capacities Chart
-        // With this:
         if (selectedCharts.includes("installedCapacitiesChart")) {
             createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
         } else {
@@ -368,31 +386,28 @@
         }
     }
 
-    // Replace the createRevenueSummaryChart function with this new version:
     function createRevenueSummaryChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        // First organize the data by metric (Invoice/Paid) then by month
         const metrics = {
             "Invoice Amount": {},
             "Amount Paid": {}
         };
 
-        // Filter months and populate the metrics data
         monthsToShow.forEach(month => {
+            const formattedMonth = formatMonth(month);
             if (datasetObj[month]) {
-                metrics["Invoice Amount"][month] = datasetObj[month][0];
-                metrics["Amount Paid"][month] = datasetObj[month][1];
+                metrics["Invoice Amount"][formattedMonth] = datasetObj[month][0];
+                metrics["Amount Paid"][formattedMonth] = datasetObj[month][1];
             }
         });
 
-        // Check if we have any data
         const hasData = monthsToShow.some(month =>
-            (metrics["Invoice Amount"][month] || 0) > 0 ||
-            (metrics["Amount Paid"][month] || 0) > 0
+            (datasetObj[month]?.[0] || 0) > 0 ||
+            (datasetObj[month]?.[1] || 0) > 0
         );
 
         if (!hasData) {
@@ -402,13 +417,13 @@
 
         canvas.style.display = "block";
 
-        // Prepare datasets - one for each month
         const datasets = monthsToShow.map((month, i) => {
+            const formattedMonth = formatMonth(month);
             return {
-                label: month,
+                label: formattedMonth,
                 data: [
-                    metrics["Invoice Amount"][month] || 0,
-                    metrics["Amount Paid"][month] || 0
+                    metrics["Invoice Amount"][formattedMonth] || 0,
+                    metrics["Amount Paid"][formattedMonth] || 0
                 ],
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1
@@ -430,7 +445,12 @@
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -454,47 +474,38 @@
         });
     }
 
-
-    // Add this new function for the installed capacities chart
-    // Update the createInstalledCapacitiesChart function to properly handle the data structure:
     function createInstalledCapacitiesChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        // Reorganize the data by month first, then by capacity type
         const monthlyData = {};
-
-        // Get all capacity types
         const capacityTypes = ['kVA', 'kWh', 'kWp'];
 
-        // Organize by month
         capacityTypes.forEach(type => {
             if (datasetObj[type]) {
                 for (const month in datasetObj[type]) {
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = {
+                    const formattedMonth = formatMonth(month);
+                    if (!monthlyData[formattedMonth]) {
+                        monthlyData[formattedMonth] = {
                             'kVA': 0,
                             'kWh': 0,
                             'kWp': 0
                         };
                     }
-                    // Round values to 2 decimal places when storing
-                    monthlyData[month][type] = Math.round(datasetObj[type][month] * 100) / 100;
+                    monthlyData[formattedMonth][type] = Math.round(datasetObj[type][month] * 100) / 100;
                 }
             }
         });
 
-        // Filter months based on monthsToShow
-        const filteredMonths = monthsToShow.filter(month => monthlyData[month]);
+        const filteredMonths = monthsToShow.map(month => formatMonth(month)).filter(month => monthlyData[month]);
 
         if (filteredMonths.length === 0) {
             canvas.style.display = "none";
             return;
         }
 
-        // Prepare datasets - one for each month
         const datasets = filteredMonths.map((month, i) => {
             return {
                 label: month,
@@ -534,7 +545,6 @@
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                // Format the value to 2 decimal places
                                 const roundedValue = Math.round(context.raw * 100) / 100;
                                 return `${context.dataset.label}: ${roundedValue.toFixed(2)} ${context.label}`;
                             }
@@ -557,7 +567,6 @@
                             text: yLabel
                         },
                         ticks: {
-                            // Format y-axis labels to 2 decimal places
                             callback: function(value) {
                                 return value.toFixed(2);
                             }
@@ -571,136 +580,163 @@
     function downloadPDF() {
         const originalSettings = {};
 
-        // 1) Capture & override each chart's text settings
         Object.keys(chartInstances).forEach(chartId => {
             const chart = chartInstances[chartId];
-            if (!chart) return;
+            if (chart) {
+                originalSettings[chartId] = {
+                    tooltip: chart.options.plugins.tooltip,
+                    legendColor: chart.options.plugins.legend?.labels?.color,
+                    titleColor: chart.options.plugins.title?.color,
+                    xAxisColor: chart.options.scales?.x?.ticks?.color,
+                    yAxisColor: chart.options.scales?.y?.ticks?.color,
+                    xAxisTitleColor: chart.options.scales?.x?.title?.color,
+                    yAxisTitleColor: chart.options.scales?.y?.title?.color,
+                    xAxisGridColor: chart.options.scales?.x?.grid?.color,
+                    yAxisGridColor: chart.options.scales?.y?.grid?.color,
+                };
 
-            originalSettings[chartId] = {
-                tooltip:       chart.options.plugins.tooltip,
-                legendColor:   chart.options.plugins.legend?.labels?.color,
-                titleColor:    chart.options.plugins.title?.color,
-                xTitleColor:   chart.options.scales?.x?.title?.color,
-                yTitleColor:   chart.options.scales?.y?.title?.color,
-                xTicksColor:   chart.options.scales?.x?.ticks?.color,
-                yTicksColor:   chart.options.scales?.y?.ticks?.color,
-                xGridColor:    chart.options.scales?.x?.grid?.color,
-                yGridColor:    chart.options.scales?.y?.grid?.color
-            };
+                chart.options.plugins.tooltip = { enabled: false };
 
-            chart.options.plugins.tooltip = { enabled: false };
+                if (chart.options.plugins.legend?.labels) {
+                    chart.options.plugins.legend.labels.color = '#000000';
+                }
+                if (chart.options.plugins.title) {
+                    chart.options.plugins.title.color = '#000000';
+                }
+                if (chart.options.scales?.x) {
+                    chart.options.scales.x.ticks.color = '#000000';
+                    if (chart.options.scales.x.title) {
+                        chart.options.scales.x.title.color = '#000000';
+                    }
+                    if (chart.options.scales.x.grid) {
+                        chart.options.scales.x.grid.color = 'rgba(0,0,0,0.1)';
+                    }
+                }
+                if (chart.options.scales?.y) {
+                    chart.options.scales.y.ticks.color = '#000000';
+                    if (chart.options.scales.y.title) {
+                        chart.options.scales.y.title.color = '#000000';
+                    }
+                    if (chart.options.scales.y.grid) {
+                        chart.options.scales.y.grid.color = 'rgba(0,0,0,0.1)';
+                    }
+                }
 
-            if (chart.options.plugins.legend?.labels) chart.options.plugins.legend.labels.color = '#FFFFFF';
-            if (chart.options.plugins.title) chart.options.plugins.title.color = '#FFFFFF';
-
-            ['x','y'].forEach(axis => {
-                const scale = chart.options.scales[axis];
-                if (!scale) return;
-                scale.title.color = '#FFFFFF';
-                scale.ticks.color = '#FFFFFF';
-                scale.grid.color  = '#FFFFFF';
-            });
-
-            chart.update();
+                chart.update();
+            }
         });
 
-        // 2) Wait for charts to update before rendering to PDF
         setTimeout(() => {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            const W = pdf.internal.pageSize.getWidth();
-            const H = pdf.internal.pageSize.getHeight();
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
             const margin = 10;
-            const chartW = W - 2 * margin;
-            const chartH = H - 2 * margin - 20;
-            let y = 20;
+            const chartMaxWidth = pageWidth - 2 * margin;
+            const chartMaxHeight = pageHeight - 2 * margin - 30;
+            let yPosition = 30;
 
-            // Draw heading only once on the first page
-            pdf.setFontSize(18);
-            pdf.setTextColor(0, 0, 0);
-            pdf.text("TINO SOLUTIONS LIMITED",            W / 2, y,   { align: 'center' });
-            pdf.text("MONTHLY SALES AND PROJECTS REPORT",  W / 2, y + 8, { align: 'center' });
-
-            // Draw logo top-right on first page
+            // Add logo
             const logoImg = document.querySelector('.logo');
-            if (logoImg && logoImg.complete) {
-                const tmp = document.createElement('canvas');
-                tmp.width = logoImg.naturalWidth;
-                tmp.height = logoImg.naturalHeight;
-                tmp.getContext('2d').drawImage(logoImg, 0, 0);
-                const logoData = tmp.toDataURL('image/png');
+            if (logoImg) {
+                const logoCanvas = document.createElement('canvas');
+                logoCanvas.width = logoImg.naturalWidth;
+                logoCanvas.height = logoImg.naturalHeight;
+                const logoCtx = logoCanvas.getContext('2d');
+                logoCtx.drawImage(logoImg, 0, 0);
+                const logoData = logoCanvas.toDataURL('image/png');
                 const logoWidth = 30;
                 const logoHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * logoWidth;
-                pdf.addImage(logoData, 'PNG', W - margin - logoWidth, y - 8, logoWidth, logoHeight);
+                pdf.addImage(logoData, 'PNG', pageWidth - margin - logoWidth, margin, logoWidth, logoHeight);
             }
 
-            y += 20;
+            // Add title
+            pdf.setFontSize(16);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text("TINO SOLUTIONS LIMITED", pageWidth / 2, 15, { align: 'center' });
+            pdf.text("MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, 22, { align: 'center' });
 
-            // Get visible charts
-            const canvases = Array.from(document.querySelectorAll('canvas'))
-                .filter(c => c.style.display !== 'none');
+            const visibleCharts = Array.from(document.querySelectorAll('canvas'))
+                .filter(canvas => canvas.style.display !== 'none');
 
-            if (canvases.length === 0) {
-                alert('No charts to export');
-                restoreCharts();
+            if (visibleCharts.length === 0) {
+                alert('No charts are currently visible to export');
+                restoreChartSettings(originalSettings);
                 return;
             }
 
-            const totalPages = canvases.length;
-
-            // 3) Add charts page by page
-            canvases.forEach((canvas, idx) => {
-                if (idx > 0) {
+            visibleCharts.forEach((canvas, index) => {
+                if (index > 0) {
                     pdf.addPage();
-                    y = margin;
+                    yPosition = margin;
                 }
 
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const ratio = canvas.width / canvas.height;
-                let w = chartW, h = chartW / ratio;
-                if (h > chartH) {
-                    h = chartH;
-                    w = chartH * ratio;
-                }
-                pdf.addImage(imgData, 'JPEG', (W - w) / 2, y, w, h);
+                const chartImg = canvas.toDataURL("image/jpeg", 1.0);
+                const aspectRatio = canvas.width / canvas.height;
 
-                const title = getChartTitle(canvas.id);
-                if (title) {
+                let imgWidth = chartMaxWidth;
+                let imgHeight = chartMaxWidth / aspectRatio;
+
+                if (imgHeight > chartMaxHeight) {
+                    imgHeight = chartMaxHeight;
+                    imgWidth = chartMaxHeight * aspectRatio;
+                }
+
+                const x = (pageWidth - imgWidth) / 2;
+                pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
+
+                const chartTitle = getChartTitle(canvas.id);
+                if (chartTitle) {
                     pdf.setFontSize(12);
-                    pdf.setTextColor(255, 255, 255);
-                    pdf.text(title, W / 2, y + h + 6, { align: 'center' });
+                    pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
                 }
-
-                // Add page number centered at the bottom
-                pdf.setFontSize(10);
-                pdf.setTextColor(100);
-                pdf.text(`Page ${idx + 1} of ${totalPages}`, W / 2, H - 10, { align: 'center' });
             });
 
             pdf.save("monthly_sales_report.pdf");
 
-            setTimeout(restoreCharts, 500);
+            setTimeout(() => {
+                restoreChartSettings(originalSettings);
+            }, 500);
         }, 300);
 
-        function restoreCharts() {
-            Object.entries(originalSettings).forEach(([id, opts]) => {
-                const chart = chartInstances[id];
-                if (!chart) return;
-                chart.options.plugins.tooltip = opts.tooltip;
-                chart.options.plugins.legend.labels.color = opts.legendColor;
-                chart.options.plugins.title.color = opts.titleColor;
-                chart.options.scales.x.title.color = opts.xTitleColor;
-                chart.options.scales.y.title.color = opts.yTitleColor;
-                chart.options.scales.x.ticks.color = opts.xTicksColor;
-                chart.options.scales.y.ticks.color = opts.yTicksColor;
-                chart.options.scales.x.grid.color  = opts.xGridColor;
-                chart.options.scales.y.grid.color  = opts.yGridColor;
-                chart.update();
+        function restoreChartSettings(settings) {
+            Object.keys(settings).forEach(chartId => {
+                const chart = chartInstances[chartId];
+                if (chart) {
+                    const opts = settings[chartId];
+                    chart.options.plugins.tooltip = opts.tooltip;
+
+                    if (chart.options.plugins.legend?.labels) {
+                        chart.options.plugins.legend.labels.color = opts.legendColor;
+                    }
+                    if (chart.options.plugins.title) {
+                        chart.options.plugins.title.color = opts.titleColor;
+                    }
+                    if (chart.options.scales?.x) {
+                        chart.options.scales.x.ticks.color = opts.xAxisColor;
+                        if (chart.options.scales.x.title) {
+                            chart.options.scales.x.title.color = opts.xAxisTitleColor;
+                        }
+                        if (chart.options.scales.x.grid) {
+                            chart.options.scales.x.grid.color = opts.xAxisGridColor;
+                        }
+                    }
+                    if (chart.options.scales?.y) {
+                        chart.options.scales.y.ticks.color = opts.yAxisColor;
+                        if (chart.options.scales.y.title) {
+                            chart.options.scales.y.title.color = opts.yAxisTitleColor;
+                        }
+                        if (chart.options.scales.y.grid) {
+                            chart.options.scales.y.grid.color = opts.yAxisGridColor;
+                        }
+                    }
+
+                    chart.update();
+                }
             });
         }
     }
-    
-    // Helper function to get chart title
+
     function getChartTitle(canvasId) {
         const chartInstance = chartInstances[canvasId];
         if (chartInstance && chartInstance.options && chartInstance.options.plugins && chartInstance.options.plugins.title) {
@@ -709,20 +745,22 @@
         return '';
     }
 
-    // Initial load: Filter labels from January of the current year
+    // Initial load
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-indexed
-    const filteredLabels = labels.filter(label => {
+    const currentMonth = new Date().getMonth();
+    const originalLabels = {{ labels | tojson }};
+    const filteredOriginalLabels = originalLabels.filter(label => {
         const [year, month] = label.split("-");
         return parseInt(year) === currentYear && parseInt(month) - 1 <= currentMonth;
     });
+    const filteredLabels = filteredOriginalLabels.map(formatMonth);
 
     function filterDataSetForInitialLoad(dataSet) {
         const result = {};
         for (const key in dataSet) {
             const originalArray = dataSet[key];
-            const filteredArray = filteredLabels.map(month => {
-                const idx = labels.indexOf(month);
+            const filteredArray = filteredOriginalLabels.map(month => {
+                const idx = originalLabels.indexOf(month);
                 return originalArray[idx] ?? 0;
             });
 
@@ -763,12 +801,10 @@
         buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
     }
 
-    // With this:
     if (selectedChartsInit.includes("totalRevenueChart")) {
-        // Transform the revenue_summary_by_month data to match expected format
         const revenueData = {};
         for (const month in allData.revenue_summary_by_month) {
-            if (filteredLabels.includes(month)) {
+            if (filteredOriginalLabels.includes(month)) {
                 revenueData[month] = [
                     allData.revenue_summary_by_month[month]["Invoice Amount"],
                     allData.revenue_summary_by_month[month]["Amount Paid"]
@@ -778,11 +814,9 @@
         createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
     }
 
-    // With this:
     if (selectedChartsInit.includes("installedCapacitiesChart")) {
         createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
     }
-
 </script>
 
 </body>
