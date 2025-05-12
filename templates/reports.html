@@ -466,39 +466,30 @@
         // Reorganize the data by month first, then by capacity type
         const monthlyData = {};
 
-        // First get all capacity types we have data for
-        const capacityTypes = Object.keys(datasetObj); // Should be ['kVA', 'kWh', 'kWp']
+        // The datasetObj comes from fill_chart_series, so it's in the format:
+        // {
+        //   'kVA': [value1, value2, ...],
+        //   'kWh': [value1, value2, ...],
+        //   'kWp': [value1, value2, ...]
+        // }
 
-        // Then organize by month
-        capacityTypes.forEach(type => {
-            for (const month in datasetObj[type]) {
-                if (!monthlyData[month]) {
-                    monthlyData[month] = {
-                        'kVA': 0,
-                        'kWh': 0,
-                        'kWp': 0
-                    };
-                }
-                monthlyData[month][type] = datasetObj[type][month];
-            }
+        // Reconstruct the monthly data
+        monthsToShow.forEach((month, monthIndex) => {
+            monthlyData[month] = {
+                'kVA': datasetObj['kVA'] ? datasetObj['kVA'][monthIndex] || 0 : 0,
+                'kWh': datasetObj['kWh'] ? datasetObj['kWh'][monthIndex] || 0 : 0,
+                'kWp': datasetObj['kWp'] ? datasetObj['kWp'][monthIndex] || 0 : 0
+            };
         });
 
-        // Filter months based on monthsToShow
-        const filteredMonths = monthsToShow.filter(month => monthlyData[month]);
-
-        if (filteredMonths.length === 0) {
-            canvas.style.display = "none";
-            return;
-        }
-
         // Prepare datasets - one for each month
-        const datasets = filteredMonths.map((month, i) => {
+        const datasets = monthsToShow.map((month, i) => {
             return {
                 label: month,
                 data: [
-                    monthlyData[month]['kVA'] || 0,
-                    monthlyData[month]['kWh'] || 0,
-                    monthlyData[month]['kWp'] || 0
+                    monthlyData[month]['kVA'],
+                    monthlyData[month]['kWh'],
+                    monthlyData[month]['kWp']
                 ],
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1
@@ -551,7 +542,6 @@
             }
         });
     }
-
 
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
