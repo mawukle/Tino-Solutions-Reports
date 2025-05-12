@@ -569,64 +569,95 @@
     }
 
     function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const chartMaxWidth = pageWidth - 2 * margin;
-        const chartMaxHeight = pageHeight - 2 * margin - 10; // extra space for title
-        let yPosition = 20;
-
-        // Set title
-        pdf.setFontSize(16);
-        pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 10;
-
-        // Get all visible charts
-        const visibleCharts = Array.from(document.querySelectorAll('canvas'))
-            .filter(canvas => canvas.style.display !== 'none');
-
-        if (visibleCharts.length === 0) {
-            alert('No charts are currently visible to export');
-            return;
-        }
-
-        // Add each visible chart to the PDF
-        visibleCharts.forEach((canvas, index) => {
-            if (index > 0) {
-                pdf.addPage(); // Add new page for each chart after the first one
-                yPosition = margin;
-                pdf.setFontSize(16);
-                pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-                yPosition += 10;
-            }
-
-            const chartImg = canvas.toDataURL("image/jpeg", 1.0);
-            const aspectRatio = canvas.width / canvas.height;
-
-            let imgWidth = chartMaxWidth;
-            let imgHeight = chartMaxWidth / aspectRatio;
-
-            if (imgHeight > chartMaxHeight) {
-                imgHeight = chartMaxHeight;
-                imgWidth = chartMaxHeight * aspectRatio;
-            }
-
-            const x = (pageWidth - imgWidth) / 2;
-            pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
-
-            // Add chart title below the chart
-            const chartTitle = getChartTitle(canvas.id);
-            if (chartTitle) {
-                pdf.setFontSize(12);
-                pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
+        // Save current tooltip settings for all charts
+        const originalTooltipSettings = {};
+        Object.keys(chartInstances).forEach(chartId => {
+            if (chartInstances[chartId]) {
+                originalTooltipSettings[chartId] = chartInstances[chartId].options.plugins.tooltip;
+                // Disable tooltips for PDF generation
+                chartInstances[chartId].options.plugins.tooltip = {
+                    enabled: false
+                };
+                chartInstances[chartId].update();
             }
         });
 
-        pdf.save("monthly_sales_report.pdf");
-    }
+        // Wait for charts to update
+        setTimeout(() => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const chartMaxWidth = pageWidth - 2 * margin;
+            const chartMaxHeight = pageHeight - 2 * margin - 10;
+            let yPosition = 20;
 
+            // Set title
+            pdf.setFontSize(16);
+            pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
+            yPosition += 10;
+
+            // Get all visible charts
+            const visibleCharts = Array.from(document.querySelectorAll('canvas'))
+                .filter(canvas => canvas.style.display !== 'none');
+
+            if (visibleCharts.length === 0) {
+                alert('No charts are currently visible to export');
+                restoreTooltips(originalTooltipSettings);
+                return;
+            }
+
+            // Add each visible chart to the PDF
+            visibleCharts.forEach((canvas, index) => {
+                if (index > 0) {
+                    pdf.addPage();
+                    yPosition = margin;
+                    pdf.setFontSize(16);
+                    pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
+                    yPosition += 10;
+                }
+
+                const chartImg = canvas.toDataURL("image/jpeg", 1.0);
+                const aspectRatio = canvas.width / canvas.height;
+
+                let imgWidth = chartMaxWidth;
+                let imgHeight = chartMaxWidth / aspectRatio;
+
+                if (imgHeight > chartMaxHeight) {
+                    imgHeight = chartMaxHeight;
+                    imgWidth = chartMaxHeight * aspectRatio;
+                }
+
+                const x = (pageWidth - imgWidth) / 2;
+                pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
+
+                // Add chart title below the chart
+                const chartTitle = getChartTitle(canvas.id);
+                if (chartTitle) {
+                    pdf.setFontSize(12);
+                    pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
+                }
+            });
+
+            pdf.save("monthly_sales_report.pdf");
+
+            // Restore tooltips after a short delay
+            setTimeout(() => {
+                restoreTooltips(originalTooltipSettings);
+            }, 500);
+        }, 300); // Short delay to ensure charts are updated
+
+        function restoreTooltips(settings) {
+            Object.keys(settings).forEach(chartId => {
+                if (chartInstances[chartId]) {
+                    chartInstances[chartId].options.plugins.tooltip = settings[chartId];
+                    chartInstances[chartId].update();
+                }
+            });
+        }
+    }
+    
     // Helper function to get chart title
     function getChartTitle(canvasId) {
         const chartInstance = chartInstances[canvasId];
