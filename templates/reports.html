@@ -360,8 +360,9 @@
 
 
         // NEW: Installed Capacities Chart
+        // With this:
         if (selectedCharts.includes("installedCapacitiesChart")) {
-            buildChart("installedCapacitiesChart", "Total Installed Capacities", "Capacity", filterGroupedData(allData.installed_capacities), filteredLabels);
+            createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
         } else {
             document.getElementById("installedCapacitiesChart").style.display = "none";
         }
@@ -454,6 +455,98 @@
     }
 
 
+    // Add this new function for the installed capacities chart
+    function createInstalledCapacitiesChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        // First organize the data by capacity type then by month
+        const capacities = {
+            "kVA": {},
+            "kWh": {},
+            "kWp": {}
+        };
+
+        // Filter months and populate the capacities data
+        monthsToShow.forEach(month => {
+            if (datasetObj[month]) {
+                capacities["kVA"][month] = datasetObj[month]["kVA"] || 0;
+                capacities["kWh"][month] = datasetObj[month]["kWh"] || 0;
+                capacities["kWp"][month] = datasetObj[month]["kWp"] || 0;
+            }
+        });
+
+        // Check if we have any data
+        const hasData = monthsToShow.some(month =>
+            (capacities["kVA"][month] || 0) > 0 ||
+            (capacities["kWh"][month] || 0) > 0 ||
+            (capacities["kWp"][month] || 0) > 0
+        );
+
+        if (!hasData) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        canvas.style.display = "block";
+
+        // Prepare datasets - one for each month
+        const datasets = monthsToShow.map((month, i) => {
+            return {
+                label: month,
+                data: [
+                    capacities["kVA"][month] || 0,
+                    capacities["kWh"][month] || 0,
+                    capacities["kWp"][month] || 0
+                ],
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1
+            };
+        });
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["kVA", "kWh", "kWp"],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Capacity Type'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const canvas = document.getElementById('revenueChart');
@@ -535,8 +628,9 @@
         createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
     }
 
+    // With this:
     if (selectedChartsInit.includes("installedCapacitiesChart")) {
-        buildChart("installedCapacitiesChart", "Total Installed Capacities", "Capacity", filterDataSetForInitialLoad(allData.total_capacity_summary), filteredLabels);
+        createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
     }
 
 </script>
