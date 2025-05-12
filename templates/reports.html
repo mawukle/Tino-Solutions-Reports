@@ -456,55 +456,62 @@
 
 
     // Add this new function for the installed capacities chart
+    // Update the createInstalledCapacitiesChart function to properly handle the data structure:
     function createInstalledCapacitiesChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-        // First organize the data by capacity type then by month
-        const capacities = {
-            "kVA": {},
-            "kWh": {},
-            "kWp": {}
-        };
+        // Reorganize the data by month first, then by capacity type
+        const monthlyData = {};
 
-        // Filter months and populate the capacities data
-        monthsToShow.forEach(month => {
-            if (datasetObj[month]) {
-                capacities["kVA"][month] = datasetObj[month]["kVA"] || 0;
-                capacities["kWh"][month] = datasetObj[month]["kWh"] || 0;
-                capacities["kWp"][month] = datasetObj[month]["kWp"] || 0;
+        // First get all capacity types we have data for
+        const capacityTypes = Object.keys(datasetObj); // Should be ['kVA', 'kWh', 'kWp']
+
+        // Then organize by month
+        capacityTypes.forEach(type => {
+            for (const month in datasetObj[type]) {
+                if (!monthlyData[month]) {
+                    monthlyData[month] = {
+                        'kVA': 0,
+                        'kWh': 0,
+                        'kWp': 0
+                    };
+                }
+                monthlyData[month][type] = datasetObj[type][month];
             }
         });
 
-        // Check if we have any data
-        const hasData = monthsToShow.some(month =>
-            (capacities["kVA"][month] || 0) > 0 ||
-            (capacities["kWh"][month] || 0) > 0 ||
-            (capacities["kWp"][month] || 0) > 0
-        );
+        // Filter months based on monthsToShow
+        const filteredMonths = monthsToShow.filter(month => monthlyData[month]);
 
+        if (filteredMonths.length === 0) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        // Prepare datasets - one for each month
+        const datasets = filteredMonths.map((month, i) => {
+            return {
+                label: month,
+                data: [
+                    monthlyData[month]['kVA'] || 0,
+                    monthlyData[month]['kWh'] || 0,
+                    monthlyData[month]['kWp'] || 0
+                ],
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1
+            };
+        });
+
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
         if (!hasData) {
             canvas.style.display = "none";
             return;
         }
 
         canvas.style.display = "block";
-
-        // Prepare datasets - one for each month
-        const datasets = monthsToShow.map((month, i) => {
-            return {
-                label: month,
-                data: [
-                    capacities["kVA"][month] || 0,
-                    capacities["kWh"][month] || 0,
-                    capacities["kWp"][month] || 0
-                ],
-                backgroundColor: colors[i % colors.length],
-                borderWidth: 1
-            };
-        });
 
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
@@ -544,7 +551,6 @@
             }
         });
     }
-
 
 
     function downloadPDF() {
