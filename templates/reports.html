@@ -593,7 +593,8 @@
             const chartMaxHeight = pageHeight - 2 * margin - 10;
             let yPosition = 20;
 
-            // Set title
+            // Set title (black text)
+            pdf.setTextColor(0, 0, 0);
             pdf.setFontSize(16);
             pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 10;
@@ -613,6 +614,7 @@
                 if (index > 0) {
                     pdf.addPage();
                     yPosition = margin;
+                    pdf.setTextColor(0, 0, 0);
                     pdf.setFontSize(16);
                     pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
                     yPosition += 10;
@@ -632,9 +634,10 @@
                 const x = (pageWidth - imgWidth) / 2;
                 pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
 
-                // Add chart title below the chart
+                // Add chart title below the chart (black text)
                 const chartTitle = getChartTitle(canvas.id);
                 if (chartTitle) {
+                    pdf.setTextColor(0, 0, 0);
                     pdf.setFontSize(12);
                     pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
                 }
@@ -657,7 +660,7 @@
             });
         }
     }
-    
+        
     // Helper function to get chart title
     function getChartTitle(canvasId) {
         const chartInstance = chartInstances[canvasId];
