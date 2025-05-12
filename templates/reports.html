@@ -569,16 +569,34 @@
     }
 
     function downloadPDF() {
-        // Save current tooltip settings for all charts
-        const originalTooltipSettings = {};
+        const originalSettings = {};
+
+        // Save and modify chart settings (tooltip + text color)
         Object.keys(chartInstances).forEach(chartId => {
-            if (chartInstances[chartId]) {
-                originalTooltipSettings[chartId] = chartInstances[chartId].options.plugins.tooltip;
-                // Disable tooltips for PDF generation
-                chartInstances[chartId].options.plugins.tooltip = {
-                    enabled: false
+            const chart = chartInstances[chartId];
+            if (chart) {
+                originalSettings[chartId] = {
+                    tooltip: chart.options.plugins.tooltip,
+                    legendColor: chart.options.plugins.legend?.labels?.color,
+                    xAxisColor: chart.options.scales?.x?.ticks?.color,
+                    yAxisColor: chart.options.scales?.y?.ticks?.color
                 };
-                chartInstances[chartId].update();
+
+                // Disable tooltips
+                chart.options.plugins.tooltip = { enabled: false };
+
+                // Set white text for legend and axes
+                if (chart.options.plugins.legend?.labels) {
+                    chart.options.plugins.legend.labels.color = '#FFFFFF';
+                }
+                if (chart.options.scales?.x?.ticks) {
+                    chart.options.scales.x.ticks.color = '#FFFFFF';
+                }
+                if (chart.options.scales?.y?.ticks) {
+                    chart.options.scales.y.ticks.color = '#FFFFFF';
+                }
+
+                chart.update();
             }
         });
 
@@ -593,26 +611,27 @@
             const chartMaxHeight = pageHeight - 2 * margin - 10;
             let yPosition = 20;
 
+            pdf.setTextColor(255, 255, 255); // white text for title
+
             // Set title
             pdf.setFontSize(16);
             pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 10;
 
-            // Get all visible charts
             const visibleCharts = Array.from(document.querySelectorAll('canvas'))
                 .filter(canvas => canvas.style.display !== 'none');
 
             if (visibleCharts.length === 0) {
                 alert('No charts are currently visible to export');
-                restoreTooltips(originalTooltipSettings);
+                restoreChartSettings(originalSettings);
                 return;
             }
 
-            // Add each visible chart to the PDF
             visibleCharts.forEach((canvas, index) => {
                 if (index > 0) {
                     pdf.addPage();
                     yPosition = margin;
+                    pdf.setTextColor(255, 255, 255);
                     pdf.setFontSize(16);
                     pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
                     yPosition += 10;
@@ -632,7 +651,6 @@
                 const x = (pageWidth - imgWidth) / 2;
                 pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
 
-                // Add chart title below the chart
                 const chartTitle = getChartTitle(canvas.id);
                 if (chartTitle) {
                     pdf.setFontSize(12);
@@ -642,17 +660,29 @@
 
             pdf.save("monthly_sales_report.pdf");
 
-            // Restore tooltips after a short delay
             setTimeout(() => {
-                restoreTooltips(originalTooltipSettings);
+                restoreChartSettings(originalSettings);
             }, 500);
-        }, 300); // Short delay to ensure charts are updated
+        }, 300);
 
-        function restoreTooltips(settings) {
+        function restoreChartSettings(settings) {
             Object.keys(settings).forEach(chartId => {
-                if (chartInstances[chartId]) {
-                    chartInstances[chartId].options.plugins.tooltip = settings[chartId];
-                    chartInstances[chartId].update();
+                const chart = chartInstances[chartId];
+                if (chart) {
+                    const opts = settings[chartId];
+                    chart.options.plugins.tooltip = opts.tooltip;
+
+                    if (chart.options.plugins.legend?.labels) {
+                        chart.options.plugins.legend.labels.color = opts.legendColor;
+                    }
+                    if (chart.options.scales?.x?.ticks) {
+                        chart.options.scales.x.ticks.color = opts.xAxisColor;
+                    }
+                    if (chart.options.scales?.y?.ticks) {
+                        chart.options.scales.y.ticks.color = opts.yAxisColor;
+                    }
+
+                    chart.update();
                 }
             });
         }
