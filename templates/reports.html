@@ -466,13 +466,6 @@
         // Reorganize the data by month first, then by capacity type
         const monthlyData = {};
 
-        // The datasetObj now comes in the original format:
-        // {
-        //   'kVA': {'2023-01': 100, '2023-02': 200},
-        //   'kWh': {'2023-01': 150, '2023-02': 250},
-        //   'kWp': {'2023-01': 50, '2023-02': 75}
-        // }
-
         // Get all capacity types
         const capacityTypes = ['kVA', 'kWh', 'kWp'];
 
@@ -487,7 +480,8 @@
                             'kWp': 0
                         };
                     }
-                    monthlyData[month][type] = datasetObj[type][month];
+                    // Round values to 2 decimal places when storing
+                    monthlyData[month][type] = Math.round(datasetObj[type][month] * 100) / 100;
                 }
             }
         });
@@ -540,7 +534,9 @@
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                return `${context.dataset.label}: ${context.raw} ${context.label}`;
+                                // Format the value to 2 decimal places
+                                const roundedValue = Math.round(context.raw * 100) / 100;
+                                return `${context.dataset.label}: ${roundedValue.toFixed(2)} ${context.label}`;
                             }
                         }
                     }
@@ -559,13 +555,19 @@
                         title: {
                             display: true,
                             text: yLabel
+                        },
+                        ticks: {
+                            // Format y-axis labels to 2 decimal places
+                            callback: function(value) {
+                                return value.toFixed(2);
+                            }
                         }
                     }
                 }
             }
         });
     }
-    
+        
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const canvas = document.getElementById('revenueChart');
