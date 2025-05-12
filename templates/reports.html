@@ -11,6 +11,14 @@
         .container_1 {
             padding: 20px;
         }
+        /* Wrap each chart in a bordered box */
+        .chart-wrapper {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
         canvas {
             width: 100% !important;
             height: auto !important; /* remove or override */
@@ -89,16 +97,17 @@
         </div>
     </div>
 
-    <!-- Chart -->
-    <canvas id="revenueChart" style="display:none;"></canvas>
-    <canvas id="invoiceChart" style="display:none;"></canvas>
-    <canvas id="statusChart" style="display:none;"></canvas>
-    <canvas id="completedInstallerChart" style="display:none;"></canvas>
-    <canvas id="kvaChart" style="display:none;"></canvas>
-    <canvas id="kwhChart" style="display:none;"></canvas>
-    <canvas id="kwpChart" style="display:none;"></canvas>
-    <canvas id="totalRevenueChart" style="display:none;"></canvas>
-    <canvas id="installedCapacitiesChart" style="display:none;"></canvas>
+    <!-- Each chart wrapped in a bordered div -->
+    <div class="chart-wrapper"><canvas id="revenueChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="invoiceChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="statusChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="completedInstallerChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kvaChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kwhChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kwpChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="totalRevenueChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="installedCapacitiesChart" style="display:none;"></canvas></div>
+
 
 
     <!-- PDF Download -->
