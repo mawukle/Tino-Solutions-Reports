@@ -646,6 +646,8 @@
                 return;
             }
 
+            const totalPages = canvases.length;
+
             // 3) Add charts page by page
             canvases.forEach((canvas, idx) => {
                 if (idx > 0) {
@@ -665,14 +667,18 @@
                 const title = getChartTitle(canvas.id);
                 if (title) {
                     pdf.setFontSize(12);
-                    pdf.setTextColor(255, 255, 255); // white subtitle
+                    pdf.setTextColor(255, 255, 255);
                     pdf.text(title, W / 2, y + h + 6, { align: 'center' });
                 }
+
+                // Add page number centered at the bottom
+                pdf.setFontSize(10);
+                pdf.setTextColor(100);
+                pdf.text(`Page ${idx + 1} of ${totalPages}`, W / 2, H - 10, { align: 'center' });
             });
 
             pdf.save("monthly_sales_report.pdf");
 
-            // Restore charts
             setTimeout(restoreCharts, 500);
         }, 300);
 
