@@ -106,6 +106,7 @@
 </div>
 
 <script>
+
     const labels = {{ labels | tojson }};
     const allData = {{ data | tojson }};
     const originalData = allData.revenue;
@@ -115,6 +116,13 @@
         '#f58231', '#911eb4', '#46f0f0', '#f032e6',
         '#bcf60c', '#fabebe', '#008080', '#e6beff'
     ];
+
+    function formatMonthLabel(monthStr) {
+        const [year, month] = monthStr.split("-");
+        const date = new Date(year, parseInt(month) - 1);
+        return date.toLocaleString('default', { month: 'short', year: 'numeric' });  // e.g., "Jan 2025"
+    }
+
 
     let chartInstance;
 
@@ -133,7 +141,7 @@
             });
 
             datasets.push({
-                label: month,
+                label: formatMonthLabel(month),
                 data: data,
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1,
@@ -198,7 +206,7 @@
         monthsToShow.forEach((month, i) => {
             const data = xLabels.map(person => datasetObj[person][i] ?? 0);
             datasets.push({
-                label: month,
+                label: formatMonthLabel(month),
                 data: data,
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1,
@@ -405,7 +413,7 @@
         // Prepare datasets - one for each month
         const datasets = monthsToShow.map((month, i) => {
             return {
-                label: month,
+                label: formatMonthLabel(month),
                 data: [
                     metrics["Invoice Amount"][month] || 0,
                     metrics["Amount Paid"][month] || 0
@@ -497,7 +505,7 @@
         // Prepare datasets - one for each month
         const datasets = filteredMonths.map((month, i) => {
             return {
-                label: month,
+                label: formatMonthLabel(month),
                 data: [
                     monthlyData[month]['kVA'] || 0,
                     monthlyData[month]['kWh'] || 0,
