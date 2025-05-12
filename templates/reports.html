@@ -318,43 +318,43 @@
         if (selectedCharts.includes("revenueChart")) {
             buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
         } else {
-            document.getElementById("revenueChart").style.display = "none";
+            document.getElementById("revenueChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("invoiceChart")) {
             buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice), filteredLabels);
         } else {
-            document.getElementById("invoiceChart").style.display = "none";
+            document.getElementById("invoiceChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("statusChart")) {
             buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels);
         } else {
-            document.getElementById("statusChart").style.display = "none";
+            document.getElementById("statusChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("completedInstallerChart")) {
             buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels);
         } else {
-            document.getElementById("completedInstallerChart").style.display = "none";
+            document.getElementById("completedInstallerChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kvaChart")) {
             buildChart("kvaChart", "Total kVA per Lead Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels);
         } else {
-            document.getElementById("kvaChart").style.display = "none";
+            document.getElementById("kvaChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kwhChart")) {
             buildChart("kwhChart", "Total kWh per Lead Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels);
         } else {
-            document.getElementById("kwhChart").style.display = "none";
+            document.getElementById("kwhChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kwpChart")) {
             buildChart("kwpChart", "Total kWp per Lead Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels);
         } else {
-            document.getElementById("kwpChart").style.display = "none";
+            document.getElementById("kwpChart").parentNode.style.display = "none";
         }
 
         // NEW: Total Revenue Chart
@@ -372,7 +372,7 @@
             // Create a special chart for revenue summary
             createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
         } else {
-            document.getElementById("totalRevenueChart").style.display = "none";
+            document.getElementById("totalRevenueChart").parentNode.style.display = "none";
         }
 
 
@@ -381,7 +381,7 @@
         if (selectedCharts.includes("installedCapacitiesChart")) {
             createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
         } else {
-            document.getElementById("installedCapacitiesChart").style.display = "none";
+            document.getElementById("installedCapacitiesChart").parentNode.style.display = "none";
         }
     }
 
