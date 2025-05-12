@@ -10,6 +10,12 @@ from models import db, projects
 from drive_uploader import upload_to_drive
 from googleapiclient.http import MediaIoBaseUpload
 import io
+import warnings
+from google.auth.transport.requests import Request
+
+# Suppress the file_cache warning
+warnings.filterwarnings("ignore", message="file_cache is only supported with oauth2client<4.0.0")
+
 
 GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
 
@@ -47,10 +53,9 @@ def make_celery():
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
-    return celery
+    return celery, app  # Return both celery and app
 
-celery = make_celery()
-
+celery, app = make_celery()  # Now we have access to app globally
 # In celery_worker.py after creating the celery instance
 celery.conf.update(
     worker_max_memory_per_child=200000,  # 200MB in KB
@@ -275,11 +280,12 @@ def create_missing_folders(self):
 def rename_project_folder_task(self, project_id, client_name, town, sales_person):
     """Async task to rename a project folder in Google Drive"""
     try:
-        credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
-            scopes=["https://www.googleapis.com/auth/drive"]
-        )
-        service = build("drive", "v3", credentials=credentials)
+        with app.app_context():  # Now this will work
+            credentials = Credentials.from_service_account_file(
+                GOOGLE_CREDENTIALS_FILE,
+                scopes=["https://www.googleapis.com/auth/drive"]
+            )
+            service = build("drive", "v3", credentials=credentials)
 
         # Get the project to ensure it still exists and has a folder ID
         with app.app_context():
