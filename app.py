@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 from flask_mail import Mail, Message
 from drive_uploader import upload_to_drive, GOOGLE_DRIVE_FOLDER_ID
 from decimal import Decimal
-from celery_worker import update_folder_has_files, create_folder_if_needed, upload_files_to_drive  # 👈 make sure this import is at the top
+from celery_worker import update_folder_has_files, create_folder_if_needed, upload_files_to_drive, create_missing_folders  # 👈 make sure this import is at the top
 from werkzeug.utils import secure_filename
 
 
@@ -4448,14 +4448,29 @@ def folder_has_files(folder_id):
         return False
 
 
+
 @app.route('/create_missing_folders', methods=['GET', 'POST'])
 def trigger_create_missing_folders():
+    """Endpoint to create missing Google Drive folders for projects"""
     try:
-        create_missing_folders.delay()
-        return jsonify({"message": "Started creating missing folders"}), 202
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Start the background task
+        task = create_missing_folders.delay()
 
+        return jsonify({
+            "status": "success",
+            "message": "Started folder creation process",
+            "task_id": task.id
+        }), 202
+
+    except Exception as e:
+        # Log the full error for debugging
+        app.logger.error(f"Error in create_missing_folders: {str(e)}", exc_info=True)
+
+        return jsonify({
+            "status": "error",
+            "message": "Failed to start folder creation",
+            "error": str(e)
+        }), 500
 
 from datetime import datetime, timedelta
 

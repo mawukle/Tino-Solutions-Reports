@@ -219,28 +219,31 @@ def upload_files_to_drive(self, folder_id, file_data):
 
 @celery.task(bind=True)
 def create_missing_folders(self):
-    """Task to create Google Drive folders for projects that don't have them"""
     try:
+        self.update_state(state='STARTED')
+
         credentials = Credentials.from_service_account_file(
             GOOGLE_CREDENTIALS_FILE,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
 
-        # Get all projects without folders
-        projects_without_folders = db.session.query(projects).filter(
-            (projects.google_folder_id == None) |
+        # Get projects missing folders
+        projects_missing_folders = db.session.query(projects).filter(
+            (projects.google_folder_id.is_(None)) |
             (projects.google_folder_id == '')
         ).all()
 
-        for project in projects_without_folders:
+        created_count = 0
+
+        for project in projects_missing_folders:
             try:
                 if not all([project.client_name, project.town, project.sales_person]):
-                    continue  # Skip incomplete projects
+                    continue
 
                 folder_id = get_or_create_folder(
                     service,
-                    "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",  # Parent folder ID
+                    "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",
                     project.project_id,
                     project.client_name,
                     project.town,
@@ -250,17 +253,20 @@ def create_missing_folders(self):
                 if folder_id:
                     project.google_folder_id = folder_id
                     db.session.commit()
-                    logging.info(f"Created folder for project {project.project_id}: {folder_id}")
-                else:
-                    logging.error(f"Failed to create folder for project {project.project_id}")
+                    created_count += 1
+                    logging.info(f"Created folder for project {project.project_id}")
 
             except Exception as e:
                 logging.error(f"Error processing project {project.project_id}: {e}")
                 db.session.rollback()
                 continue
 
-        return f"Processed {len(projects_without_folders)} projects"
+        return {
+            "status": "completed",
+            "folders_created": created_count,
+            "total_processed": len(projects_missing_folders)
+        }
 
     except Exception as e:
-        logging.error(f"Error in create_missing_folders task: {e}")
+        logging.error(f"Critical error in create_missing_folders: {e}", exc_info=True)
         raise self.retry(exc=e)
