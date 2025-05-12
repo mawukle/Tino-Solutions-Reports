@@ -571,36 +571,54 @@
     function downloadPDF() {
         const originalSettings = {};
 
-        // Save and modify chart settings (tooltip + text color)
         Object.keys(chartInstances).forEach(chartId => {
             const chart = chartInstances[chartId];
             if (chart) {
                 originalSettings[chartId] = {
                     tooltip: chart.options.plugins.tooltip,
                     legendColor: chart.options.plugins.legend?.labels?.color,
+                    titleColor: chart.options.plugins.title?.color,
                     xAxisColor: chart.options.scales?.x?.ticks?.color,
-                    yAxisColor: chart.options.scales?.y?.ticks?.color
+                    yAxisColor: chart.options.scales?.y?.ticks?.color,
+                    xAxisTitleColor: chart.options.scales?.x?.title?.color,
+                    yAxisTitleColor: chart.options.scales?.y?.title?.color,
+                    xAxisGridColor: chart.options.scales?.x?.grid?.color,
+                    yAxisGridColor: chart.options.scales?.y?.grid?.color,
                 };
 
                 // Disable tooltips
                 chart.options.plugins.tooltip = { enabled: false };
 
-                // Set white text for legend and axes
+                // Set white for legend, title, axis ticks, axis titles, and grid lines
                 if (chart.options.plugins.legend?.labels) {
                     chart.options.plugins.legend.labels.color = '#FFFFFF';
                 }
-                if (chart.options.scales?.x?.ticks) {
-                    chart.options.scales.x.ticks.color = '#FFFFFF';
+                if (chart.options.plugins.title) {
+                    chart.options.plugins.title.color = '#FFFFFF';
                 }
-                if (chart.options.scales?.y?.ticks) {
+                if (chart.options.scales?.x) {
+                    chart.options.scales.x.ticks.color = '#FFFFFF';
+                    if (chart.options.scales.x.title) {
+                        chart.options.scales.x.title.color = '#FFFFFF';
+                    }
+                    if (chart.options.scales.x.grid) {
+                        chart.options.scales.x.grid.color = '#FFFFFF';
+                    }
+                }
+                if (chart.options.scales?.y) {
                     chart.options.scales.y.ticks.color = '#FFFFFF';
+                    if (chart.options.scales.y.title) {
+                        chart.options.scales.y.title.color = '#FFFFFF';
+                    }
+                    if (chart.options.scales.y.grid) {
+                        chart.options.scales.y.grid.color = '#FFFFFF';
+                    }
                 }
 
                 chart.update();
             }
         });
 
-        // Wait for charts to update
         setTimeout(() => {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -611,9 +629,7 @@
             const chartMaxHeight = pageHeight - 2 * margin - 10;
             let yPosition = 20;
 
-            pdf.setTextColor(255, 255, 255); // white text for title
-
-            // Set title
+            pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(16);
             pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 10;
@@ -675,11 +691,26 @@
                     if (chart.options.plugins.legend?.labels) {
                         chart.options.plugins.legend.labels.color = opts.legendColor;
                     }
-                    if (chart.options.scales?.x?.ticks) {
-                        chart.options.scales.x.ticks.color = opts.xAxisColor;
+                    if (chart.options.plugins.title) {
+                        chart.options.plugins.title.color = opts.titleColor;
                     }
-                    if (chart.options.scales?.y?.ticks) {
+                    if (chart.options.scales?.x) {
+                        chart.options.scales.x.ticks.color = opts.xAxisColor;
+                        if (chart.options.scales.x.title) {
+                            chart.options.scales.x.title.color = opts.xAxisTitleColor;
+                        }
+                        if (chart.options.scales.x.grid) {
+                            chart.options.scales.x.grid.color = opts.xAxisGridColor;
+                        }
+                    }
+                    if (chart.options.scales?.y) {
                         chart.options.scales.y.ticks.color = opts.yAxisColor;
+                        if (chart.options.scales.y.title) {
+                            chart.options.scales.y.title.color = opts.yAxisTitleColor;
+                        }
+                        if (chart.options.scales.y.grid) {
+                            chart.options.scales.y.grid.color = opts.yAxisGridColor;
+                        }
                     }
 
                     chart.update();
