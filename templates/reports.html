@@ -8,6 +8,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        :root {
+            --bg-color: white;
+            --text-color: black;
+            --grid-color: rgba(0, 0, 0, 0.1);
+            --tooltip-bg: rgba(0, 0, 0, 0.8);
+            --tooltip-text: white;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
         .container_1 {
             padding: 20px;
         }
@@ -52,6 +64,7 @@
             min-width: 200px;
         }
     </style>
+
 </head>
 <body>
 <div class="container_1">
@@ -120,6 +133,8 @@
     const chartGridColor = 'rgba(255, 255, 255, 0.1)'; // Light grid lines for dark backgrounds
 
     let chartInstance;
+
+
 
     function buildFilteredChart(filteredData, filteredLabels) {
         if (chartInstance) chartInstance.destroy();
@@ -223,61 +238,7 @@
                 labels: xLabels,
                 datasets: datasets
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title,
-                        color: chartTextColor // Add this
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark tooltip background
-                        titleColor: chartTextColor, // White title
-                        bodyColor: chartTextColor, // White body text
-                        borderColor: '#ffffff',
-                        borderWidth: 1
-                    },
-                    legend: {
-                        labels: {
-                            color: chartTextColor // White legend text
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Legend Items (e.g., Sales Persons)',
-                            color: chartTextColor // White title
-                        },
-                        ticks: {
-                            color: chartTextColor // White ticks
-                        },
-                        grid: {
-                            color: chartGridColor // Light grid lines
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: yLabel,
-                            color: chartTextColor // White title
-                        },
-                        ticks: {
-                            color: chartTextColor // White ticks
-                        },
-                        grid: {
-                            color: chartGridColor // Light grid lines
-                        }
-                    }
-                }
-            }
+            options: getChartOptions(title, yLabel)
         });
     }
 
@@ -449,61 +410,7 @@
                 labels: ["Invoice Amount", "Amount Paid"],
                 datasets: datasets
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title,
-                        color: chartTextColor
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: chartTextColor,
-                        bodyColor: chartTextColor,
-                        borderColor: '#ffffff',
-                        borderWidth: 1
-                    },
-                    legend: {
-                        labels: {
-                            color: chartTextColor
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Revenue Type',
-                            color: chartTextColor
-                        },
-                        ticks: {
-                            color: chartTextColor
-                        },
-                        grid: {
-                            color: chartGridColor
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: yLabel,
-                            color: chartTextColor
-                        },
-                        ticks: {
-                            color: chartTextColor
-                        },
-                        grid: {
-                            color: chartGridColor
-                        }
-                    }
-                }
-            }
+            options: getChartOptions(title, yLabel)
         });
     }
 
@@ -575,140 +482,138 @@
                 labels: ["kVA", "kWh", "kWp"],
                 datasets: datasets
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title,
-                        color: chartTextColor
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: chartTextColor,
-                        bodyColor: chartTextColor,
-                        borderColor: '#ffffff',
-                        borderWidth: 1,
-                        callbacks: {
-                            label: function(context) {
-                                const roundedValue = Math.round(context.raw * 100) / 100;
-                                return `${context.dataset.label}: ${roundedValue.toFixed(2)} ${context.label}`;
-                            }
-                        }
-                    },
-                    legend: {
-                        labels: {
-                            color: chartTextColor
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Capacity Type',
-                            color: chartTextColor
-                        },
-                        ticks: {
-                            color: chartTextColor
-                        },
-                        grid: {
-                            color: chartGridColor
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: yLabel,
-                            color: chartTextColor
-                        },
-                        ticks: {
-                            color: chartTextColor,
-                            callback: function(value) {
-                                return value.toFixed(2);
-                            }
-                        },
-                        grid: {
-                            color: chartGridColor
-                        }
-                    }
-                }
-            }
+            options: getChartOptions(title, yLabel)
         });
     }
 
     function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const chartMaxWidth = pageWidth - 2 * margin;
-        const chartMaxHeight = pageHeight - 2 * margin - 10; // extra space for title
-        let yPosition = 20;
+        // Save current colors
+        const originalTextColor = chartTextColor;
+        const originalGridColor = chartGridColor;
+        const originalTooltipBg = tooltipBgColor;
+        const originalTooltipText = tooltipTextColor;
 
-        // Set default text color to white for the PDF
-        pdf.setTextColor(255, 255, 255);
+        // Set PDF colors (dark mode)
+        chartTextColor = '#ffffff';
+        chartGridColor = 'rgba(255, 255, 255, 0.1)';
+        tooltipBgColor = 'rgba(0, 0, 0, 0.8)';
+        tooltipTextColor = '#ffffff';
 
-        // Set title (in black for contrast)
-        pdf.setTextColor(0, 0, 0); // Black for title
-        pdf.setFontSize(16);
-        pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 10;
-        pdf.setTextColor(255, 255, 255); // Back to white for other text
-
-        // Get all visible charts
-        const visibleCharts = Array.from(document.querySelectorAll('canvas'))
-            .filter(canvas => canvas.style.display !== 'none');
-
-        if (visibleCharts.length === 0) {
-            alert('No charts are currently visible to export');
-            return;
-        }
-
-        // Add each visible chart to the PDF
-        visibleCharts.forEach((canvas, index) => {
-            if (index > 0) {
-                pdf.addPage(); // Add new page for each chart after the first one
-                yPosition = margin;
-                // Set title for subsequent pages
-                pdf.setTextColor(0, 0, 0); // Black for title
-                pdf.setFontSize(16);
-                pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
-                yPosition += 10;
-                pdf.setTextColor(255, 255, 255); // Back to white for other text
-            }
-
-            const chartImg = canvas.toDataURL("image/jpeg", 1.0);
-            const aspectRatio = canvas.width / canvas.height;
-
-            let imgWidth = chartMaxWidth;
-            let imgHeight = chartMaxWidth / aspectRatio;
-
-            if (imgHeight > chartMaxHeight) {
-                imgHeight = chartMaxHeight;
-                imgWidth = chartMaxHeight * aspectRatio;
-            }
-
-            const x = (pageWidth - imgWidth) / 2;
-            pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
-
-            // Add chart title below the chart
-            const chartTitle = getChartTitle(canvas.id);
-            if (chartTitle) {
-                pdf.setFontSize(12);
-                pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
+        // Update all charts with dark theme
+        Object.keys(chartInstances).forEach(chartId => {
+            if (chartInstances[chartId]) {
+                const chart = chartInstances[chartId];
+                chart.options.plugins.title.color = chartTextColor;
+                chart.options.plugins.legend.labels.color = chartTextColor;
+                chart.options.scales.x.title.color = chartTextColor;
+                chart.options.scales.x.ticks.color = chartTextColor;
+                chart.options.scales.x.grid.color = chartGridColor;
+                chart.options.scales.y.title.color = chartTextColor;
+                chart.options.scales.y.ticks.color = chartTextColor;
+                chart.options.scales.y.grid.color = chartGridColor;
+                chart.options.plugins.tooltip.backgroundColor = tooltipBgColor;
+                chart.options.plugins.tooltip.titleColor = tooltipTextColor;
+                chart.options.plugins.tooltip.bodyColor = tooltipTextColor;
+                chart.update();
             }
         });
 
-        pdf.save("monthly_sales_report.pdf");
+        // Wait for charts to update before generating PDF
+        setTimeout(() => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const chartMaxWidth = pageWidth - 2 * margin;
+            const chartMaxHeight = pageHeight - 2 * margin - 10;
+            let yPosition = 20;
+
+            // Set default text color to white for the PDF
+            pdf.setTextColor(255, 255, 255);
+
+            // Set title (in black for contrast)
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFontSize(16);
+            pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
+            yPosition += 10;
+            pdf.setTextColor(255, 255, 255);
+
+            // Get all visible charts
+            const visibleCharts = Array.from(document.querySelectorAll('canvas'))
+                .filter(canvas => canvas.style.display !== 'none');
+
+            if (visibleCharts.length === 0) {
+                alert('No charts are currently visible to export');
+                // Restore original colors before returning
+                restoreOriginalColors();
+                return;
+            }
+
+            // Add each visible chart to the PDF
+            visibleCharts.forEach((canvas, index) => {
+                if (index > 0) {
+                    pdf.addPage();
+                    yPosition = margin;
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.setFontSize(16);
+                    pdf.text("TINO SOLUTIONS LIMITED - MONTHLY SALES AND PROJECTS REPORT", pageWidth / 2, yPosition, { align: 'center' });
+                    yPosition += 10;
+                    pdf.setTextColor(255, 255, 255);
+                }
+
+                const chartImg = canvas.toDataURL("image/jpeg", 1.0);
+                const aspectRatio = canvas.width / canvas.height;
+
+                let imgWidth = chartMaxWidth;
+                let imgHeight = chartMaxWidth / aspectRatio;
+
+                if (imgHeight > chartMaxHeight) {
+                    imgHeight = chartMaxHeight;
+                    imgWidth = chartMaxHeight * aspectRatio;
+                }
+
+                const x = (pageWidth - imgWidth) / 2;
+                pdf.addImage(chartImg, 'JPEG', x, yPosition, imgWidth, imgHeight);
+
+                const chartTitle = getChartTitle(canvas.id);
+                if (chartTitle) {
+                    pdf.setFontSize(12);
+                    pdf.text(chartTitle, pageWidth / 2, yPosition + imgHeight + 6, { align: 'center' });
+                }
+            });
+
+            pdf.save("monthly_sales_report.pdf");
+
+            // Restore original colors after a short delay
+            setTimeout(restoreOriginalColors, 500);
+        }, 300); // Short delay to ensure charts are updated
+
+        function restoreOriginalColors() {
+            chartTextColor = originalTextColor;
+            chartGridColor = originalGridColor;
+            tooltipBgColor = originalTooltipBg;
+            tooltipTextColor = originalTooltipText;
+
+            Object.keys(chartInstances).forEach(chartId => {
+                if (chartInstances[chartId]) {
+                    const chart = chartInstances[chartId];
+                    chart.options.plugins.title.color = chartTextColor;
+                    chart.options.plugins.legend.labels.color = chartTextColor;
+                    chart.options.scales.x.title.color = chartTextColor;
+                    chart.options.scales.x.ticks.color = chartTextColor;
+                    chart.options.scales.x.grid.color = chartGridColor;
+                    chart.options.scales.y.title.color = chartTextColor;
+                    chart.options.scales.y.ticks.color = chartTextColor;
+                    chart.options.scales.y.grid.color = chartGridColor;
+                    chart.options.plugins.tooltip.backgroundColor = tooltipBgColor;
+                    chart.options.plugins.tooltip.titleColor = tooltipTextColor;
+                    chart.options.plugins.tooltip.bodyColor = tooltipTextColor;
+                    chart.update();
+                }
+            });
+        }
     }
-    
     // Helper function to get chart title
     function getChartTitle(canvasId) {
         const chartInstance = chartInstances[canvasId];
@@ -791,6 +696,72 @@
     if (selectedChartsInit.includes("installedCapacitiesChart")) {
         createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
     }
+
+
+    // Replace these constants with dynamic ones
+    let chartTextColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color');
+    let chartGridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-color');
+    let tooltipBgColor = getComputedStyle(document.documentElement).getPropertyValue('--tooltip-bg');
+    let tooltipTextColor = getComputedStyle(document.documentElement).getPropertyValue('--tooltip-text');
+
+    function getChartOptions(title, yLabel) {
+        return {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    color: chartTextColor
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: tooltipBgColor,
+                    titleColor: tooltipTextColor,
+                    bodyColor: tooltipTextColor,
+                    borderColor: '#ffffff',
+                    borderWidth: 1
+                },
+                legend: {
+                    labels: {
+                        color: chartTextColor
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Legend Items',
+                        color: chartTextColor
+                    },
+                    ticks: {
+                        color: chartTextColor
+                    },
+                    grid: {
+                        color: chartGridColor
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: yLabel,
+                        color: chartTextColor
+                    },
+                    ticks: {
+                        color: chartTextColor
+                    },
+                    grid: {
+                        color: chartGridColor
+                    }
+                }
+            }
+        };
+    }
+
 
 </script>
 
