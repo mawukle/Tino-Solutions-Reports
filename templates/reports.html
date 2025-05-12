@@ -588,12 +588,11 @@
                 yGridColor:    chart.options.scales?.y?.grid?.color
             };
 
-            // Disable tooltip
             chart.options.plugins.tooltip = { enabled: false };
 
-            // White-out every chart text element & gridline
             if (chart.options.plugins.legend?.labels) chart.options.plugins.legend.labels.color = '#FFFFFF';
-            if (chart.options.plugins.title)                   chart.options.plugins.title.color = '#FFFFFF';
+            if (chart.options.plugins.title) chart.options.plugins.title.color = '#FFFFFF';
+
             ['x','y'].forEach(axis => {
                 const scale = chart.options.scales[axis];
                 if (!scale) return;
@@ -605,7 +604,7 @@
             chart.update();
         });
 
-        // 2) Short pause to let Chart.js repaint
+        // 2) Wait for charts to update before rendering to PDF
         setTimeout(() => {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -613,32 +612,31 @@
             const H = pdf.internal.pageSize.getHeight();
             const margin = 10;
             const chartW = W - 2 * margin;
-            const chartH = H - 2 * margin - 20; // extra space for heading
+            const chartH = H - 2 * margin - 20;
             let y = 20;
 
-            // — Draw first page heading in black —
+            // Draw heading only once on the first page
             pdf.setFontSize(18);
             pdf.setTextColor(0, 0, 0);
             pdf.text("TINO SOLUTIONS LIMITED",            W / 2, y,   { align: 'center' });
             pdf.text("MONTHLY SALES AND PROJECTS REPORT",  W / 2, y + 8, { align: 'center' });
 
-            // — Draw logo top-right on first page —
+            // Draw logo top-right on first page
             const logoImg = document.querySelector('.logo');
             if (logoImg && logoImg.complete) {
                 const tmp = document.createElement('canvas');
-                tmp.width  = logoImg.naturalWidth;
+                tmp.width = logoImg.naturalWidth;
                 tmp.height = logoImg.naturalHeight;
                 tmp.getContext('2d').drawImage(logoImg, 0, 0);
-                const logoData   = tmp.toDataURL('image/png');
-                const logoWidth  = 30;
+                const logoData = tmp.toDataURL('image/png');
+                const logoWidth = 30;
                 const logoHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * logoWidth;
                 pdf.addImage(logoData, 'PNG', W - margin - logoWidth, y - 8, logoWidth, logoHeight);
             }
 
-            // Advance y past heading
             y += 20;
 
-            // Gather visible charts
+            // Get visible charts
             const canvases = Array.from(document.querySelectorAll('canvas'))
                 .filter(c => c.style.display !== 'none');
 
@@ -648,27 +646,15 @@
                 return;
             }
 
-            // 3) Loop through each chart image
+            // 3) Add charts page by page
             canvases.forEach((canvas, idx) => {
                 if (idx > 0) {
                     pdf.addPage();
                     y = margin;
                 }
 
-                // Heading color: black on first page only, white on others
-                pdf.setFontSize(18);
-                if (idx === 0) {
-                    pdf.setTextColor(0, 0, 0);
-                } else {
-                    pdf.setTextColor(255, 255, 255);
-                }
-                pdf.text("TINO SOLUTIONS LIMITED",            W / 2, y,   { align: 'center' });
-                pdf.text("MONTHLY SALES AND PROJECTS REPORT",  W / 2, y + 8, { align: 'center' });
-                y += 20;
-
-                // Embed the chart image
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const ratio   = canvas.width / canvas.height;
+                const ratio = canvas.width / canvas.height;
                 let w = chartW, h = chartW / ratio;
                 if (h > chartH) {
                     h = chartH;
@@ -676,23 +662,20 @@
                 }
                 pdf.addImage(imgData, 'JPEG', (W - w) / 2, y, w, h);
 
-                // Chart title underneath (white)
                 const title = getChartTitle(canvas.id);
                 if (title) {
                     pdf.setFontSize(12);
-                    pdf.setTextColor(255, 255, 255);
+                    pdf.setTextColor(255, 255, 255); // white subtitle
                     pdf.text(title, W / 2, y + h + 6, { align: 'center' });
                 }
             });
 
-            // Save PDF
             pdf.save("monthly_sales_report.pdf");
 
-            // Restore charts after a short delay
+            // Restore charts
             setTimeout(restoreCharts, 500);
         }, 300);
 
-        // Helper to restore all original chart settings
         function restoreCharts() {
             Object.entries(originalSettings).forEach(([id, opts]) => {
                 const chart = chartInstances[id];
