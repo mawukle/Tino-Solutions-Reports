@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 from flask_mail import Mail, Message
 from drive_uploader import upload_to_drive, GOOGLE_DRIVE_FOLDER_ID
 from decimal import Decimal
-from celery_worker import update_folder_has_files, create_folder_if_needed, upload_files_to_drive, create_missing_folders  # 👈 make sure this import is at the top
+from celery_worker import update_folder_has_files, create_folder_if_needed, upload_files_to_drive, create_missing_folders, rename_project_folder_task  # 👈 make sure this import is at the top
 from werkzeug.utils import secure_filename
 
 
