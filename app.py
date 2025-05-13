@@ -4714,7 +4714,7 @@ def reports():
             projects.kWp
         ).filter(
             projects.sales_person.isnot(None),
-            projects.commissioning_date.isnot(None),
+            #projects.commissioning_date.isnot(None),
             projects.amount_paid.isnot(None),
             projects.invoice_amount.isnot(None),  # ← Add this
             projects.currency.isnot(None),
