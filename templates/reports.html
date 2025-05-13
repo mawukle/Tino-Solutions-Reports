@@ -190,7 +190,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Amount Paid (Revenue)'
+                            text: 'Amount Received (Revenue)'
                         }
                     }
                 }
@@ -318,7 +318,7 @@
         const selectedCharts = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
         if (selectedCharts.includes("revenueChart")) {
-            buildChart("revenueChart", "Total Amount Received per Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
+            buildChart("revenueChart", "Total Amount Received per Sales Person (Filtered)", "Amount Received (Revenue)", filterDataSet(allData.revenue), filteredLabels);
         } else {
             document.getElementById("revenueChart").parentNode.style.display = "none";
         }
@@ -367,7 +367,7 @@
             for (const month in allData.revenue_summary_by_month) {
                 revenueData[month] = [
                     allData.revenue_summary_by_month[month]["Invoice Amount"],
-                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                    allData.revenue_summary_by_month[month]["Amount Received"]
                 ];
             }
 
@@ -398,21 +398,21 @@
         // First organize the data by metric (Invoice/Paid) then by month
         const metrics = {
             "Invoice Amount": {},
-            "Amount Paid": {}
+            "Amount Received": {}
         };
 
         // Filter months and populate the metrics data
         monthsToShow.forEach(month => {
             if (datasetObj[month]) {
                 metrics["Invoice Amount"][month] = datasetObj[month][0];
-                metrics["Amount Paid"][month] = datasetObj[month][1];
+                metrics["Amount Received"][month] = datasetObj[month][1];
             }
         });
 
         // Check if we have any data
         const hasData = monthsToShow.some(month =>
             (metrics["Invoice Amount"][month] || 0) > 0 ||
-            (metrics["Amount Paid"][month] || 0) > 0
+            (metrics["Amount Received"][month] || 0) > 0
         );
 
         if (!hasData) {
@@ -429,7 +429,7 @@
                 label: formatMonthLabel(month),
                 data: [
                     metrics["Invoice Amount"][month] || 0,
-                    metrics["Amount Paid"][month] || 0
+                    metrics["Amount Received"][month] || 0
                 ],
                 backgroundColor: colors[i % colors.length],
                 borderWidth: 1
@@ -439,7 +439,7 @@
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ["Invoice Amount", "Amount Paid"],
+                labels: ["Invoice Amount", "Amount Received"],
                 datasets: datasets
             },
             options: {
@@ -799,7 +799,7 @@
             if (filteredLabels.includes(month)) {
                 revenueData[month] = [
                     allData.revenue_summary_by_month[month]["Invoice Amount"],
-                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                    allData.revenue_summary_by_month[month]["Amount Received"]
                 ];
             }
         }
