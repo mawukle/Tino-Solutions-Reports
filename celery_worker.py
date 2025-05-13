@@ -83,20 +83,21 @@ def get_or_create_folder(service, parent_id, project_id, client_name, town, sale
     try:
         # Clean inputs and create consistent folder name
         folder_name = f"{client_name.strip()}_{town.strip()}_{sales_person.strip()}_{project_id}"
-        folder_name = "".join(c for c in folder_name if c not in r'\/:*?"<>|')  # Remove invalid chars
+        folder_name = "".join(c for c in folder_name if c not in r'/:\*?"<>|')  # Remove invalid chars
 
         # First check if the project already has a valid folder
-        existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
-        if existing_project and existing_project.google_folder_id:
-            # Verify the folder exists in Drive
-            try:
-                folder = service.files().get(
-                    fileId=existing_project.google_folder_id,
-                    fields='id'
-                ).execute()
-                return existing_project.google_folder_id  # Valid existing folder
-            except:
-                pass  # Folder doesn't exist, will create new one
+        with app.app_context():
+            existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
+            if existing_project and existing_project.google_folder_id:
+                try:
+                    # Verify the folder exists in Drive
+                    service.files().get(
+                        fileId=existing_project.google_folder_id,
+                        fields='id'
+                    ).execute()
+                    return existing_project.google_folder_id
+                except Exception:
+                    pass  # Folder doesn't exist, will create new one
 
         # Search for existing folder by name
         query = (
@@ -133,6 +134,7 @@ def get_or_create_folder(service, parent_id, project_id, client_name, town, sale
 def create_folder_if_needed(self, project_id, client_name, town, sales_person):
     logging.info(f"Starting folder creation task for project {project_id}")
     try:
+        # Initialize Google Drive service
         credentials = Credentials.from_service_account_file(
             GOOGLE_CREDENTIALS_FILE,
             scopes=["https://www.googleapis.com/auth/drive"]
@@ -140,25 +142,40 @@ def create_folder_if_needed(self, project_id, client_name, town, sales_person):
         service = build("drive", "v3", credentials=credentials)
 
         # Create or get folder
-        folder_id = get_or_create_folder(service, "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9", project_id, client_name, town, sales_person)
+        folder_id = get_or_create_folder(
+            service,
+            "15ANbwh6M8c7eAp_o8vWToOHs-ObjdLP9",  # Parent folder ID
+            project_id,
+            client_name,
+            town,
+            sales_person
+        )
+
+        if not folder_id:
+            logging.error(f"Folder creation failed for project {project_id}")
+            return False
 
         # Update project with folder ID
-        if folder_id:
-            project = db.session.query(projects).filter_by(project_id=project_id).first()
-            if project:
-                project.google_folder_id = folder_id
-                db.session.commit()
-                logging.info(f"Folder created for project {project_id}: {folder_id}")
-            else:
-                logging.error(f"Project with ID {project_id} not found.")
-        else:
-            logging.error(f"Folder creation failed for project {project_id}")
-
+        with app.app_context():  # Ensure proper app context
+            try:
+                project = db.session.query(projects).filter_by(project_id=project_id).first()
+                if project:
+                    project.google_folder_id = folder_id
+                    db.session.commit()
+                    logging.info(f"Successfully updated project {project_id} with folder ID: {folder_id}")
+                    return True
+                else:
+                    logging.error(f"Project with ID {project_id} not found in database")
+                    return False
+            except Exception as db_error:
+                db.session.rollback()
+                logging.error(f"Database error updating project {project_id}: {db_error}")
+                raise
     except Exception as e:
         logging.error(f"Error creating folder for project {project_id}: {e}")
+        raise self.retry(exc=e, countdown=60, max_retries=3)
     finally:
         gc.collect()
-
 @celery.task(bind=True)
 def update_folder_has_files(self, project_id, folder_id):
     try:
