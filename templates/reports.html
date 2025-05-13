@@ -198,7 +198,7 @@
         });
     }
 
-    function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+    function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow, xLabel = 'Sales Person') {
         const canvas = document.getElementById(canvasId);
         const wrapper = canvas.parentNode; // Get the parent wrapper
         const ctx = canvas.getContext('2d');
@@ -256,7 +256,7 @@
                         stacked: true,
                         title: {
                             display: true,
-                            text: 'Sales Persons'
+                            text: xLabel  // Use the provided xLabel parameter
                         }
                     },
                     y: {
@@ -330,31 +330,31 @@
         }
 
         if (selectedCharts.includes("statusChart")) {
-            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels);
+            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels, "Lead Installer");
         } else {
             document.getElementById("statusChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("completedInstallerChart")) {
-            buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels);
+            buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels, "Lead Installer");
         } else {
             document.getElementById("completedInstallerChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kvaChart")) {
-            buildChart("kvaChart", "Total kVA per Lead Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels);
+            buildChart("kvaChart", "Total kVA per Lead Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels, "Lead Installer");
         } else {
             document.getElementById("kvaChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kwhChart")) {
-            buildChart("kwhChart", "Total kWh per Lead Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels);
+            buildChart("kwhChart", "Total kWh per Lead Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels, "Lead Installer");
         } else {
             document.getElementById("kwhChart").parentNode.style.display = "none";
         }
 
         if (selectedCharts.includes("kwpChart")) {
-            buildChart("kwpChart", "Total kWp per Lead Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels);
+            buildChart("kwpChart", "Total kWp per Lead Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels, "Lead Installer");
         } else {
             document.getElementById("kwpChart").parentNode.style.display = "none";
         }
@@ -772,23 +772,23 @@
     }
 
     if (selectedChartsInit.includes("statusChart")) {
-        buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels);
+        buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels, "Status");
     }
 
     if (selectedChartsInit.includes("completedInstallerChart")) {
-        buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels);
+        buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels, "Lead Installer");
     }
 
     if (selectedChartsInit.includes("kvaChart")) {
-        buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels);
+        buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels, "Lead Installer");
     }
 
     if (selectedChartsInit.includes("kwhChart")) {
-        buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels);
+        buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels, "Lead Installer");
     }
 
     if (selectedChartsInit.includes("kwpChart")) {
-        buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels);
+        buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels, "Lead Installer");
     }
 
     // With this:
