@@ -4797,9 +4797,14 @@ def reports():
             invalid_dates = ['0000-00-00', '', None]
 
             # Convert to month_year string (e.g., "2025-05")
-            if start and start not in invalid_dates:
-                start_month_year = start.strftime('%Y-%m')
-                status_data['Ongoing'][start_month_year] += 1
+            # Normalize and count Ongoing projects
+            try:
+                if proj.start_date and proj.start_date not in ['0000-00-00', '', None]:
+                    start_date = datetime.strptime(proj.start_date, '%Y-%m-%d') if isinstance(proj.start_date, str) else proj.start_date
+                    start_month_year = start_date.strftime('%Y-%m')
+                    status_data['Ongoing'][start_month_year] += 1
+            except Exception as e:
+                logging.warning(f"Invalid start date encountered: {proj.start_date} | Error: {e}")
 
             if end and end not in invalid_dates:
                 end_month_year = end.strftime('%Y-%m')
