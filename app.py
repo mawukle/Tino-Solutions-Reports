@@ -4714,7 +4714,7 @@ def reports():
             projects.kWp
         ).filter(
             projects.sales_person.isnot(None),
-            #projects.commissioning_date.isnot(None),
+            projects.commissioning_date.isnot(None),
             projects.amount_paid.isnot(None),
             projects.invoice_amount.isnot(None),  # ← Add this
             projects.currency.isnot(None),
@@ -4790,28 +4790,21 @@ def reports():
                 invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
 
             # Project status tracking
-            # Project status tracking
-            # Project status tracking - simplified version
-            for proj in projects_data:
-                # Only need to validate start date now
-                if proj.start_date and proj.start_date not in ['0000-00-00', '', None]:
-                    try:
-                        start_date = datetime.strptime(proj.start_date, '%Y-%m-%d') if isinstance(proj.start_date, str) else proj.start_date
-                        start_month_year = start_date.strftime('%Y-%m')
-                        status_data['Ongoing'][start_month_year] += 1
-                    except Exception as e:
-                        logging.warning(f"Invalid start date format for project: {proj.start_date}")
-                        continue
+            start = proj.start_date
+            end = proj.commissioning_date
 
-                # Completion tracking is now optional
-                if proj.commissioning_date and proj.commissioning_date not in ['0000-00-00', '', None]:
-                    try:
-                        end_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') if isinstance(proj.commissioning_date, str) else proj.commissioning_date
-                        end_month_year = end_date.strftime('%Y-%m')
-                        status_data['Completed'][end_month_year] += 1
-                    except Exception as e:
-                        logging.warning(f"Invalid completion date format for project: {proj.commissioning_date}")
-                        continue
+            # Normalize invalid dates
+            invalid_dates = ['0000-00-00', '', None]
+
+            # Convert to month_year string (e.g., "2025-05")
+            if start and start not in invalid_dates:
+                start_month_year = start.strftime('%Y-%m')
+                status_data['Ongoing'][start_month_year] += 1
+
+            if end and end not in invalid_dates:
+                end_month_year = end.strftime('%Y-%m')
+                if end_month_year == month_year:
+                    status_data['Completed'][month_year] += 1
 
             # Convert amount paid to USD if needed
             amount_paid = float(proj.amount_paid) if proj.amount_paid else 0
