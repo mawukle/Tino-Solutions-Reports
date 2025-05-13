@@ -4793,18 +4793,29 @@ def reports():
             start = proj.start_date
             end = proj.commissioning_date
 
-            # Normalize invalid dates
             invalid_dates = ['0000-00-00', '', None]
 
-            # Convert to month_year string (e.g., "2025-05")
-            if start and start not in invalid_dates:
-                start_month_year = start.strftime('%Y-%m')
-                status_data['Ongoing'][start_month_year] += 1
+            # Convert to string for comparison
+            start_str = start.strftime('%Y-%m-%d') if isinstance(start, datetime) else str(start)
+            end_str = end.strftime('%Y-%m-%d') if isinstance(end, datetime) else str(end)
 
-            if end and end not in invalid_dates:
-                end_month_year = end.strftime('%Y-%m')
-                if end_month_year == month_year:
-                    status_data['Completed'][month_year] += 1
+            # Handle Ongoing
+            if start_str not in invalid_dates:
+                try:
+                    start_dt = datetime.strptime(start_str, '%Y-%m-%d')
+                    start_month_year = start_dt.strftime('%Y-%m')
+                    status_data['Ongoing'][start_month_year] += 1
+                except:
+                    pass  # Invalid date format
+
+            # Handle Completed
+            if end_str not in invalid_dates:
+                try:
+                    end_dt = datetime.strptime(end_str, '%Y-%m-%d')
+                    end_month_year = end_dt.strftime('%Y-%m')
+                    status_data['Completed'][end_month_year] += 1
+                except:
+                    pass
 
             # Convert amount paid to USD if needed
             amount_paid = float(proj.amount_paid) if proj.amount_paid else 0
