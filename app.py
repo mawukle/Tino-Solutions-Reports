@@ -4790,6 +4790,7 @@ def reports():
                 invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
 
             # Project status tracking
+            # Project status tracking
             start = proj.start_date
             end = proj.commissioning_date
 
@@ -4797,20 +4798,28 @@ def reports():
             invalid_dates = ['0000-00-00', '', None]
 
             # Convert to month_year string (e.g., "2025-05")
-            # Normalize and count Ongoing projects
-            try:
-                if proj.start_date and proj.start_date not in ['0000-00-00', '', None]:
-                    start_date = datetime.strptime(proj.start_date, '%Y-%m-%d') if isinstance(proj.start_date, str) else proj.start_date
+            if start and start not in invalid_dates:
+                try:
+                    # Handle both string and date objects
+                    start_date = datetime.strptime(start, '%Y-%m-%d') if isinstance(start, str) else start
                     start_month_year = start_date.strftime('%Y-%m')
+
+                    # Count as Ongoing if started in this month (regardless of completion status)
                     status_data['Ongoing'][start_month_year] += 1
-            except Exception as e:
-                logging.warning(f"Invalid start date encountered: {proj.start_date} | Error: {e}")
+                except:
+                    logging.warning(f"Invalid start date format: {start}")
+                    continue
 
             if end and end not in invalid_dates:
-                end_month_year = end.strftime('%Y-%m')
-                if end_month_year == month_year:
-                    status_data['Completed'][month_year] += 1
+                try:
+                    end_date = datetime.strptime(end, '%Y-%m-%d') if isinstance(end, str) else end
+                    end_month_year = end_date.strftime('%Y-%m')
 
+                    # Count as Completed if completed in this month
+                    status_data['Completed'][end_month_year] += 1
+                except:
+                    logging.warning(f"Invalid completion date format: {end}")
+                    continue
             # Convert amount paid to USD if needed
             amount_paid = float(proj.amount_paid) if proj.amount_paid else 0
             if proj.currency and proj.currency.strip().upper() == 'GHC':
