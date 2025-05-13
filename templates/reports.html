@@ -226,12 +226,10 @@
         const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
         if (!hasData) {
             canvas.style.display = "none";  // Hide empty chart
-            wrapper.style.display = "none";                 // <<< hide wrapper too
             return;
         }
 
         canvas.style.display = "block";  // Show if it has data
-        wrapper.style.display = "";                       // <<< show wrapper
 
         chartInstances[canvasId] = new Chart(ctx, {
             type: 'bar',
