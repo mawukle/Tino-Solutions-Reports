@@ -76,15 +76,15 @@
         <div class="filter-row">
             <label for="chartSelect">Select Charts to Display:</label>
             <select id="chartSelect" class="chart-toggle" multiple size="9">
-                <option value="revenueChart" selected>Revenue Chart</option>
+                <option value="revenueChart" selected>Amount Received Chart</option>
                 <option value="invoiceChart" selected>Invoice Chart</option>
                 <option value="totalRevenueChart" selected>Total Revenue Chart</option>
                 <option value="kvaChart" selected>kVA Chart</option>
                 <option value="kwhChart" selected>kWh Chart</option>
                 <option value="kwpChart" selected>kWp Chart</option>
                 <option value="installedCapacitiesChart" selected>Installed Capacities Chart</option>
-                <option value="completedInstallerChart" selected>Completed Installer Chart</option>
-                <option value="statusChart" selected>Status Chart</option>
+                <option value="completedInstallerChart" selected>Installer Chart</option>
+                <option value="statusChart" selected>Project Status Chart</option>
             </select>
 
             <label for="fromMonth">From:</label>
@@ -170,7 +170,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Total Revenue by Sales Person (Filtered)'
+                        text: 'Total Amount Received per Sales Person (Filtered)'
                     },
                     tooltip: {
                         mode: 'index',
@@ -316,7 +316,7 @@
         const selectedCharts = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
         if (selectedCharts.includes("revenueChart")) {
-            buildChart("revenueChart", "Total Revenue by Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
+            buildChart("revenueChart", "Total Amount Received per Sales Person (Filtered)", "Amount Paid (Revenue)", filterDataSet(allData.revenue), filteredLabels);
         } else {
             document.getElementById("revenueChart").parentNode.style.display = "none";
         }
@@ -753,7 +753,7 @@
     const selectedChartsInit = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
 
     if (selectedChartsInit.includes("revenueChart")) {
-        buildChart('revenueChart', 'Total Revenue by Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
+        buildChart('revenueChart', 'Total Amount Received per Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
     }
 
     if (selectedChartsInit.includes("invoiceChart")) {
