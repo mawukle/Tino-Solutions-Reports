@@ -200,6 +200,7 @@
 
     function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
@@ -208,7 +209,7 @@
         const datasets = [];
 
         if (xLabels.length === 0 || monthsToShow.length === 0) {
-            canvas.style.display = "none";  // Hide if no data
+            wrapper.style.display = "none";  // Hide the entire wrapper if no data
             return;
         }
 
@@ -225,10 +226,11 @@
 
         const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
         if (!hasData) {
-            canvas.style.display = "none";  // Hide empty chart
+            wrapper.style.display = "none";  // Hide the entire wrapper if empty
             return;
         }
 
+        wrapper.style.display = "block";  // Show the wrapper if it has data
         canvas.style.display = "block";  // Show if it has data
 
         chartInstances[canvasId] = new Chart(ctx, {
@@ -388,6 +390,7 @@
     // Replace the createRevenueSummaryChart function with this new version:
     function createRevenueSummaryChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
@@ -413,10 +416,11 @@
         );
 
         if (!hasData) {
-            canvas.style.display = "none";
+            wrapper.style.display = "none";
             return;
         }
 
+        wrapper.style.display = "block";
         canvas.style.display = "block";
 
         // Prepare datasets - one for each month
@@ -476,6 +480,7 @@
     // Update the createInstalledCapacitiesChart function to properly handle the data structure:
     function createInstalledCapacitiesChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
         const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
         const ctx = canvas.getContext('2d');
 
         if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
@@ -527,10 +532,11 @@
 
         const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
         if (!hasData) {
-            canvas.style.display = "none";
+            wrapper.style.display = "none";
             return;
         }
 
+        wrapper.style.display = "block";
         canvas.style.display = "block";
 
         chartInstances[canvasId] = new Chart(ctx, {
