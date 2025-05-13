@@ -654,8 +654,13 @@
             y += 20;
 
             // Get visible charts
-            const canvases = Array.from(document.querySelectorAll('canvas'))
-                .filter(c => c.style.display !== 'none');
+            //const canvases = Array.from(document.querySelectorAll('canvas'))
+            //    .filter(c => c.style.display !== 'none');
+
+            const wrappers = Array.from(document.querySelectorAll('.chart-wrapper'))
+                .filter(w => w.style.display !== 'none');
+            const canvases = wrappers.map(w => w.querySelector('canvas'));
+
 
             if (canvases.length === 0) {
                 alert('No charts to export');
