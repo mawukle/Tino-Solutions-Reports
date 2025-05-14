@@ -324,7 +324,7 @@
         }
 
         if (selectedCharts.includes("invoiceChart")) {
-            buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount", filterDataSet(allData.invoice), filteredLabels);
+            buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount (USD)", filterDataSet(allData.invoice), filteredLabels);
         } else {
             document.getElementById("invoiceChart").parentNode.style.display = "none";
         }
