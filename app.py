@@ -4700,12 +4700,17 @@ def get_usd_to_ghc_rate():
 @app.route('/reports')
 def reports():
     try:
-        # Get all completed projects (with valid commissioning date and invoice info)
+        from collections import defaultdict
+        import calendar
+        import logging
+        from datetime import datetime
+
+        # Query projects data
         projects_data = db.session.query(
             projects.sales_person,
             projects.commissioning_date,
             projects.amount_paid,
-            projects.invoice_amount,  # ← Add this
+            projects.invoice_amount,
             projects.currency,
             projects.lead_installer,
             projects.start_date,
@@ -4714,124 +4719,95 @@ def reports():
             projects.kWp
         ).filter(
             projects.sales_person.isnot(None),
-            projects.commissioning_date.isnot(None),
             projects.amount_paid.isnot(None),
-            projects.invoice_amount.isnot(None),  # ← Add this
+            projects.invoice_amount.isnot(None),
             projects.currency.isnot(None),
             projects.lead_installer.isnot(None),
             projects.start_date.isnot(None),
             projects.kVA.isnot(None),
             projects.kWh.isnot(None),
             projects.kWp.isnot(None)
-
         ).all()
 
-        # Process data to calculate monthly revenue per sales person
-        from collections import defaultdict
-        import calendar
-
-        revenue_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month-year: revenue}
-
-        exchange_rate = get_usd_to_ghc_rate()  # e.g., 1 USD = 12 GHS
-
-        for proj in projects_data:
-            # Skip invalid dates
-            if not proj.commissioning_date or proj.commissioning_date in ['0000-00-00', '', None]:
-                continue
-
-            # Convert commissioning_date safely
-            commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
-                if isinstance(proj.commissioning_date, str) else proj.commissioning_date
-            month_year = commissioning_date.strftime('%Y-%m')
-
-            # Convert amount to USD if needed
-            amount_paid = float(proj.amount_paid)
-            if proj.currency.strip().upper() == 'GHC':
-                amount_paid = amount_paid / exchange_rate  # Convert to USD
-
-            revenue_data[proj.sales_person][month_year] += round(amount_paid, 2)
-        # Extract all unique months in sorted order
-        all_months = sorted({month for sp_data in revenue_data.values() for month in sp_data})
-
-        # Prepare chart data
-        chart_labels = all_months
-        chart_data = {
-            sp: [round(revenue_data[sp].get(month, 0), 2) for month in all_months]
-            for sp in revenue_data
-        }
-
-        # Initialize new structures
-        invoice_data = defaultdict(lambda: defaultdict(float))  # sales_person -> {month: invoice amount}
-        status_data = defaultdict(lambda: defaultdict(int))     # status -> {month: count}
-        completed_per_installer = defaultdict(lambda: defaultdict(int))  # installer -> {month: count}
+        exchange_rate = get_usd_to_ghc_rate()
+        revenue_data = defaultdict(lambda: defaultdict(float))
+        invoice_data = defaultdict(lambda: defaultdict(float))
+        status_data = defaultdict(lambda: defaultdict(int))
+        completed_per_installer = defaultdict(lambda: defaultdict(int))
         kva_per_installer = defaultdict(lambda: defaultdict(float))
         kwh_per_installer = defaultdict(lambda: defaultdict(float))
         kwp_per_installer = defaultdict(lambda: defaultdict(float))
         total_revenue = defaultdict(lambda: defaultdict(float))
         installed_capacities = defaultdict(lambda: defaultdict(float))
+        revenue_by_month = defaultdict(lambda: {"Invoice Amount": 0, "Amount Paid": 0})
+        capacity_by_month = defaultdict(lambda: {"kVA": 0, "kWh": 0, "kWp": 0})
 
+        def safe_parse_date(date_str):
+            if isinstance(date_str, str):
+                if date_str in ['0000-00-00', '', None]:
+                    return None
+                try:
+                    return datetime.strptime(date_str, '%Y-%m-%d')
+                except:
+                    return None
+            return date_str
 
         for proj in projects_data:
-            # Ensure valid date
-            try:
-                commissioning_date = datetime.strptime(proj.commissioning_date, '%Y-%m-%d') \
-                    if isinstance(proj.commissioning_date, str) else proj.commissioning_date
-                month_year = commissioning_date.strftime('%Y-%m')
-            except:
+            start = safe_parse_date(proj.start_date)
+            end = safe_parse_date(proj.commissioning_date)
+
+            # Determine month-year for revenue by commissioning date
+            if end:
+                month_year = end.strftime('%Y-%m')
+            elif start:
+                month_year = start.strftime('%Y-%m')
+            else:
                 continue
 
-            # Convert invoice amount to USD if needed
-            invoice_amount = float(proj.invoice_amount) if proj.invoice_amount else 0
-            if proj.currency and proj.currency.strip().upper() == 'GHC':
-                invoice_amount = invoice_amount / exchange_rate
+            # Revenue
+            amount_paid = float(proj.amount_paid)
+            if proj.currency.strip().upper() == 'GHC':
+                amount_paid /= exchange_rate
+            revenue_data[proj.sales_person][month_year] += round(amount_paid, 2)
 
-            # Total invoice amount per sales person
-            if proj.sales_person:
-                invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
+            # Invoice
+            invoice_amount = float(proj.invoice_amount)
+            if proj.currency.strip().upper() == 'GHC':
+                invoice_amount /= exchange_rate
+            invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
 
-            # Project status tracking
-            start = proj.start_date
-            end = proj.commissioning_date
+            # Revenue and capacities summaries by start date
+            if start:
+                start_month = start.strftime('%Y-%m')
+                revenue_by_month[start_month]["Invoice Amount"] += round(invoice_amount, 2)
+                revenue_by_month[start_month]["Amount Paid"] += round(amount_paid, 2)
 
-            # Normalize invalid dates
-            invalid_dates = ['0000-00-00', '', None]
+                capacity_by_month[start_month]["kVA"] += float(proj.kVA)
+                capacity_by_month[start_month]["kWh"] += float(proj.kWh)
+                capacity_by_month[start_month]["kWp"] += float(proj.kWp)
 
-            # Convert to month_year string (e.g., "2025-05")
-            if start and start not in invalid_dates:
-                start_month_year = start.strftime('%Y-%m')
-                status_data['Ongoing'][start_month_year] += 1
+            # Project Status
+            if start:
+                status_data['Ongoing'][start.strftime('%Y-%m')] += 1
+            if end:
+                status_data['Completed'][end.strftime('%Y-%m')] += 1
 
-            if end and end not in invalid_dates:
-                end_month_year = end.strftime('%Y-%m')
-                if end_month_year == month_year:
-                    status_data['Completed'][month_year] += 1
-
-            # Convert amount paid to USD if needed
-            amount_paid = float(proj.amount_paid) if proj.amount_paid else 0
-            if proj.currency and proj.currency.strip().upper() == 'GHC':
-                amount_paid = amount_paid / exchange_rate
-
-
-            # Populate total_revenue (invoice vs paid)
+            # Totals
             total_revenue['Invoice Amount'][month_year] += round(invoice_amount, 2)
             total_revenue['Amount Paid'][month_year] += round(amount_paid, 2)
-
-            # Populate installed_capacities
             installed_capacities['kVA'][month_year] += float(proj.kVA)
             installed_capacities['kWh'][month_year] += float(proj.kWh)
             installed_capacities['kWp'][month_year] += float(proj.kWp)
 
+            # Installer stats
+            if proj.lead_installer:
+                if end:
+                    completed_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += 1
+                    kva_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kVA)
+                    kwh_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWh)
+                    kwp_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWp)
 
-            # Completed projects per lead installer
-            if proj.lead_installer and proj.commissioning_date:
-                completed_per_installer[proj.lead_installer][month_year] += 1
-
-                # Totals per installer
-                if proj.kVA: kva_per_installer[proj.lead_installer][month_year] += float(proj.kVA)
-                if proj.kWh: kwh_per_installer[proj.lead_installer][month_year] += float(proj.kWh)
-                if proj.kWp: kwp_per_installer[proj.lead_installer][month_year] += float(proj.kWp)
-
-        # Get all unique months
+        # Collect all months
         all_months = sorted({month for d in [
             revenue_data, invoice_data, status_data,
             completed_per_installer, kva_per_installer,
@@ -4844,7 +4820,6 @@ def reports():
                 for key in data_dict
             }
 
-        # Convert all datasets to monthly series
         chart_data = {
             'revenue': fill_chart_series(revenue_data, all_months),
             'invoice': fill_chart_series(invoice_data, all_months),
@@ -4854,71 +4829,21 @@ def reports():
             'kwh_per_installer': fill_chart_series(kwh_per_installer, all_months),
             'kwp_per_installer': fill_chart_series(kwp_per_installer, all_months),
             'total_revenue': fill_chart_series(total_revenue, all_months),
-            'installed_capacities': dict(installed_capacities)  # Keep original structure
-
+            'installed_capacities': dict(installed_capacities),  # keep original
+            'totals': {
+                "invoice_usd": round(sum(invoice_data[sp][m] for sp in invoice_data for m in invoice_data[sp]), 2),
+                "paid_usd": round(sum(revenue_data[sp][m] for sp in revenue_data for m in revenue_data[sp]), 2),
+                "total_kva": round(sum(installed_capacities['kVA'].values()), 2),
+                "total_kwh": round(sum(installed_capacities['kWh'].values()), 2),
+                "total_kwp": round(sum(installed_capacities['kWp'].values()), 2)
+            },
+            'revenue_summary_by_month': dict(revenue_by_month),
+            'capacity_summary_by_month': dict(capacity_by_month)
         }
 
-        # Totals for new charts
-        total_invoice_usd = sum([
-            float(p.invoice_amount) / exchange_rate if p.currency.upper() == 'GHC' else float(p.invoice_amount)
-            for p in projects_data if p.invoice_amount
-        ])
-        total_paid_usd = sum([
-            float(p.amount_paid) / exchange_rate if p.currency.upper() == 'GHC' else float(p.amount_paid)
-            for p in projects_data if p.amount_paid
-        ])
-        total_kva = sum([float(p.kVA) for p in projects_data if p.kVA])
-        total_kwh = sum([float(p.kWh) for p in projects_data if p.kWh])
-        total_kwp = sum([float(p.kWp) for p in projects_data if p.kWp])
-
-        chart_data["totals"] = {
-            "invoice_usd": round(total_invoice_usd, 2),
-            "paid_usd": round(total_paid_usd, 2),
-            "total_kva": round(total_kva, 2),
-            "total_kwh": round(total_kwh, 2),
-            "total_kwp": round(total_kwp, 2)
-        }
-
-        # Summary data for revenue and capacity by month (from start_date)
-        revenue_by_month = defaultdict(lambda: {"Invoice Amount": 0, "Amount Paid": 0})
-        capacity_by_month = defaultdict(lambda: {"kVA": 0, "kWh": 0, "kWp": 0})
-
-        for p in projects_data:
-            if not p.start_date:
-                continue
-            if p.start_date and p.start_date != '0000-00-00':
-                start_date = datetime.strptime(p.start_date, '%Y-%m-%d') if isinstance(p.start_date, str) else p.start_date
-                month = start_date.strftime("%Y-%m")
-            else:
-                # Handle missing/invalid date, e.g., skip or log
-                continue
-
-            # Invoice and Paid amounts (USD normalized)
-            invoice_amt = float(p.invoice_amount) if p.invoice_amount else 0
-            paid_amt = float(p.amount_paid) if p.amount_paid else 0
-            if p.currency.strip().upper() == 'GHC':
-                invoice_amt /= exchange_rate
-                paid_amt /= exchange_rate
-
-            revenue_by_month[month]["Invoice Amount"] += round(invoice_amt, 2)
-            revenue_by_month[month]["Amount Paid"] += round(paid_amt, 2)
-
-            capacity_by_month[month]["kVA"] += float(p.kVA or 0)
-            capacity_by_month[month]["kWh"] += float(p.kWh or 0)
-            capacity_by_month[month]["kWp"] += float(p.kWp or 0)
-
-        # Attach to chart_data
-        chart_data["revenue_summary_by_month"] = dict(revenue_by_month) if revenue_by_month else {}
-        chart_data["capacity_summary_by_month"] = dict(capacity_by_month) if capacity_by_month else {}
-        #chart_data["total_revenue"] = dict(revenue_by_month) if revenue_by_month else {}
-        #chart_data["installed_capacities"] = dict(capacity_by_month) if capacity_by_month else {}
-
-        import pprint
-        pp = pprint.PrettyPrinter(indent=2)
-        logging.info("chart_data['totals'] = %s", pp.pformat(chart_data["totals"]))
-        logging.info("chart_data['revenue_summary_by_month'] = %s", pp.pformat(chart_data["revenue_summary_by_month"]))
-        logging.info("chart_data['capacity_summary_by_month'] = %s", pp.pformat(chart_data["capacity_summary_by_month"]))
-
+        logging.info("chart_data['totals'] = %s", chart_data["totals"])
+        logging.info("chart_data['revenue_summary_by_month'] = %s", revenue_by_month)
+        logging.info("chart_data['capacity_summary_by_month'] = %s", capacity_by_month)
 
         return render_template('reports.html', labels=all_months, data=chart_data)
 
