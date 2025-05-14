@@ -4788,7 +4788,7 @@ def reports():
 
             # Project Status
             if start:
-                status_data['Ongoing'][start.strftime('%Y-%m')] += 1
+                status_data['Started'][start.strftime('%Y-%m')] += 1
             if end:
                 status_data['Completed'][end.strftime('%Y-%m')] += 1
 
