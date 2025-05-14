@@ -4756,13 +4756,10 @@ def reports():
             start = safe_parse_date(proj.start_date)
             end = safe_parse_date(proj.commissioning_date)
 
-            # Determine month-year for revenue by commissioning date
-            if end:
-                month_year = end.strftime('%Y-%m')
-            elif start:
-                month_year = start.strftime('%Y-%m')
-            else:
-                continue
+            if not start:
+                continue  # skip if no start date
+
+            month_year = start.strftime('%Y-%m')  # Always base revenue on start_date
 
             # Revenue
             amount_paid = float(proj.amount_paid)
@@ -4776,23 +4773,20 @@ def reports():
                 invoice_amount /= exchange_rate
             invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
 
-            # Revenue and capacities summaries by start date
-            if start:
-                start_month = start.strftime('%Y-%m')
-                revenue_by_month[start_month]["Invoice Amount"] += round(invoice_amount, 2)
-                revenue_by_month[start_month]["Amount Paid"] += round(amount_paid, 2)
+            # Revenue and capacities summaries
+            revenue_by_month[month_year]["Invoice Amount"] += round(invoice_amount, 2)
+            revenue_by_month[month_year]["Amount Paid"] += round(amount_paid, 2)
 
-                capacity_by_month[start_month]["kVA"] += float(proj.kVA)
-                capacity_by_month[start_month]["kWh"] += float(proj.kWh)
-                capacity_by_month[start_month]["kWp"] += float(proj.kWp)
+            capacity_by_month[month_year]["kVA"] += float(proj.kVA)
+            capacity_by_month[month_year]["kWh"] += float(proj.kWh)
+            capacity_by_month[month_year]["kWp"] += float(proj.kWp)
 
             # Project Status
-            if start:
-                status_data['Started'][start.strftime('%Y-%m')] += 1
+            status_data['Started'][month_year] += 1
             if end:
                 status_data['Completed'][end.strftime('%Y-%m')] += 1
 
-            # Totals
+            # Totals (still keyed by start_date month)
             total_revenue['Invoice Amount'][month_year] += round(invoice_amount, 2)
             total_revenue['Amount Paid'][month_year] += round(amount_paid, 2)
             installed_capacities['kVA'][month_year] += float(proj.kVA)
