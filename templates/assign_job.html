@@ -592,13 +592,14 @@
 
                     // Hide the selection interface
                     $('#team_members label').hide();
+
+                    // Hide the section selection buttons
+                    $('.section-select').hide();
+
                     // Quality Control Checklist handling
                     const qualityControlSection = $('h1:contains("QUALITY CONTROL CHECKLIST")');
                     const sectionButtons = $('.section-button');
                     let atLeastOneSectionFilled = false;
-
-                    // Always hide the section buttons in PDF
-                    $('.section-select').hide();
 
                     // Check each section
                     sectionButtons.each(function() {
@@ -616,12 +617,9 @@
                     // Hide entire Quality Control section if none are filled
                     if (!atLeastOneSectionFilled) {
                         qualityControlSection.hide();
-                        $('.section-select').hide(); // Hide the section buttons too
                     } else {
                         qualityControlSection.show();
-                        $('.section-select').show();
                     }
-
                 }
 
                 // Function to restore original state after PDF generation
@@ -632,13 +630,14 @@
                     // Show the selection interface
                     $('#team_members label').show();
 
+                    // Show the section selection buttons again
+                    $('.section-select').show();
+
                     // Reset Quality Control section visibility
                     $('h1:contains("QUALITY CONTROL CHECKLIST")').show();
-                    $('.section-select').show();
                     $('.section-checklist').show(); // Show all sections again
-
                 }
-
+                
                 // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
