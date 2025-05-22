@@ -559,6 +559,18 @@
 
                 });
 
+                function isSectionFilled(sectionId) {
+                    const section = document.getElementById(sectionId);
+                    const checkboxes = section.querySelectorAll('.dual-checkbox');
+
+                    for (let checkbox of checkboxes) {
+                        if (checkbox.classList.contains('checked') || checkbox.classList.contains('crossed')) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
                 // Function to hide unselected team members before PDF generation
                 function prepareForPDF() {
                     // Hide all team member elements
@@ -571,6 +583,32 @@
 
                     // Hide the selection interface
                     $('#team_members label').hide();
+                    // Quality Control Checklist handling
+                    const qualityControlSection = $('h1:contains("QUALITY CONTROL CHECKLIST")');
+                    const sectionButtons = $('.section-button');
+                    let atLeastOneSectionFilled = false;
+
+                    // Check each section
+                    sectionButtons.each(function() {
+                        const sectionId = 'section-' + $(this).data('section');
+                        const sectionElement = $('#' + sectionId);
+
+                        if (isSectionFilled(sectionId)) {
+                            atLeastOneSectionFilled = true;
+                            sectionElement.show(); // Show filled sections
+                        } else {
+                            sectionElement.hide(); // Hide unfilled sections
+                        }
+                    });
+
+                    // Hide entire Quality Control section if none are filled
+                    if (!atLeastOneSectionFilled) {
+                        qualityControlSection.hide();
+                        $('.section-select').hide(); // Hide the section buttons too
+                    } else {
+                        qualityControlSection.show();
+                        $('.section-select').show();
+                    }
 
                 }
 
@@ -581,6 +619,11 @@
 
                     // Show the selection interface
                     $('#team_members label').show();
+
+                    // Reset Quality Control section visibility
+                    $('h1:contains("QUALITY CONTROL CHECKLIST")').show();
+                    $('.section-select').show();
+                    $('.section-checklist').show(); // Show all sections again
 
                 }
 
