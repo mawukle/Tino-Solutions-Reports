@@ -6,70 +6,146 @@
     <title>Homepage - Tino Solutions Limited</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <script>
-        // Function to show links based on selected department
-        function filterLinks() {
-            // Get the selected department
-            const department = document.getElementById('departmentSelect').value;
-
-            // Hide all navigation menus
-            const allMenus = document.querySelectorAll('.department-links');
-            allMenus.forEach(menu => menu.style.display = 'none');
-
-            // Show the selected department's menu if a valid department is selected
-            if (department) {
-                const selectedMenu = document.getElementById(department);
-                if (selectedMenu) {
-                    selectedMenu.style.display = 'block';
-                }
-            }
+    <style>
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
         }
-    </script>
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 280px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card.supervisor-only {
+            border-left: 5px solid #e74c3c;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .card p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .card a {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .card a:hover {
+            background: #2980b9;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background: #f8f9fa;
+            margin-bottom: 30px;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .logo1 {
+            height: 60px;
+        }
+        .user-controls {
+            text-align: right;
+            padding: 10px 20px;
+            background: #ecf0f1;
+        }
+        .user-role {
+            font-weight: bold;
+            color: #3498db;
+        }
+    </style>
 </head>
 <body>
-    <div class="container_5">
+    <div class="user-controls">
+        Logged in as: <span class="user-role">Supervisor</span> |
+        <a href="#">Logout</a>
+    </div>
 
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo1"><br><br>
-        <h1>Welcome to<br>Tino Solutions Limited</h1>
-<!--        <p>Select a department to navigate:</p>-->
+    <div class="header">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo1">
+        </div>
+        <h1>Tino Solutions Limited</h1>
+        <p>Project Management Dashboard</p>
+    </div>
 
-        <!-- Department Dropdown -->
-        <div class="departments">
-<!--            <label for="departmentSelect">Choose a Department:</label>-->
-            <select id="departmentSelect" onchange="filterLinks()">
-                <option value="">--Select Department--</option>
-                <option value="installation">INSTALLATION</option>
-                <option value="sales">SALES</option>
-                <option value="logistics">LOGISTICS</option>
-            </select>
+    <div class="dashboard">
+        <!-- Reports - Available to all -->
+        <div class="card">
+            <h3>Reports</h3>
+            <p>Graphical representation of sales and project metrics</p>
+            <a href="{{ url_for('reports') }}">View Reports</a>
         </div>
 
-        <!-- Navigation Menus -->
-        <nav class="navigation-menu">
+        <!-- Assign Jobs - Available to all -->
+        <div class="card">
+            <h3>Daily Tasks</h3>
+            <p>Submit and view daily task reports</p>
+            <a href="{{ url_for('assign_job') }}">Manage Tasks</a>
+        </div>
 
-            <!-- Installation Links -->
-            <ul id="installation" class="department-links" style="display: none;">
-                <li><a href="{{ url_for('assign_job') }}">Daily Report</a></li>
-                <li><a href="{{ url_for('summary') }}">Summary</a></li>
-                <li><a href="{{ url_for('team_ranking') }}">Team Ranking</a></li>
-                <li><a href="{{ url_for('assign_teams') }}">Team Assignment</a></li>
-            </ul>
+        <!-- BDU - Client Details -->
+        <div class="card">
+            <h3>Client BDU</h3>
+            <p>View client details including invoices and payments</p>
+            <a href="{{ url_for('bdu') }}">Access BDU</a>
+        </div>
 
-            <!-- Sales Links -->
-            <ul id="sales" class="department-links" style="display: none;">
-                <li><a href="{{ url_for('client_list') }}">Client List</a></li>
-                <li><a href="{{ url_for('newClient_entryForm') }}">New Client Entry Form</a></li>
-            </ul>
+        <!-- Projects -->
+        <div class="card">
+            <h3>Projects</h3>
+            <p>View all projects with timelines and status</p>
+            <a href="{{ url_for('projects') }}">View Projects</a>
+        </div>
 
-            <!-- Logistics Links -->
-            <ul id="logistics" class="department-links" style="display: none;">
-                <li><a href="{{ url_for('stock_disbursement') }}">Stock Disbursement</a></li>
-                <li><a href="{{ url_for('stock_summary') }}">Stock Summary</a></li>
-                <li><a href="{{ url_for('client_list') }}">Client List</a></li>
-                <li><a href="{{ url_for('newClient_entryForm') }}">New Client Entry Form</a></li>
-            </ul>
+        <!-- Supervisor Only Section -->
+        <div class="card supervisor-only">
+            <h3>Team Assignment</h3>
+            <p>Assign tasks to employees (Supervisor only)</p>
+            <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
+        </div>
 
-        </nav>
+        <div class="card supervisor-only">
+            <h3>New Client</h3>
+            <p>Register new clients in the system (Supervisor only)</p>
+            <a href="{{ url_for('newClient_entryForm') }}">Add Client</a>
+        </div>
     </div>
+
+    <script>
+        // This would be replaced with actual user role check from backend
+        const userRole = 'supervisor'; // This would normally come from your authentication system
+
+        // Hide supervisor-only items if user is not supervisor
+        document.addEventListener('DOMContentLoaded', function() {
+            if (userRole !== 'supervisor') {
+                const supervisorCards = document.querySelectorAll('.supervisor-only');
+                supervisorCards.forEach(card => {
+                    card.style.display = 'none';
+                });
+            }
+        });
+    </script>
 </body>
 </html>
