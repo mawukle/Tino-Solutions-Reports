@@ -105,7 +105,7 @@
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Tino Solutions Logo" class="logo">
         <h1>Welcome to Tino Solutions Limited</h1>
 
-        <div class="dashboard">
+        <div class="dashboard" id="mainDashboard">
             <!-- Reports - Available to all -->
             <div class="card">
                 <h3>Reports Dashboard</h3>
@@ -136,26 +136,26 @@
         </div>
 
         <!-- Supervisor Access Section -->
-        <div class="supervisor-access">
+        <div class="supervisor-access" id="supervisorAccessSection">
             <h3>Supervisor Access</h3>
             <p>Enter access code to unlock supervisor features</p>
             <input type="password" id="supervisorCode" placeholder="Enter access code">
             <button onclick="checkSupervisorAccess()">Unlock</button>
+        </div>
 
-            <!-- Supervisor-only links (hidden by default) -->
-            <div id="supervisorLinks" class="hidden" style="margin-top: 15px;">
-                <div class="dashboard">
-                    <div class="card">
-                        <h3>Team Assignment</h3>
-                        <p>Assign tasks to employees</p>
-                        <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
-                    </div>
+        <!-- Supervisor-only cards (hidden by default) -->
+        <div id="supervisorCards" class="hidden">
+            <div class="dashboard">
+                <div class="card">
+                    <h3>Team Assignment</h3>
+                    <p>Assign tasks to employees</p>
+                    <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
+                </div>
 
-                    <div class="card">
-                        <h3>New Client Entry</h3>
-                        <p>Create database entries for new clients</p>
-                        <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
-                    </div>
+                <div class="card">
+                    <h3>New Client Entry</h3>
+                    <p>Create database entries for new clients</p>
+                    <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
                 </div>
             </div>
         </div>
@@ -167,11 +167,21 @@
 
         function checkSupervisorAccess() {
             const enteredCode = document.getElementById('supervisorCode').value;
-            const supervisorLinks = document.getElementById('supervisorLinks');
+            const supervisorAccessSection = document.getElementById('supervisorAccessSection');
+            const supervisorCards = document.getElementById('supervisorCards');
 
             if (enteredCode === SUPERVISOR_CODE) {
-                supervisorLinks.classList.remove('hidden');
-                alert("Supervisor access granted!");
+                // Hide the access section
+                supervisorAccessSection.classList.add('hidden');
+
+                // Show the supervisor cards
+                supervisorCards.classList.remove('hidden');
+
+                // Append supervisor cards to the main dashboard
+                document.getElementById('mainDashboard').appendChild(supervisorCards.children[0]);
+
+                // Remove the now-empty supervisorCards div
+                supervisorCards.remove();
             } else {
                 alert("Incorrect access code. Please try again.");
                 document.getElementById('supervisorCode').value = '';
