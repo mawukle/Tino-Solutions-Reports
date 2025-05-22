@@ -568,6 +568,15 @@
                             return true;
                         }
                     }
+                    // Special handling for Site Survey section (K)
+                    if (sectionId === 'section-K') {
+                        const inputs = section.querySelectorAll('input, select, textarea');
+                        for (let input of inputs) {
+                            if (input.value && input.value.trim() !== '') {
+                                return true;
+                            }
+                        }
+                    }
                     return false;
                 }
 
@@ -587,6 +596,9 @@
                     const qualityControlSection = $('h1:contains("QUALITY CONTROL CHECKLIST")');
                     const sectionButtons = $('.section-button');
                     let atLeastOneSectionFilled = false;
+
+                    // Always hide the section buttons in PDF
+                    $('.section-select').hide();
 
                     // Check each section
                     sectionButtons.each(function() {
