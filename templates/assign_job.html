@@ -72,12 +72,6 @@
                 {% endfor %}
             </div>
 
-            <!-- Selected Team Members Display (hidden by default) -->
-            <div id="selected-team-display" style="display: none; margin-top: 15px;">
-                <h3>Selected Team Members:</h3>
-                <div id="selected-members-list"></div>
-            </div>
-
             <h1>QUALITY CONTROL CHECKLIST</h1>
 
             <!-- Section Selection with Buttons -->
@@ -563,24 +557,7 @@
                         selectedMembers = selectedMembers.filter(m => m.id !== memberId);
                     }
 
-                    // Update selected members display
-                    updateSelectedMembersDisplay();
                 });
-
-                function updateSelectedMembersDisplay() {
-                    const displayDiv = $('#selected-team-display');
-                    const listDiv = $('#selected-members-list');
-
-                    if (selectedMembers.length > 0) {
-                        listDiv.empty();
-                        selectedMembers.forEach(member => {
-                            listDiv.append(`<div>${member.name}</div>`);
-                        });
-                        displayDiv.show();
-                    } else {
-                        displayDiv.hide();
-                    }
-                }
 
                 // Function to hide unselected team members before PDF generation
                 function prepareForPDF() {
@@ -595,14 +572,6 @@
                     // Hide the selection interface
                     $('#team_members label').hide();
 
-                    // Show the selected members display prominently
-                    $('#selected-team-display').css({
-                        'display': 'block',
-                        'background': '#f8f9fa',
-                        'padding': '10px',
-                        'border-radius': '5px',
-                        'margin-bottom': '15px'
-                    });
                 }
 
                 // Function to restore original state after PDF generation
@@ -613,14 +582,6 @@
                     // Show the selection interface
                     $('#team_members label').show();
 
-                    // Reset the selected members display
-                    $('#selected-team-display').css({
-                        'display': 'none',
-                        'background': '',
-                        'padding': '',
-                        'border-radius': '',
-                        'margin-bottom': ''
-                    });
                 }
 
                 // Datepicker with custom formatting
