@@ -72,6 +72,11 @@
                 {% endfor %}
             </div>
 
+            <!-- Selected Team Members Display (hidden by default) -->
+            <div id="selected-team-display" style="display: none; margin-top: 15px;">
+                <h3>Selected Team Members:</h3>
+                <div id="selected-members-list"></div>
+            </div>
 
             <h1>QUALITY CONTROL CHECKLIST</h1>
 
@@ -539,6 +544,85 @@
 
         <script>
             $(document).ready(function() {
+                // Store selected team members
+                let selectedMembers = [];
+
+                // Event delegation for team member toggle
+                $('#team_members').on('click', '.team-member', function() {
+                    var memberId = $(this).data('member-id');
+                    var memberName = $(this).text();
+                    var checkbox = $('#team_member_' + memberId);
+
+                    checkbox.prop('checked', !checkbox.prop('checked')); // Toggle checkbox state
+                    $(this).toggleClass('selected'); // Toggle the 'selected' class
+
+                    // Update selected members array
+                    if (checkbox.prop('checked')) {
+                        selectedMembers.push({id: memberId, name: memberName});
+                    } else {
+                        selectedMembers = selectedMembers.filter(m => m.id !== memberId);
+                    }
+
+                    // Update selected members display
+                    updateSelectedMembersDisplay();
+                });
+
+                function updateSelectedMembersDisplay() {
+                    const displayDiv = $('#selected-team-display');
+                    const listDiv = $('#selected-members-list');
+
+                    if (selectedMembers.length > 0) {
+                        listDiv.empty();
+                        selectedMembers.forEach(member => {
+                            listDiv.append(`<div>${member.name}</div>`);
+                        });
+                        displayDiv.show();
+                    } else {
+                        displayDiv.hide();
+                    }
+                }
+
+                // Function to hide unselected team members before PDF generation
+                function prepareForPDF() {
+                    // Hide all team member elements
+                    $('.team-member').hide();
+
+                    // Show only selected members
+                    selectedMembers.forEach(member => {
+                        $(`.team-member[data-member-id="${member.id}"]`).show();
+                    });
+
+                    // Hide the selection interface
+                    $('#team_members label').hide();
+
+                    // Show the selected members display prominently
+                    $('#selected-team-display').css({
+                        'display': 'block',
+                        'background': '#f8f9fa',
+                        'padding': '10px',
+                        'border-radius': '5px',
+                        'margin-bottom': '15px'
+                    });
+                }
+
+                // Function to restore original state after PDF generation
+                function restoreAfterPDF() {
+                    // Show all team member elements
+                    $('.team-member').show();
+
+                    // Show the selection interface
+                    $('#team_members label').show();
+
+                    // Reset the selected members display
+                    $('#selected-team-display').css({
+                        'display': 'none',
+                        'background': '',
+                        'padding': '',
+                        'border-radius': '',
+                        'margin-bottom': ''
+                    });
+                }
+
                 // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
@@ -588,113 +672,105 @@
                     }
                 });
 
-                // Event delegation for team member toggle
-                $('#team_members').on('click', '.team-member', function() {
-                    var memberId = $(this).data('member-id');
-                    var checkbox = $('#team_member_' + memberId);
-
-                    checkbox.prop('checked', !checkbox.prop('checked')); // Toggle checkbox state
-                    $(this).toggleClass('selected'); // Toggle the 'selected' class
-                });
-
-
                 let submittedOnce = false;
 
-                $(document).ready(function () {
-                    $('#submit-button').click(function (event) {
-                        event.preventDefault(); // Prevent form submission until PDF generation is done
+                $('#submit-button').click(function (event) {
+                    event.preventDefault(); // Prevent form submission until PDF generation is done
 
-                        const jobDate = $('#job_date').val(); // Format: YYYY-MM-DD
-                        const clientName = $('#client_name').val();
-                        const formattedDate = jobDate ? jobDate.split('-').reverse().join('') : 'NoDate';
-                        const pdfFileName = `${formattedDate} - ${clientName || 'Report'}.pdf`;
+                    // Prepare the form for PDF generation
+                    prepareForPDF();
 
-                        const replaceTextareas = () => {
-                            document.querySelectorAll("textarea").forEach(textarea => {
-                                const div = document.createElement("div");
-                                div.style.cssText = window.getComputedStyle(textarea).cssText;
-                                div.style.whiteSpace = "pre-wrap";
-                                div.style.overflowWrap = "break-word";
-                                div.style.border = "1px solid rgba(0, 0, 0, 0.1)";
-                                div.style.borderRadius = "4px";
-                                div.style.padding = "5px";
-                                div.innerText = textarea.value;
-                                div.setAttribute("data-replaced", "textarea");
-                                div.setAttribute("name", textarea.name);
-                                textarea.parentNode.replaceChild(div, textarea);
-                            });
-                        };
+                    const jobDate = $('#job_date').val(); // Format: YYYY-MM-DD
+                    const clientName = $('#client_name').val();
+                    const formattedDate = jobDate ? jobDate.split('-').reverse().join('') : 'NoDate';
+                    const pdfFileName = `${formattedDate} - ${clientName || 'Report'}.pdf`;
 
-                        const revertDivsToTextareas = () => {
-                            document.querySelectorAll("div[data-replaced='textarea']").forEach(div => {
-                                const textarea = document.createElement("textarea");
-                                textarea.name = div.getAttribute("name");
-                                textarea.value = div.innerText;
-                                div.parentNode.replaceChild(textarea, div);
-                            });
-                        };
-
-                        replaceTextareas();
-
-                        html2canvas(document.querySelector("#report-container"), {
-                            scale: 2,
-                            allowTaint: true,
-                            useCORS: true
-                        }).then(function (canvas) {
-                            const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
-                            const imgData = canvas.toDataURL('image/jpeg', 0.7);
-                            const pageWidth = pdf.internal.pageSize.getWidth();
-                            const pageHeight = pdf.internal.pageSize.getHeight();
-                            const canvasWidth = canvas.width;
-                            const canvasHeight = canvas.height;
-
-                            const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
-                            const scaledCanvasWidth = canvasWidth * scaleFactor;
-                            const scaledCanvasHeight = canvasHeight * scaleFactor;
-                            const xOffset = (pageWidth - scaledCanvasWidth) / 2;
-
-                            if (scaledCanvasHeight <= pageHeight) {
-                                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
-                            } else {
-                                let yOffset = 0;
-                                while (yOffset < canvasHeight) {
-                                    const remainingHeight = canvasHeight - yOffset;
-                                    const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
-                                    const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
-                                    pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
-                                    yOffset += visibleHeight;
-                                    if (yOffset < canvasHeight) pdf.addPage();
-                                }
-                            }
-
-                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-                            if (isIOS) {
-                                pdf.save(pdfFileName); // Let the user save manually
-                                alert("After saving the PDF, press OK to continue and submit the report.");
-                                revertDivsToTextareas();
-                                $('#daily-report-form').submit();
-                            } else {
-                                pdf.save(pdfFileName);
-                                return new Promise(resolve => setTimeout(resolve, 1000)); // Allow time to initiate download
-                            }
-                        })
-                        .then(function () {
-                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                            if (!isIOS) {
-                                revertDivsToTextareas();
-                                $('#daily-report-form').submit();
-                            }
-                        })
-                        .catch(function (error) {
-                            console.error('Error generating or downloading PDF:', error);
-                            revertDivsToTextareas();
-                            $('#daily-report-form').submit(); // Fallback even on error
+                    const replaceTextareas = () => {
+                        document.querySelectorAll("textarea").forEach(textarea => {
+                            const div = document.createElement("div");
+                            div.style.cssText = window.getComputedStyle(textarea).cssText;
+                            div.style.whiteSpace = "pre-wrap";
+                            div.style.overflowWrap = "break-word";
+                            div.style.border = "1px solid rgba(0, 0, 0, 0.1)";
+                            div.style.borderRadius = "4px";
+                            div.style.padding = "5px";
+                            div.innerText = textarea.value;
+                            div.setAttribute("data-replaced", "textarea");
+                            div.setAttribute("name", textarea.name);
+                            textarea.parentNode.replaceChild(div, textarea);
                         });
+                    };
+
+                    const revertDivsToTextareas = () => {
+                        document.querySelectorAll("div[data-replaced='textarea']").forEach(div => {
+                            const textarea = document.createElement("textarea");
+                            textarea.name = div.getAttribute("name");
+                            textarea.value = div.innerText;
+                            div.parentNode.replaceChild(textarea, div);
+                        });
+                    };
+
+                    replaceTextareas();
+
+                    html2canvas(document.querySelector("#report-container"), {
+                        scale: 2,
+                        allowTaint: true,
+                        useCORS: true
+                    }).then(function (canvas) {
+                        const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
+                        const imgData = canvas.toDataURL('image/jpeg', 0.7);
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        const canvasWidth = canvas.width;
+                        const canvasHeight = canvas.height;
+
+                        const scaleFactor = Math.min(pageWidth / canvasWidth, pageHeight / canvasHeight);
+                        const scaledCanvasWidth = canvasWidth * scaleFactor;
+                        const scaledCanvasHeight = canvasHeight * scaleFactor;
+                        const xOffset = (pageWidth - scaledCanvasWidth) / 2;
+
+                        if (scaledCanvasHeight <= pageHeight) {
+                            pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledCanvasWidth, scaledCanvasHeight);
+                        } else {
+                            let yOffset = 0;
+                            while (yOffset < canvasHeight) {
+                                const remainingHeight = canvasHeight - yOffset;
+                                const visibleHeight = Math.min(pageHeight / scaleFactor, remainingHeight);
+                                const visibleImgData = canvas.toDataURL('image/jpeg', 0.7);
+                                pdf.addImage(visibleImgData, 'JPEG', xOffset, 0, scaledCanvasWidth, visibleHeight * scaleFactor);
+                                yOffset += visibleHeight;
+                                if (yOffset < canvasHeight) pdf.addPage();
+                            }
+                        }
+
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                        if (isIOS) {
+                            pdf.save(pdfFileName); // Let the user save manually
+                            alert("After saving the PDF, press OK to continue and submit the report.");
+                            revertDivsToTextareas();
+                            restoreAfterPDF(); // Restore the form
+                            $('#daily-report-form').submit();
+                        } else {
+                            pdf.save(pdfFileName);
+                            return new Promise(resolve => setTimeout(resolve, 1000)); // Allow time to initiate download
+                        }
+                    })
+                    .then(function () {
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        if (!isIOS) {
+                            revertDivsToTextareas();
+                            restoreAfterPDF(); // Restore the form
+                            $('#daily-report-form').submit();
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Error generating or downloading PDF:', error);
+                        revertDivsToTextareas();
+                        restoreAfterPDF(); // Restore the form
+                        $('#daily-report-form').submit(); // Fallback even on error
                     });
                 });
-
-
 
                 // Dual Checkbox functionality
                 document.querySelectorAll('.dual-checkbox').forEach(checkbox => {
