@@ -58,7 +58,7 @@
             {% set excluded_names = ["Abigail", "Gorden", "Gabriel", "Caleb", "Clinton", "Alex", "Elisha"] %}
 
             <!-- Select Team Members (Click to select) -->
-            <label for="team_members">Select Team Members:</label>
+            <label for="team_members">Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
                     <!-- Skip if the member's name is in the excluded list -->
@@ -596,6 +596,9 @@
                     // Hide the section selection buttons
                     $('.section-select').hide();
 
+                    // Hide the submit button
+                    $('#submit-button').hide();
+
                     // Quality Control Checklist handling
                     const qualityControlSection = $('h1:contains("QUALITY CONTROL CHECKLIST")');
                     const sectionButtons = $('.section-button');
@@ -633,11 +636,14 @@
                     // Show the section selection buttons again
                     $('.section-select').show();
 
+                    // Show the submit button again
+                    $('#submit-button').show();
+
                     // Reset Quality Control section visibility
                     $('h1:contains("QUALITY CONTROL CHECKLIST")').show();
                     $('.section-checklist').show(); // Show all sections again
                 }
-                
+
                 // Datepicker with custom formatting
                 $('#job_date_display').datepicker({
                     dateFormat: 'yy-mm-dd',
