@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Locations - Tino Solutions Limited</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .filter-group select, .filter-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .info-window {
+            max-width: 250px;
+        }
+        .info-window h3 {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 16px;
+        }
+        .info-window p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .info-window strong {
+            color: #2c3e50;
+        }
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back-button">← Back to Dashboard</a>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Tino Solutions Logo" class="logo">
+        <h1>Client Locations Map</h1>
+
+        <div class="map-container">
+            <div class="controls">
+                <div class="filter-group">
+                    <label for="town-filter">Filter by Town:</label>
+                    <select id="town-filter">
+                        <option value="">All Towns</option>
+                        {% set towns = [] %}
+                        {% for project in map_data %}
+                            {% if project.town and project.town not in towns %}
+                                {% set _ = towns.append(project.town) %}
+                                <option value="{{ project.town }}">{{ project.town }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sales-filter">Filter by Sales Person:</label>
+                    <select id="sales-filter">
+                        <option value="">All Sales People</option>
+                        {% set sales_people = [] %}
+                        {% for project in map_data %}
+                            {% if project.sales_person and project.sales_person not in sales_people %}
+                                {% set _ = sales_people.append(project.sales_person) %}
+                                <option value="{{ project.sales_person }}">{{ project.sales_person }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="installer-filter">Filter by Lead Installer:</label>
+                    <select id="installer-filter">
+                        <option value="">All Installers</option>
+                        {% set installers = [] %}
+                        {% for project in map_data %}
+                            {% if project.lead_installer and project.lead_installer not in installers %}
+                                {% set _ = installers.append(project.lead_installer) %}
+                                <option value="{{ project.lead_installer }}">{{ project.lead_installer }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="system-size">System Size Range (kVA):</label>
+                    <select id="system-size">
+                        <option value="0,1000">All Sizes</option>
+                        <option value="0,5">0-5 kVA</option>
+                        <option value="5,10">5-10 kVA</option>
+                        <option value="10,20">10-20 kVA</option>
+                        <option value="20,1000">20+ kVA</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="legend">
+                <h3>System Size Legend:</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FF5733;"></div>
+                    <span>0-5 kVA</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #33FF57;"></div>
+                    <span>5-10 kVA</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #3357FF;"></div>
+                    <span>10-20 kVA</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #F033FF;"></div>
+                    <span>20+ kVA</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the map with Accra, Ghana as the default center
+        function initMap() {
+            const accra = { lat: 5.6037, lng: -0.1870 };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 10,
+                center: accra,
+                mapTypeId: "terrain",
+            });
+
+            // Create markers for each project
+            const markers = [];
+            const mapData = {{ map_data|tojson|safe }};
+
+            mapData.forEach(project => {
+                // Determine marker color based on system size
+                let markerColor;
+                const kVA = project.kVA || 0;
+
+                if (kVA <= 5) markerColor = "#FF5733";      // Red
+                else if (kVA <= 10) markerColor = "#33FF57"; // Green
+                else if (kVA <= 20) markerColor = "#3357FF"; // Blue
+                else markerColor = "#F033FF";                // Purple
+
+                // Create marker
+                const marker = new google.maps.Marker({
+                    position: project.coordinates,
+                    map: map,
+                    title: project.client_name,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: markerColor,
+                        fillOpacity: 0.8,
+                        strokeColor: "#000000",
+                        strokeWeight: 1,
+                        scale: 8 + (kVA / 5) // Scale based on system size
+                    },
+                    customData: project
+                });
+
+                // Create info window content
+                const infoWindowContent = `
+                    <div class="info-window">
+                        <h3>${project.client_name}</h3>
+                        <p><strong>Town:</strong> ${project.town || 'N/A'}</p>
+                        <p><strong>System Size:</strong> ${kVA} kVA</p>
+                        <p><strong>Sales Person:</strong> ${project.sales_person || 'N/A'}</p>
+                        <p><strong>Lead Installer:</strong> ${project.lead_installer || 'N/A'}</p>
+                        <p><strong>Project ID:</strong> ${project.project_id}</p>
+                    </div>
+                `;
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: infoWindowContent
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+            });
+
+            // Filter functionality
+            function applyFilters() {
+                const townFilter = document.getElementById("town-filter").value;
+                const salesFilter = document.getElementById("sales-filter").value;
+                const installerFilter = document.getElementById("installer-filter").value;
+                const systemSizeRange = document.getElementById("system-size").value.split(',').map(Number);
+
+                markers.forEach(marker => {
+                    const project = marker.customData;
+                    const kVA = project.kVA || 0;
+                    const townMatch = !townFilter || project.town === townFilter;
+                    const salesMatch = !salesFilter || project.sales_person === salesFilter;
+                    const installerMatch = !installerFilter || project.lead_installer === installerFilter;
+                    const sizeMatch = kVA >= systemSizeRange[0] && kVA <= systemSizeRange[1];
+
+                    if (townMatch && salesMatch && installerMatch && sizeMatch) {
+                        marker.setVisible(true);
+                    } else {
+                        marker.setVisible(false);
+                    }
+                });
+            }
+
+            // Add event listeners to filters
+            document.getElementById("town-filter").addEventListener("change", applyFilters);
+            document.getElementById("sales-filter").addEventListener("change", applyFilters);
+            document.getElementById("installer-filter").addEventListener("change", applyFilters);
+            document.getElementById("system-size").addEventListener("change", applyFilters);
+        }
+    </script>
+
+    <!-- Load Google Maps API with your API key -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+    </script>
+</body>
+</html>

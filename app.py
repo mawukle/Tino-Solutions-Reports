@@ -4845,8 +4845,36 @@ def reports():
         logging.error(f"Error generating reports: {e}")
         return render_template('reports.html', message='Failed to load report', labels=[], data={})
 
+# Add this import at the top if not already present
+#from flask import jsonify
 
+# Add this route to your app.py
+@app.route('/client_map')
+def client_map():
+    # Query all projects with coordinates (using lowercase table name)
+    projects = db.session.query(projects).filter(projects.google_coordinates.isnot(None)).all()
 
+    # Prepare the data for the map
+    map_data = []
+    for project in projects:
+        if project.google_coordinates:
+            try:
+                lat, lng = map(float, project.google_coordinates.split(','))
+                map_data.append({
+                    'client_name': project.client_name,
+                    'town': project.town,
+                    'coordinates': {'lat': lat, 'lng': lng},
+                    'kVA': project.kVA,
+                    'kWh': project.kWh,
+                    'kWp': project.kWp,
+                    'sales_person': project.sales_person,
+                    'lead_installer': project.lead_installer,
+                    'project_id': project.project_id
+                })
+            except (ValueError, AttributeError):
+                continue
+
+    return render_template('client_map.html', map_data=map_data)
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
