@@ -109,6 +109,20 @@
             margin-right: 8px;
             border-radius: 50%;
         }
+        .marker-content {
+            background-color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
     </style>
 </head>
 <body>
@@ -199,17 +213,30 @@
 
     <script>
         // Initialize the map with Accra, Ghana as the default center
+        // Load the Google Maps API asynchronously
+        function loadGoogleMaps() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_ACTUAL_API_KEY&loading=async&libraries=marker&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+
+        // Initialize the map with Advanced Markers
         function initMap() {
             const accra = { lat: 5.6037, lng: -0.1870 };
             const map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 10,
                 center: accra,
-                mapTypeId: "terrain",
+                mapId: "YOUR_MAP_ID", // Optional: Add your Map ID for styling
             });
 
-            // Create markers for each project
+            // Create markers for each project using Advanced Markers
             const markers = [];
             const mapData = {{ map_data|tojson|safe }};
+
+            // Create an InfoWindow to reuse
+            const infoWindow = new google.maps.InfoWindow();
 
             mapData.forEach(project => {
                 // Determine marker color based on system size
@@ -221,20 +248,18 @@
                 else if (kVA <= 20) markerColor = "#3357FF"; // Blue
                 else markerColor = "#F033FF";                // Purple
 
-                // Create marker
-                const marker = new google.maps.Marker({
+                // Create marker content element
+                const content = document.createElement("div");
+                content.className = "marker-content";
+                content.style.backgroundColor = markerColor;
+                content.textContent = kVA > 0 ? Math.round(kVA) : "?";
+
+                // Create advanced marker
+                const marker = new google.maps.marker.AdvancedMarkerElement({
                     position: project.coordinates,
                     map: map,
                     title: project.client_name,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: markerColor,
-                        fillOpacity: 0.8,
-                        strokeColor: "#000000",
-                        strokeWeight: 1,
-                        scale: 8 + (kVA / 5) // Scale based on system size
-                    },
-                    customData: project
+                    content: content,
                 });
 
                 // Create info window content
@@ -242,18 +267,17 @@
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
                         <p><strong>Town:</strong> ${project.town || 'N/A'}</p>
-                        <p><strong>System Size:</strong> ${kVA} kVA</p>
+                        <p><strong>System Size:</strong> ${kVA} kVA / ${project.kWp || 'N/A'} kWp</p>
                         <p><strong>Sales Person:</strong> ${project.sales_person || 'N/A'}</p>
                         <p><strong>Lead Installer:</strong> ${project.lead_installer || 'N/A'}</p>
                         <p><strong>Project ID:</strong> ${project.project_id}</p>
                     </div>
                 `;
 
-                const infoWindow = new google.maps.InfoWindow({
-                    content: infoWindowContent
-                });
-
-                marker.addListener("click", () => {
+                // Add click listener
+                marker.addListener("click", ({ domEvent, latLng }) => {
+                    infoWindow.close();
+                    infoWindow.setContent(infoWindowContent);
                     infoWindow.open(map, marker);
                 });
 
