@@ -4851,12 +4851,13 @@ def reports():
 # Add this route to your app.py
 @app.route('/client_map')
 def client_map():
-    # Query all projects with coordinates (using lowercase table name)
-    projects = db.session.query(projects).filter(projects.google_coordinates.isnot(None)).all()
+    # Query all projects with coordinates using the correct model class name
+    # (assuming your model class is named projects)
+    projects_list = db.session.query(projects).filter(projects.google_coordinates.isnot(None)).all()
 
     # Prepare the data for the map
     map_data = []
-    for project in projects:
+    for project in projects_list:
         if project.google_coordinates:
             try:
                 lat, lng = map(float, project.google_coordinates.split(','))
@@ -4875,6 +4876,7 @@ def client_map():
                 continue
 
     return render_template('client_map.html', map_data=map_data)
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
