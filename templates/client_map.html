@@ -493,14 +493,16 @@
                 systemSizeHTML += '</div>';
 
                 // Create info window content with directions link
+                // In the createMarkers function, update the infoWindowContent to show project count:
                 const infoWindowContent = `
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
+                        ${project.project_count > 1 ? `<p><strong>Projects at this location:</strong> ${project.project_count}</p>` : ''}
                         <p><strong>Town:</strong> ${project.town || 'N/A'}</p>
                         ${systemSizeHTML}
                         <p><strong>Sales Person:</strong> ${project.sales_person || 'N/A'}</p>
                         <p><strong>Lead Installer:</strong> ${project.lead_installer || 'N/A'}</p>
-                        <p><strong>Commissioning Date:</strong> ${commissioningDate}</p>
+                        <p><strong>Latest Commissioning Date:</strong> ${commissioningDate}</p>
                         <div class="info-window-actions">
                             <a href="https://www.google.com/maps/dir/?api=1&destination=${project.coordinates.lat},${project.coordinates.lng}"
                                target="_blank" class="directions-btn">
@@ -509,7 +511,7 @@
                         </div>
                     </div>
                 `;
-
+                
                 // Add click listener using gmp-click
                 marker.addListener("gmp-click", () => {
                     infoWindow.close();

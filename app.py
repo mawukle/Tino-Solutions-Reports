@@ -4854,36 +4854,69 @@ def client_map():
     # Query all projects with coordinates
     projects_list = db.session.query(projects).filter(projects.google_coordinates.isnot(None)).all()
 
-    # Prepare the data for the map
-    map_data = []
+    # Create a dictionary to group projects by coordinates
+    projects_by_location = {}
+
     for project in projects_list:
         if project.google_coordinates:
             try:
-                lat, lng = map(float, project.google_coordinates.split(','))
-                # Only include system size values if they exist in the database
-                project_data = {
-                    'client_name': project.client_name,
-                    'town': project.town,
-                    'coordinates': {'lat': lat, 'lng': lng},
-                    'sales_person': project.sales_person,
-                    'lead_installer': project.lead_installer,
-                    'commissioning_date': project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else None,
-                    'project_id': project.project_id
-                }
-                # Add system size values only if they exist
-                if project.kVA is not None:
-                    project_data['kVA'] = project.kVA
-                if project.kWh is not None:
-                    project_data['kWh'] = project.kWh
-                if project.kWp is not None:
-                    project_data['kWp'] = project.kWp
+                # Use coordinates as the key for grouping
+                coord_key = project.google_coordinates
 
-                map_data.append(project_data)
+                if coord_key not in projects_by_location:
+                    projects_by_location[coord_key] = {
+                        'projects': [],
+                        'latest_date': None,
+                        'total_kVA': 0,
+                        'total_kWh': 0,
+                        'total_kWp': 0
+                    }
+
+                # Add project to the group
+                projects_by_location[coord_key]['projects'].append(project)
+
+                # Update latest commissioning date
+                if project.commissioning_date:
+                    if (projects_by_location[coord_key]['latest_date'] is None or
+                        project.commissioning_date > projects_by_location[coord_key]['latest_date']):
+                        projects_by_location[coord_key]['latest_date'] = project.commissioning_date
+
+                # Sum up system sizes
+                if project.kVA is not None:
+                    projects_by_location[coord_key]['total_kVA'] += project.kVA
+                if project.kWh is not None:
+                    projects_by_location[coord_key]['total_kWh'] += project.kWh
+                if project.kWp is not None:
+                    projects_by_location[coord_key]['total_kWp'] += project.kWp
+
             except (ValueError, AttributeError):
                 continue
 
+    # Prepare the final map data
+    map_data = []
+    for coord_key, location_data in projects_by_location.items():
+        # Get the first project for basic info (assuming client_name, town etc are same for same location)
+        first_project = location_data['projects'][0]
+
+        lat, lng = map(float, coord_key.split(','))
+
+        project_data = {
+            'client_name': first_project.client_name,
+            'town': first_project.town,
+            'coordinates': {'lat': lat, 'lng': lng},
+            'sales_person': first_project.sales_person,
+            'lead_installer': first_project.lead_installer,
+            'commissioning_date': location_data['latest_date'].strftime('%Y-%m-%d') if location_data['latest_date'] else None,
+            'project_count': len(location_data['projects']),
+            'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
+            'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
+            'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None
+        }
+
+        map_data.append(project_data)
+
     return render_template('client_map.html', map_data=map_data)
-        
+            
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
