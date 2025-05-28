@@ -154,7 +154,6 @@
             margin-right: 8px;
             min-width: 40px;
         }
-
     </style>
 </head>
 <body>
@@ -208,13 +207,21 @@
                 </div>
 
                 <div class="filter-group">
-                    <label for="system-size">System Size Range (kVA):</label>
-                    <select id="system-size">
-                        <option value="0,1000">All Sizes</option>
-                        <option value="0,5">0-5 kVA</option>
-                        <option value="5,10">5-10 kVA</option>
-                        <option value="10,20">10-20 kVA</option>
-                        <option value="20,1000">20+ kVA</option>
+                    <label for="month-filter">Filter by Commissioning Month:</label>
+                    <select id="month-filter">
+                        <option value="0">All Months</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
                     </select>
                 </div>
             </div>
@@ -222,22 +229,22 @@
             <div id="map"></div>
 
             <div class="legend">
-                <h3>System Size Legend:</h3>
+                <h3>Commissioning Month Legend:</h3>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #FF5733;"></div>
-                    <span>0-5 kVA</span>
+                    <span>Q1 (Jan-Mar)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #33FF57;"></div>
-                    <span>5-10 kVA</span>
+                    <span>Q2 (Apr-Jun)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #3357FF;"></div>
-                    <span>10-20 kVA</span>
+                    <span>Q3 (Jul-Sep)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #F033FF;"></div>
-                    <span>20+ kVA</span>
+                    <span>Q4 (Oct-Dec)</span>
                 </div>
             </div>
         </div>
@@ -285,24 +292,35 @@
             markers = [];
 
             mapData.forEach(project => {
-                // Safely get system size values with fallback
-                const kVA = project.kVA;
-                const kWh = project.kWh;
-                const kWp = project.kWp;
+                // Determine marker color based on quarter of commissioning date
+                let markerColor = "#4285F4"; // Default blue
+                let quarter = "N/A";
 
-                // Determine marker color based on system size (using kVA if available)
-                const sizeValue = kVA || kWh || kWp || 0;
-                let markerColor;
-                if (sizeValue <= 5) markerColor = "#FF5733";
-                else if (sizeValue <= 10) markerColor = "#33FF57";
-                else if (sizeValue <= 20) markerColor = "#3357FF";
-                else markerColor = "#F033FF";
+                if (project.commissioning_date) {
+                    const date = new Date(project.commissioning_date);
+                    const month = date.getMonth() + 1; // JavaScript months are 0-11
+
+                    // Determine quarter
+                    if (month >= 1 && month <= 3) {
+                        quarter = "Q1";
+                        markerColor = "#FF5733"; // Red
+                    } else if (month >= 4 && month <= 6) {
+                        quarter = "Q2";
+                        markerColor = "#33FF57"; // Green
+                    } else if (month >= 7 && month <= 9) {
+                        quarter = "Q3";
+                        markerColor = "#3357FF"; // Blue
+                    } else if (month >= 10 && month <= 12) {
+                        quarter = "Q4";
+                        markerColor = "#F033FF"; // Purple
+                    }
+                }
 
                 // Create marker content element
                 const content = document.createElement("div");
                 content.className = "marker";
                 content.style.backgroundColor = markerColor;
-                content.textContent = sizeValue > 0 ? Math.round(sizeValue) : "?";
+                content.textContent = quarter;
 
                 // Create advanced marker
                 const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -319,22 +337,22 @@
                 const commissioningDate = project.commissioning_date ?
                     new Date(project.commissioning_date).toLocaleDateString() : 'N/A';
 
-                // Create system size display HTML
+                // Create system size display HTML (if data exists)
                 let systemSizeHTML = '<div class="system-size-container">';
-                if (kVA) systemSizeHTML += `
+                if (project.kVA) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kVA:</span>
-                        <span>${kVA}</span>
+                        <span>${project.kVA}</span>
                     </div>`;
-                if (kWh) systemSizeHTML += `
+                if (project.kWh) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kWh:</span>
-                        <span>${kWh}</span>
+                        <span>${project.kWh}</span>
                     </div>`;
-                if (kWp) systemSizeHTML += `
+                if (project.kWp) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kWp:</span>
-                        <span>${kWp}</span>
+                        <span>${project.kWp}</span>
                     </div>`;
                 systemSizeHTML += '</div>';
 
@@ -374,24 +392,31 @@
             document.getElementById("town-filter").addEventListener("change", applyFilters);
             document.getElementById("sales-filter").addEventListener("change", applyFilters);
             document.getElementById("installer-filter").addEventListener("change", applyFilters);
-            document.getElementById("system-size").addEventListener("change", applyFilters);
+            document.getElementById("month-filter").addEventListener("change", applyFilters);
         }
 
         function applyFilters() {
             const townFilter = document.getElementById("town-filter").value;
             const salesFilter = document.getElementById("sales-filter").value;
             const installerFilter = document.getElementById("installer-filter").value;
-            const systemSizeRange = document.getElementById("system-size").value.split(',').map(Number);
+            const monthFilter = parseInt(document.getElementById("month-filter").value);
 
             markers.forEach(marker => {
                 const project = marker.projectData;
-                const kVA = project.kVA || 0;
                 const townMatch = !townFilter || project.town === townFilter;
                 const salesMatch = !salesFilter || project.sales_person === salesFilter;
                 const installerMatch = !installerFilter || project.lead_installer === installerFilter;
-                const sizeMatch = kVA >= systemSizeRange[0] && kVA <= systemSizeRange[1];
 
-                marker.map = townMatch && salesMatch && installerMatch && sizeMatch ? map : null;
+                let monthMatch = true;
+                if (monthFilter > 0 && project.commissioning_date) {
+                    const date = new Date(project.commissioning_date);
+                    const projectMonth = date.getMonth() + 1; // JavaScript months are 0-11
+                    monthMatch = projectMonth === monthFilter;
+                } else if (monthFilter > 0 && !project.commissioning_date) {
+                    monthMatch = false;
+                }
+
+                marker.map = townMatch && salesMatch && installerMatch && monthMatch ? map : null;
             });
         }
 
