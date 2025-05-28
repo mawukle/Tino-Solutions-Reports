@@ -427,6 +427,22 @@
             markers.forEach(marker => marker.setMap(null));
             markers = [];
 
+            // Helper function to format numbers to max 2 decimal places
+            function formatNumber(value) {
+                if (value === undefined || value === null) return value;
+                const num = parseFloat(value);
+                if (isNaN(num)) return value;
+
+                // Check if the number is an integer or has 1 decimal place
+                if (num % 1 === 0) {
+                    return num.toFixed(0); // No decimal places
+                } else if ((num * 10) % 1 === 0) {
+                    return num.toFixed(1); // 1 decimal place
+                } else {
+                    return num.toFixed(2); // 2 decimal places
+                }
+            }
+
             mapData.forEach(project => {
                 // Determine marker color based on quarter of commissioning date
                 let markerColor = "#4285F4"; // Default blue
@@ -473,27 +489,31 @@
                 const commissioningDate = project.commissioning_date ?
                     new Date(project.commissioning_date).toLocaleDateString() : 'N/A';
 
+                // Format system size values to max 2 decimal places
+                const formattedKVA = project.kVA !== undefined ? formatNumber(project.kVA) : null;
+                const formattedKWh = project.kWh !== undefined ? formatNumber(project.kWh) : null;
+                const formattedKWp = project.kWp !== undefined ? formatNumber(project.kWp) : null;
+
                 // Create system size display HTML (if data exists)
                 let systemSizeHTML = '<div class="system-size-container">';
-                if (project.kVA) systemSizeHTML += `
+                if (formattedKVA !== null) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kVA:</span>
-                        <span>${project.kVA}</span>
+                        <span>${formattedKVA}</span>
                     </div>`;
-                if (project.kWh) systemSizeHTML += `
+                if (formattedKWh !== null) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kWh:</span>
-                        <span>${project.kWh}</span>
+                        <span>${formattedKWh}</span>
                     </div>`;
-                if (project.kWp) systemSizeHTML += `
+                if (formattedKWp !== null) systemSizeHTML += `
                     <div class="system-size-item">
                         <span class="system-size-label">kWp:</span>
-                        <span>${project.kWp}</span>
+                        <span>${formattedKWp}</span>
                     </div>`;
                 systemSizeHTML += '</div>';
 
                 // Create info window content with directions link
-                // In the createMarkers function, update the infoWindowContent to show project count:
                 const infoWindowContent = `
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
@@ -511,7 +531,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 // Add click listener using gmp-click
                 marker.addListener("gmp-click", () => {
                     infoWindow.close();
