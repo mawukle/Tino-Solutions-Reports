@@ -109,20 +109,20 @@
             margin-right: 8px;
             border-radius: 50%;
         }
-        .marker-content {
-            background-color: white;
+        .marker {
+            background-color: #4285F4;
             border-radius: 50%;
             width: 24px;
             height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
             font-weight: bold;
             font-size: 12px;
-            border: 2px solid #fff;
+            border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-
     </style>
 </head>
 <body>
@@ -212,11 +212,15 @@
     </div>
 
     <script>
-        // Initialize the map with Accra, Ghana as the default center
+        // Store markers globally
+        let map;
+        let markers = [];
+        let infoWindow;
+
         // Load the Google Maps API asynchronously
         function loadGoogleMaps() {
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyC2rrsmagLjiZs7Geav4mvIwIM_xCLzGPs&loading=async&libraries=marker&callback=initMap&libraries=maps,marker`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyC2rrsmagLjiZs7Geav4mvIwIM_xCLzGPs&loading=async&libraries=marker&callback=initMap`;
             script.async = true;
             script.defer = true;
             document.head.appendChild(script);
@@ -225,34 +229,43 @@
         // Initialize the map with Advanced Markers
         function initMap() {
             const accra = { lat: 5.6037, lng: -0.1870 };
-            const map = new google.maps.Map(document.getElementById("map"), {
+            map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 10,
                 center: accra,
-                mapId: "YOUR_MAP_ID", // Optional: Add your Map ID for styling
+                mapId: "DEMO_MAP_ID",
             });
 
-            // Create markers for each project using Advanced Markers
-            const markers = [];
+            // Create an InfoWindow to reuse
+            infoWindow = new google.maps.InfoWindow();
+
+            // Create markers for each project
+            createMarkers();
+
+            // Set up filter event listeners
+            setupFilters();
+        }
+
+        function createMarkers() {
             const mapData = {{ map_data|tojson|safe }};
 
-            // Create an InfoWindow to reuse
-            const infoWindow = new google.maps.InfoWindow();
+            // Clear existing markers
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
 
             mapData.forEach(project => {
+                // Safely get kVA value with fallback
+                const kVA = project.kVA || 0;
+
                 // Determine marker color based on system size
                 let markerColor;
-                //const kVA = project.kVA || 0;
-                const kva = project?.kVA ?? 'N/A';
-
-
-                if (kVA <= 5) markerColor = "#FF5733";      // Red
-                else if (kVA <= 10) markerColor = "#33FF57"; // Green
-                else if (kVA <= 20) markerColor = "#3357FF"; // Blue
-                else markerColor = "#F033FF";                // Purple
+                if (kVA <= 5) markerColor = "#FF5733";
+                else if (kVA <= 10) markerColor = "#33FF57";
+                else if (kVA <= 20) markerColor = "#3357FF";
+                else markerColor = "#F033FF";
 
                 // Create marker content element
                 const content = document.createElement("div");
-                content.className = "marker-content";
+                content.className = "marker";
                 content.style.backgroundColor = markerColor;
                 content.textContent = kVA > 0 ? Math.round(kVA) : "?";
 
@@ -263,6 +276,9 @@
                     title: project.client_name,
                     content: content,
                 });
+
+                // Store project data on marker for filtering
+                marker.projectData = project;
 
                 // Create info window content
                 const infoWindowContent = `
@@ -276,51 +292,47 @@
                     </div>
                 `;
 
-                // Add click listener
-                marker.addEventListener("gmp-click", ({ domEvent, latLng }) => {
+                // Add click listener using gmp-click
+                marker.addListener("gmp-click", () => {
                     infoWindow.close();
                     infoWindow.setContent(infoWindowContent);
-                    infoWindow.open(map, marker);
+                    infoWindow.open({
+                        anchor: marker,
+                        map,
+                    });
                 });
 
                 markers.push(marker);
             });
+        }
 
-            // Filter functionality
-            function applyFilters() {
-                const townFilter = document.getElementById("town-filter").value;
-                const salesFilter = document.getElementById("sales-filter").value;
-                const installerFilter = document.getElementById("installer-filter").value;
-                const systemSizeRange = document.getElementById("system-size").value.split(',').map(Number);
-
-                markers.forEach(marker => {
-                    const project = marker.customData;
-                    const kVA = project.kVA || 0;
-                    const townMatch = !townFilter || project.town === townFilter;
-                    const salesMatch = !salesFilter || project.sales_person === salesFilter;
-                    const installerMatch = !installerFilter || project.lead_installer === installerFilter;
-                    const sizeMatch = kVA >= systemSizeRange[0] && kVA <= systemSizeRange[1];
-
-                    if (townMatch && salesMatch && installerMatch && sizeMatch) {
-                        marker.setVisible(true);
-                    } else {
-                        marker.setVisible(false);
-                    }
-                });
-            }
-
-            // Add event listeners to filters
+        function setupFilters() {
             document.getElementById("town-filter").addEventListener("change", applyFilters);
             document.getElementById("sales-filter").addEventListener("change", applyFilters);
             document.getElementById("installer-filter").addEventListener("change", applyFilters);
             document.getElementById("system-size").addEventListener("change", applyFilters);
         }
-    </script>
 
-    <!-- Load Google Maps API with your API key -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC2rrsmagLjiZs7Geav4mvIwIM_xCLzGPs&callback=initMap&libraries=maps,marker">
-        async defer>
+        function applyFilters() {
+            const townFilter = document.getElementById("town-filter").value;
+            const salesFilter = document.getElementById("sales-filter").value;
+            const installerFilter = document.getElementById("installer-filter").value;
+            const systemSizeRange = document.getElementById("system-size").value.split(',').map(Number);
+
+            markers.forEach(marker => {
+                const project = marker.projectData;
+                const kVA = project.kVA || 0;
+                const townMatch = !townFilter || project.town === townFilter;
+                const salesMatch = !salesFilter || project.sales_person === salesFilter;
+                const installerMatch = !installerFilter || project.lead_installer === installerFilter;
+                const sizeMatch = kVA >= systemSizeRange[0] && kVA <= systemSizeRange[1];
+
+                marker.map = townMatch && salesMatch && installerMatch && sizeMatch ? map : null;
+            });
+        }
+
+        // Load the API when the page loads
+        window.onload = loadGoogleMaps;
     </script>
 </body>
 </html>
