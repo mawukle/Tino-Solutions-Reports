@@ -4860,23 +4860,30 @@ def client_map():
         if project.google_coordinates:
             try:
                 lat, lng = map(float, project.google_coordinates.split(','))
-                map_data.append({
+                # Only include system size values if they exist in the database
+                project_data = {
                     'client_name': project.client_name,
                     'town': project.town,
                     'coordinates': {'lat': lat, 'lng': lng},
-                    'kVA': project.kVA,
-                    'kWh': project.kWh,
-                    'kWp': project.kWp,
                     'sales_person': project.sales_person,
                     'lead_installer': project.lead_installer,
                     'commissioning_date': project.commissioning_date.strftime('%Y-%m-%d') if project.commissioning_date else None,
                     'project_id': project.project_id
-                })
+                }
+                # Add system size values only if they exist
+                if project.kVA is not None:
+                    project_data['kVA'] = project.kVA
+                if project.kWh is not None:
+                    project_data['kWh'] = project.kWh
+                if project.kWp is not None:
+                    project_data['kWp'] = project.kWp
+
+                map_data.append(project_data)
             except (ValueError, AttributeError):
                 continue
 
     return render_template('client_map.html', map_data=map_data)
-    
+        
 if __name__ == '__main__':
 
     # Ensure the upload folder exists

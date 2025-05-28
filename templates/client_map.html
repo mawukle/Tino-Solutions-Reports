@@ -141,6 +141,19 @@
         .directions-btn:hover {
             background-color: #27ae60;
         }
+        .system-size-container {
+            margin: 8px 0;
+        }
+        .system-size-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .system-size-label {
+            font-weight: bold;
+            margin-right: 8px;
+            min-width: 40px;
+        }
 
     </style>
 </head>
@@ -272,21 +285,24 @@
             markers = [];
 
             mapData.forEach(project => {
-                // Safely get kVA value with fallback
-                const kVA = project.kVA || 0;
+                // Safely get system size values with fallback
+                const kVA = project.kVA;
+                const kWh = project.kWh;
+                const kWp = project.kWp;
 
-                // Determine marker color based on system size
+                // Determine marker color based on system size (using kVA if available)
+                const sizeValue = kVA || kWh || kWp || 0;
                 let markerColor;
-                if (kVA <= 5) markerColor = "#FF5733";
-                else if (kVA <= 10) markerColor = "#33FF57";
-                else if (kVA <= 20) markerColor = "#3357FF";
+                if (sizeValue <= 5) markerColor = "#FF5733";
+                else if (sizeValue <= 10) markerColor = "#33FF57";
+                else if (sizeValue <= 20) markerColor = "#3357FF";
                 else markerColor = "#F033FF";
 
                 // Create marker content element
                 const content = document.createElement("div");
                 content.className = "marker";
                 content.style.backgroundColor = markerColor;
-                content.textContent = kVA > 0 ? Math.round(kVA) : "?";
+                content.textContent = sizeValue > 0 ? Math.round(sizeValue) : "?";
 
                 // Create advanced marker
                 const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -303,12 +319,31 @@
                 const commissioningDate = project.commissioning_date ?
                     new Date(project.commissioning_date).toLocaleDateString() : 'N/A';
 
+                // Create system size display HTML
+                let systemSizeHTML = '<div class="system-size-container">';
+                if (kVA) systemSizeHTML += `
+                    <div class="system-size-item">
+                        <span class="system-size-label">kVA:</span>
+                        <span>${kVA}</span>
+                    </div>`;
+                if (kWh) systemSizeHTML += `
+                    <div class="system-size-item">
+                        <span class="system-size-label">kWh:</span>
+                        <span>${kWh}</span>
+                    </div>`;
+                if (kWp) systemSizeHTML += `
+                    <div class="system-size-item">
+                        <span class="system-size-label">kWp:</span>
+                        <span>${kWp}</span>
+                    </div>`;
+                systemSizeHTML += '</div>';
+
                 // Create info window content with directions link
                 const infoWindowContent = `
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
                         <p><strong>Town:</strong> ${project.town || 'N/A'}</p>
-                        <p><strong>System Size:</strong> ${kVA} kVA / ${project.kWp || 'N/A'} kWp</p>
+                        ${systemSizeHTML}
                         <p><strong>Sales Person:</strong> ${project.sales_person || 'N/A'}</p>
                         <p><strong>Lead Installer:</strong> ${project.lead_installer || 'N/A'}</p>
                         <p><strong>Commissioning Date:</strong> ${commissioningDate}</p>
