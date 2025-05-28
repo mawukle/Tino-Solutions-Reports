@@ -4877,9 +4877,19 @@ def client_map():
 
                 # Update latest commissioning date
                 if project.commissioning_date:
-                    if (projects_by_location[coord_key]['latest_date'] is None or
-                        project.commissioning_date > projects_by_location[coord_key]['latest_date']):
-                        projects_by_location[coord_key]['latest_date'] = project.commissioning_date
+                    # Ensure we're working with a date object
+                    if isinstance(project.commissioning_date, str):
+                        try:
+                            project_date = datetime.strptime(project.commissioning_date, '%Y-%m-%d')
+                        except ValueError:
+                            project_date = None
+                    else:
+                        project_date = project.commissioning_date
+
+                    if project_date:
+                        if (projects_by_location[coord_key]['latest_date'] is None or
+                            project_date > projects_by_location[coord_key]['latest_date']):
+                            projects_by_location[coord_key]['latest_date'] = project_date
 
                 # Sum up system sizes
                 if project.kVA is not None:
@@ -4889,7 +4899,8 @@ def client_map():
                 if project.kWp is not None:
                     projects_by_location[coord_key]['total_kWp'] += project.kWp
 
-            except (ValueError, AttributeError):
+            except (ValueError, AttributeError) as e:
+                print(f"Error processing project {project.project_id}: {str(e)}")
                 continue
 
     # Prepare the final map data
@@ -4900,13 +4911,25 @@ def client_map():
 
         lat, lng = map(float, coord_key.split(','))
 
+        # Format the date properly
+        formatted_date = None
+        if location_data['latest_date']:
+            if isinstance(location_data['latest_date'], str):
+                try:
+                    date_obj = datetime.strptime(location_data['latest_date'], '%Y-%m-%d')
+                    formatted_date = date_obj.strftime('%Y-%m-%d')
+                except ValueError:
+                    formatted_date = None
+            else:
+                formatted_date = location_data['latest_date'].strftime('%Y-%m-%d')
+
         project_data = {
             'client_name': first_project.client_name,
             'town': first_project.town,
             'coordinates': {'lat': lat, 'lng': lng},
             'sales_person': first_project.sales_person,
             'lead_installer': first_project.lead_installer,
-            'commissioning_date': location_data['latest_date'].strftime('%Y-%m-%d') if location_data['latest_date'] else None,
+            'commissioning_date': formatted_date,
             'project_count': len(location_data['projects']),
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
@@ -4916,7 +4939,7 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-            
+                
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
