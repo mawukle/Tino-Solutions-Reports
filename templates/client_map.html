@@ -241,7 +241,9 @@
             mapData.forEach(project => {
                 // Determine marker color based on system size
                 let markerColor;
-                const kVA = project.kVA || 0;
+                //const kVA = project.kVA || 0;
+                const kva = project?.kVA ?? 'N/A';
+
 
                 if (kVA <= 5) markerColor = "#FF5733";      // Red
                 else if (kVA <= 10) markerColor = "#33FF57"; // Green
@@ -275,7 +277,7 @@
                 `;
 
                 // Add click listener
-                marker.addListener("click", ({ domEvent, latLng }) => {
+                marker.addEventListener("gmp-click", ({ domEvent, latLng }) => {
                     infoWindow.close();
                     infoWindow.setContent(infoWindowContent);
                     infoWindow.open(map, marker);
