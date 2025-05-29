@@ -4956,7 +4956,7 @@ def client_map():
 
         map_data.append(project_data)
 
-    return render_template('client_map.html', map_data=map_data)
+    return render_template('client_map.html', map_data=map_data)1
 
 if __name__ == '__main__':
 
