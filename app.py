@@ -4869,7 +4869,8 @@ def client_map():
                         'latest_date': None,
                         'total_kVA': 0,
                         'total_kWh': 0,
-                        'total_kWp': 0
+                        'total_kWp': 0,
+                        'unique_folders': set()  # Track unique folder IDs
                     }
 
                 # Add project to the group
@@ -4899,6 +4900,10 @@ def client_map():
                 if project.kWp is not None:
                     projects_by_location[coord_key]['total_kWp'] += project.kWp
 
+                # Track unique folders with photos
+                if project.folder_has_files == 1 and project.google_folder_id:
+                    projects_by_location[coord_key]['unique_folders'].add(project.google_folder_id)
+
             except (ValueError, AttributeError) as e:
                 print(f"Error processing project {project.project_id}: {str(e)}")
                 continue
@@ -4923,15 +4928,17 @@ def client_map():
             else:
                 formatted_date = location_data['latest_date'].strftime('%Y-%m-%d')
 
-        # Get all folder IDs with photos for this location
-        photo_folders = [
-            {
-                'id': p.google_folder_id,
-                'name': p.client_name or f"Project {p.project_id}"  # Use project name or fallback
-            }
-            for p in location_data['projects']
-            if p.folder_has_files == 1 and p.google_folder_id
-        ]
+        # Get all unique folder IDs with photos for this location
+        photo_folders = []
+        if location_data['unique_folders']:
+            # Get all projects that have these folder IDs to get their names
+            for project in location_data['projects']:
+                if project.google_folder_id in location_data['unique_folders']:
+                    photo_folders.append({
+                        'id': project.google_folder_id,
+                        'name': project.project_name or f"{project.client_name} - Project {project.project_id}"
+                    })
+                    location_data['unique_folders'].remove(project.google_folder_id)
 
         project_data = {
             'client_name': first_project.client_name,
@@ -4945,13 +4952,13 @@ def client_map():
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
             'folder_has_files': 1 if photo_folders else 0,
-            'photo_folders': photo_folders  # Now contains all folders with photos
+            'photo_folders': photo_folders  # Now contains all unique folders with photos
         }
 
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-
+    
 if __name__ == '__main__':
 
     # Ensure the upload folder exists

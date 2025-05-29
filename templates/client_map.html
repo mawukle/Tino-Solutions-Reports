@@ -237,6 +237,28 @@
             padding: 5px 8px;
             font-size: 11px;
         }
+        .photo-folders-container {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .photo-folders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .photo-folders-list .view-photos-btn {
+            width: 100%;
+            text-align: left;
+            padding: 5px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
@@ -596,8 +618,8 @@
                                 <div class="photo-folders-list">
                                     ${project.photo_folders.map(folder => `
                                         <button class="view-photos-btn"
-                                                onclick="viewPhotos('${folder.id}', '${folder.name.replace(/'/g, "\\'")}')">
-                                            ${folder.name}
+                                                onclick="viewPhotos('${folder.id}', '${folder.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
+                                            ${folder.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
                                         </button>
                                     `).join('')}
                                 </div>
