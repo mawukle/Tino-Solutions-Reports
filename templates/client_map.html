@@ -423,18 +423,9 @@
         }
 
         function viewPhotos(folderIds) {
-            // Make sure folderIds is always an array
-            if (!Array.isArray(folderIds)) {
-                folderIds = [folderIds];
-            }
-
-            // Filter out any null or undefined values
-            folderIds = folderIds.filter(id => id);
-
             // Open each Google Drive folder in a new tab
             folderIds.forEach(folderId => {
                 window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
-                }
             });
         }
 
@@ -583,7 +574,7 @@
                                 Get Directions
                             </a>
                             ${hasPhotos ?
-                                `<button class="view-photos-btn" data-folder-ids='${JSON.stringify(project.google_folder_ids)}'>
+                                `<button class="view-photos-btn" onclick="viewPhotos(${JSON.stringify(project.google_folder_ids)})">
                                     View Photos (${project.google_folder_ids.length})
                                 </button>` : ''}
                         </div>
@@ -598,18 +589,8 @@
                         anchor: marker,
                         map,
                     });
-
-                    // Add event listener to the photos button after the info window is opened
-                    setTimeout(() => {
-                        const photoBtn = document.querySelector('.view-photos-btn');
-                        if (photoBtn) {
-                            photoBtn.addEventListener('click', () => {
-                                const folderIds = JSON.parse(photoBtn.getAttribute('data-folder-ids'));
-                                viewPhotos(folderIds);
-                            });
-                        }
-                    }, 100);
                 });
+
                 markers.push(marker);
             });
         }
