@@ -4936,6 +4936,9 @@ def client_map():
         folder_ids = [p.google_folder_id for p in location_data['projects']
                      if p.folder_has_files == 1 and p.google_folder_id]
 
+        # Remove duplicate folder IDs (if any)
+        folder_ids = list(set(folder_ids)) if folder_ids else []
+
         project_data = {
             'client_name': first_project.client_name,
             'town': first_project.town,
@@ -4947,7 +4950,7 @@ def client_map():
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
-            'folder_has_files': 1 if has_files else 0,
+            'folder_has_files': 1 if folder_ids else 0,
             'google_folder_ids': folder_ids
         }
 
