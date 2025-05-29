@@ -4869,11 +4869,16 @@ def client_map():
                         'latest_date': None,
                         'total_kVA': 0,
                         'total_kWh': 0,
-                        'total_kWp': 0
+                        'total_kWp': 0,
+                        'photo_folders': []  # New field to store all photo folders
                     }
 
                 # Add project to the group
                 projects_by_location[coord_key]['projects'].append(project)
+
+                # Add photo folder if available
+                if project.folder_has_files == 1 and project.google_folder_id:
+                    projects_by_location[coord_key]['photo_folders'].append(project.google_folder_id)
 
                 # Update latest commissioning date
                 if project.commissioning_date:
@@ -4903,7 +4908,6 @@ def client_map():
                 print(f"Error processing project {project.project_id}: {str(e)}")
                 continue
 
-    # Prepare the final map data
     # Prepare the final map data
     map_data = []
     for coord_key, location_data in projects_by_location.items():
@@ -4941,14 +4945,14 @@ def client_map():
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
-            'folder_has_files': 1 if has_files else 0,
-            'google_folder_id': folder_id
+            'folder_has_files': 1 if location_data['photo_folders'] else 0,
+            'photo_folders': location_data['photo_folders']  # Include all photo folders
         }
 
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-                
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists

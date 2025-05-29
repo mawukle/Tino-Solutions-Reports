@@ -420,11 +420,65 @@
             });
         }
 
-        function viewPhotos(folderId) {
-            // Open the Google Drive folder in a new tab
-            window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
-        }
+        function viewPhotos(folderIds) {
+            if (!folderIds || folderIds.length === 0) {
+                alert('No photo folders available for this project');
+                return;
+            }
 
+            // If only one folder, open it directly
+            if (folderIds.length === 1) {
+                window.open(`https://drive.google.com/drive/folders/${folderIds[0]}`, '_blank');
+                return;
+            }
+
+            // For multiple folders, create a dialog to let user choose
+            const dialog = document.createElement('div');
+            dialog.style.position = 'fixed';
+            dialog.style.top = '50%';
+            dialog.style.left = '50%';
+            dialog.style.transform = 'translate(-50%, -50%)';
+            dialog.style.backgroundColor = 'white';
+            dialog.style.padding = '20px';
+            dialog.style.borderRadius = '8px';
+            dialog.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            dialog.style.zIndex = '1000';
+
+            dialog.innerHTML = `
+                <h3 style="margin-top: 0;">Select Photo Folder</h3>
+                <p>This client has photos in multiple folders:</p>
+                <div id="folder-options" style="margin: 10px 0;"></div>
+                <button onclick="document.body.removeChild(this.parentNode)"
+                        style="padding: 5px 10px; background: #f0f0f0; border: none; border-radius: 4px;">
+                    Cancel
+                </button>
+            `;
+
+            const folderOptions = dialog.querySelector('#folder-options');
+            folderIds.forEach((folderId, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = `Folder ${index + 1}`;
+                btn.style.display = 'block';
+                btn.style.width = '100%';
+                btn.style.margin = '5px 0';
+                btn.style.padding = '8px';
+                btn.style.backgroundColor = '#FFA500';
+                btn.style.color = 'white';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '4px';
+                btn.style.cursor = 'pointer';
+
+                btn.onclick = () => {
+                    window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+                    document.body.removeChild(dialog);
+                };
+
+                folderOptions.appendChild(btn);
+            });
+
+            document.body.appendChild(dialog);
+        }
+        
         // Load the Google Maps API asynchronously
         function loadGoogleMaps() {
             const script = document.createElement('script');
@@ -569,8 +623,8 @@
                                target="_blank" class="directions-btn">
                                 Get Directions
                             </a>
-                            ${hasPhotos ?
-                                `<button class="view-photos-btn" onclick="viewPhotos('${project.google_folder_id}')">
+                            ${project.folder_has_files === 1 ?
+                                `<button class="view-photos-btn" onclick="viewPhotos(${JSON.stringify(project.photo_folders)})">
                                     View Photos
                                 </button>` : ''}
                         </div>
