@@ -554,7 +554,7 @@
 
                 // Create info window content with directions link and photos button (if available)
                 const hasPhotos = project.folder_has_files == 1; // Use loose equality to handle string "1" or number 1
-                console.log("Project:", project.client_name, "folder_has_files:", project.folder_has_files, "type:", typeof project.folder_has_files);
+                //console.log("Project:", project.client_name, "folder_has_files:", project.folder_has_files, "type:", typeof project.folder_has_files);
                 const infoWindowContent = `
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
