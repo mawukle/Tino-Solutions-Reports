@@ -123,11 +123,7 @@
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .info-window-actions {
-            margin-top: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
+        
         .directions-btn {
             background-color: #2ecc71;
             color: white;
@@ -183,6 +179,33 @@
         .autocomplete-active {
             background-color: DodgerBlue !important;
             color: #ffffff;
+        }
+        .view-photos-btn {
+            background-color: #FFA500;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .view-photos-btn:hover {
+            background-color: #FF8C00;
+        }
+
+        .info-window-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+        }
+
+        .info-window-actions a,
+        .info-window-actions button {
+            flex: 1;
+            text-align: center;
         }
     </style>
 </head>
@@ -386,6 +409,11 @@
             });
         }
 
+        function viewPhotos(folderId) {
+            // Open the Google Drive folder in a new tab
+            window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+        }
+
         // Load the Google Maps API asynchronously
         function loadGoogleMaps() {
             const script = document.createElement('script');
@@ -513,7 +541,7 @@
                     </div>`;
                 systemSizeHTML += '</div>';
 
-                // Create info window content with directions link
+                // Create info window content with directions link and photos button (if available)
                 const infoWindowContent = `
                     <div class="info-window">
                         <h3>${project.client_name}</h3>
@@ -528,6 +556,10 @@
                                target="_blank" class="directions-btn">
                                 Get Directions
                             </a>
+                            ${project.folder_has_files === 1 ?
+                                `<button class="view-photos-btn" onclick="viewPhotos('${project.google_folder_id}')">
+                                    View Photos
+                                </button>` : ''}
                         </div>
                     </div>
                 `;
