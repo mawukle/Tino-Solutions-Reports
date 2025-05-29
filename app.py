@@ -4931,12 +4931,13 @@ def client_map():
         # Get all unique folder IDs with photos for this location
         photo_folders = []
         if location_data['unique_folders']:
-            # Get all projects that have these folder IDs to get their names
+            # Get all projects that have these folder IDs
             for project in location_data['projects']:
                 if project.google_folder_id in location_data['unique_folders']:
+                    # Use client_name and project_id as the folder name since project_name doesn't exist
                     photo_folders.append({
                         'id': project.google_folder_id,
-                        'name': project.project_name or f"{project.client_name} - Project {project.project_id}"
+                        'name': f"{project.client_name} - Project {project.project_id}"
                     })
                     location_data['unique_folders'].remove(project.google_folder_id)
 
@@ -4958,7 +4959,7 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-    
+        
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
