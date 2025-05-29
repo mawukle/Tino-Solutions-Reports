@@ -4927,7 +4927,7 @@ def client_map():
         photo_folders = [
             {
                 'id': p.google_folder_id,
-                'name': p.project_name or f"Project {p.project_id}"  # Use project name or fallback
+                'name': p.get('project_name') or f"Project {p.get('project_id')}"
             }
             for p in location_data['projects']
             if p.folder_has_files == 1 and p.google_folder_id
@@ -4951,7 +4951,7 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-    
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
