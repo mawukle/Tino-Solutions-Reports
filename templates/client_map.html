@@ -201,7 +201,7 @@
             text-decoration: none;
             font-size: 12px;
             white-space: nowrap; /* Prevent button text from wrapping */
-            
+
         }
 
         .view-photos-btn:hover {
@@ -423,9 +423,16 @@
         }
 
         function viewPhotos(folderIds) {
+            // Make sure folderIds is always an array
+            if (!Array.isArray(folderIds)) {
+                folderIds = [folderIds];
+            }
+
             // Open each Google Drive folder in a new tab
             folderIds.forEach(folderId => {
-                window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+                if (folderId) {  // Only proceed if folderId exists
+                    window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+                }
             });
         }
 
@@ -574,7 +581,7 @@
                                 Get Directions
                             </a>
                             ${hasPhotos ?
-                                `<button class="view-photos-btn" onclick="viewPhotos(${JSON.stringify(project.google_folder_ids)})">
+                                `<button class="view-photos-btn" onclick="viewPhotos([${project.google_folder_ids.map(id => `'${id}'`).join(',')}])">
                                     View Photos (${project.google_folder_ids.length})
                                 </button>` : ''}
                         </div>
