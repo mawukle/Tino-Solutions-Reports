@@ -218,6 +218,25 @@
             flex: 1;
             text-align: center;
         }
+        .photo-folders-container {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .photo-folders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .photo-folders-list .view-photos-btn {
+            width: 100%;
+            text-align: left;
+            padding: 5px 8px;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
@@ -420,9 +439,10 @@
             });
         }
 
-        function viewPhotos(folderId) {
+        function viewPhotos(folderId, folderName) {
             // Open the Google Drive folder in a new tab
-            window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+            window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank',
+                       `width=800,height=600,title=${encodeURIComponent(folderName)}`);
         }
 
         // Load the Google Maps API asynchronously
@@ -569,11 +589,20 @@
                                target="_blank" class="directions-btn">
                                 Get Directions
                             </a>
-                            ${hasPhotos ?
-                                `<button class="view-photos-btn" onclick="viewPhotos('${project.google_folder_id}')">
-                                    View Photos
-                                </button>` : ''}
                         </div>
+                        ${project.folder_has_files ? `
+                            <div class="photo-folders-container">
+                                <p><strong>Available Photo Folders:</strong></p>
+                                <div class="photo-folders-list">
+                                    ${project.photo_folders.map(folder => `
+                                        <button class="view-photos-btn"
+                                                onclick="viewPhotos('${folder.id}', '${folder.name.replace(/'/g, "\\'")}')">
+                                            ${folder.name}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
 

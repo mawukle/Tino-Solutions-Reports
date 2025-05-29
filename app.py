@@ -4904,7 +4904,6 @@ def client_map():
                 continue
 
     # Prepare the final map data
-    # Prepare the final map data
     map_data = []
     for coord_key, location_data in projects_by_location.items():
         # Get the first project for basic info (assuming client_name, town etc are same for same location)
@@ -4924,11 +4923,15 @@ def client_map():
             else:
                 formatted_date = location_data['latest_date'].strftime('%Y-%m-%d')
 
-        # Check if any project at this location has photos
-        has_files = any(p.folder_has_files == 1 for p in location_data['projects'])
-
-        # Get the first google_folder_id where folder_has_files is 1
-        folder_id = next((p.google_folder_id for p in location_data['projects'] if p.folder_has_files == 1), None)
+        # Get all folder IDs with photos for this location
+        photo_folders = [
+            {
+                'id': p.google_folder_id,
+                'name': p.project_name or f"Project {p.project_id}"  # Use project name or fallback
+            }
+            for p in location_data['projects']
+            if p.folder_has_files == 1 and p.google_folder_id
+        ]
 
         project_data = {
             'client_name': first_project.client_name,
@@ -4941,14 +4944,14 @@ def client_map():
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
-            'folder_has_files': 1 if has_files else 0,
-            'google_folder_id': folder_id
+            'folder_has_files': 1 if photo_folders else 0,
+            'photo_folders': photo_folders  # Now contains all folders with photos
         }
 
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-
+    
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
