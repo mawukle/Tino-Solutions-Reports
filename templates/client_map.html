@@ -567,7 +567,7 @@
                                target="_blank" class="directions-btn">
                                 Get Directions
                             </a>
-                            ${(project.folder_has_files === true || project.folder_has_files === 1) ?
+                            ${(project.folder_has_files === true || project.folder_has_files === 1 || project.folder_has_files == 1) ?
                                 `<button class="view-photos-btn" onclick="viewPhotos('${project.google_folder_id}')">
                                     View Photos
                                 </button>` : ''}
