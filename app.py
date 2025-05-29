@@ -4869,16 +4869,11 @@ def client_map():
                         'latest_date': None,
                         'total_kVA': 0,
                         'total_kWh': 0,
-                        'total_kWp': 0,
-                        'folder_ids': []  # Add this line to store all folder IDs
+                        'total_kWp': 0
                     }
 
                 # Add project to the group
                 projects_by_location[coord_key]['projects'].append(project)
-
-                # Add folder ID if project has files
-                if project.folder_has_files == 1 and project.google_folder_id:
-                    projects_by_location[coord_key]['folder_ids'].append(project.google_folder_id)
 
                 # Update latest commissioning date
                 if project.commissioning_date:
@@ -4933,11 +4928,7 @@ def client_map():
         has_files = any(p.folder_has_files == 1 for p in location_data['projects'])
 
         # Get the first google_folder_id where folder_has_files is 1
-        folder_ids = [p.google_folder_id for p in location_data['projects']
-                     if p.folder_has_files == 1 and p.google_folder_id]
-
-        # Remove duplicate folder IDs (if any)
-        folder_ids = list(set(folder_ids)) if folder_ids else []
+        folder_id = next((p.google_folder_id for p in location_data['projects'] if p.folder_has_files == 1), None)
 
         project_data = {
             'client_name': first_project.client_name,
@@ -4950,8 +4941,8 @@ def client_map():
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
-            'folder_has_files': 1 if folder_ids else 0,
-            'google_folder_ids': folder_ids
+            'folder_has_files': 1 if has_files else 0,
+            'google_folder_id': folder_id
         }
 
         map_data.append(project_data)
