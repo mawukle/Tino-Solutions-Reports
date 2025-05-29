@@ -423,12 +423,16 @@
         }
 
         function viewPhotos(folderIds) {
-            // Open each Google Drive folder in a new tab
-            folderIds.forEach(folderId => {
-                window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
-            });
+            if (folderIds && folderIds.length > 0) {
+                // Open each Google Drive folder in a new tab
+                folderIds.forEach(folderId => {
+                    if (folderId) {  // Check that folderId is not null or empty
+                        window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+                    }
+                });
+            }
         }
-
+        
         // Load the Google Maps API asynchronously
         function loadGoogleMaps() {
             const script = document.createElement('script');
@@ -573,7 +577,7 @@
                                target="_blank" class="directions-btn">
                                 Get Directions
                             </a>
-                            ${hasPhotos ?
+                            ${project.folder_has_files ?
                                 `<button class="view-photos-btn" onclick="viewPhotos(${JSON.stringify(project.google_folder_ids)})">
                                     View Photos (${project.google_folder_ids.length})
                                 </button>` : ''}

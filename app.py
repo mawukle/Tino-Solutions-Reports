@@ -4939,6 +4939,9 @@ def client_map():
         # Remove duplicate folder IDs (if any)
         folder_ids = list(set(folder_ids)) if folder_ids else []
 
+        # Check if any project at this location has photos
+        has_files = len(folder_ids) > 0
+
         project_data = {
             'client_name': first_project.client_name,
             'town': first_project.town,
@@ -4950,8 +4953,9 @@ def client_map():
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
             'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
-            'folder_has_files': 1 if folder_ids else 0,
-            'google_folder_ids': folder_ids
+            'folder_has_files': 1 if has_files else 0,
+            'google_folder_ids': folder_ids,
+            'projects_with_photos': len(folder_ids)  # Add this field to track how many projects have photos
         }
 
         map_data.append(project_data)
