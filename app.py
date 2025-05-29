@@ -4927,7 +4927,7 @@ def client_map():
         photo_folders = [
             {
                 'id': p.google_folder_id,
-                'name': p.get('project_name') or f"Project {p.get('project_id')}"
+                'name': p.client_name or f"Project {p.project_id}"  # Use project name or fallback
             }
             for p in location_data['projects']
             if p.folder_has_files == 1 and p.google_folder_id
