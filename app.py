@@ -4904,6 +4904,7 @@ def client_map():
                 continue
 
     # Prepare the final map data
+    # Prepare the final map data
     map_data = []
     for coord_key, location_data in projects_by_location.items():
         # Get the first project for basic info (assuming client_name, town etc are same for same location)
@@ -4923,6 +4924,12 @@ def client_map():
             else:
                 formatted_date = location_data['latest_date'].strftime('%Y-%m-%d')
 
+        # Check if any project at this location has photos
+        has_files = any(p.folder_has_files == 1 for p in location_data['projects'])
+
+        # Get the first google_folder_id where folder_has_files is 1
+        folder_id = next((p.google_folder_id for p in location_data['projects'] if p.folder_has_files == 1), None)
+
         project_data = {
             'client_name': first_project.client_name,
             'town': first_project.town,
@@ -4933,7 +4940,9 @@ def client_map():
             'project_count': len(location_data['projects']),
             'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
             'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
-            'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None
+            'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
+            'folder_has_files': 1 if has_files else 0,
+            'google_folder_id': folder_id
         }
 
         map_data.append(project_data)
