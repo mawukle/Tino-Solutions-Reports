@@ -4860,6 +4860,7 @@ def client_map():
     for project in projects_list:
         if project.google_coordinates:
             try:
+                # Use coordinates as the key for grouping
                 coord_key = project.google_coordinates
 
                 if coord_key not in projects_by_location:
@@ -4868,24 +4869,20 @@ def client_map():
                         'latest_date': None,
                         'total_kVA': 0,
                         'total_kWh': 0,
-                        'total_kWp': 0,
-                        'photo_folders': []
+                        'total_kWp': 0
                     }
 
+                # Add project to the group
                 projects_by_location[coord_key]['projects'].append(project)
 
-                # Handle photo folders
-                if project.folder_has_files == 1 and project.google_folder_id:
-                    projects_by_location[coord_key]['photo_folders'].append(project.google_folder_id)
-
-                # Handle dates
+                # Update latest commissioning date
                 if project.commissioning_date:
-                    project_date = None
+                    # Ensure we're working with a date object
                     if isinstance(project.commissioning_date, str):
                         try:
                             project_date = datetime.strptime(project.commissioning_date, '%Y-%m-%d')
                         except ValueError:
-                            pass
+                            project_date = None
                     else:
                         project_date = project.commissioning_date
 
@@ -4894,69 +4891,64 @@ def client_map():
                             project_date > projects_by_location[coord_key]['latest_date']):
                             projects_by_location[coord_key]['latest_date'] = project_date
 
-                # Convert numeric values to float for JSON serialization
+                # Sum up system sizes
                 if project.kVA is not None:
-                    projects_by_location[coord_key]['total_kVA'] += float(project.kVA)
+                    projects_by_location[coord_key]['total_kVA'] += project.kVA
                 if project.kWh is not None:
-                    projects_by_location[coord_key]['total_kWh'] += float(project.kWh)
+                    projects_by_location[coord_key]['total_kWh'] += project.kWh
                 if project.kWp is not None:
-                    projects_by_location[coord_key]['total_kWp'] += float(project.kWp)
+                    projects_by_location[coord_key]['total_kWp'] += project.kWp
 
             except (ValueError, AttributeError) as e:
                 print(f"Error processing project {project.project_id}: {str(e)}")
                 continue
 
-    # Prepare the final map data with proper serialization
+    # Prepare the final map data
+    # Prepare the final map data
     map_data = []
     for coord_key, location_data in projects_by_location.items():
+        # Get the first project for basic info (assuming client_name, town etc are same for same location)
         first_project = location_data['projects'][0]
 
-        try:
-            lat, lng = map(float, coord_key.split(','))
-        except (ValueError, AttributeError):
-            continue  # Skip invalid coordinates
+        lat, lng = map(float, coord_key.split(','))
 
-        # Handle dates safely
+        # Format the date properly
         formatted_date = None
         if location_data['latest_date']:
             if isinstance(location_data['latest_date'], str):
                 try:
-                    formatted_date = datetime.strptime(location_data['latest_date'], '%Y-%m-%d').strftime('%Y-%m-%d')
+                    date_obj = datetime.strptime(location_data['latest_date'], '%Y-%m-%d')
+                    formatted_date = date_obj.strftime('%Y-%m-%d')
                 except ValueError:
-                    pass
+                    formatted_date = None
             else:
                 formatted_date = location_data['latest_date'].strftime('%Y-%m-%d')
 
-        # Convert numeric values to float or None
-        def safe_float(value):
-            try:
-                return float(value) if value is not None and float(value) > 0 else None
-            except (ValueError, TypeError):
-                return None
+        # Check if any project at this location has photos
+        has_files = any(p.folder_has_files == 1 for p in location_data['projects'])
+
+        # Get the first google_folder_id where folder_has_files is 1
+        folder_id = next((p.google_folder_id for p in location_data['projects'] if p.folder_has_files == 1), None)
 
         project_data = {
-            'client_name': first_project.client_name or '',
-            'town': first_project.town or '',
+            'client_name': first_project.client_name,
+            'town': first_project.town,
             'coordinates': {'lat': lat, 'lng': lng},
-            'sales_person': first_project.sales_person or '',
-            'lead_installer': first_project.lead_installer or '',
+            'sales_person': first_project.sales_person,
+            'lead_installer': first_project.lead_installer,
             'commissioning_date': formatted_date,
             'project_count': len(location_data['projects']),
-            'kVA': safe_float(location_data['total_kVA']),
-            'kWh': safe_float(location_data['total_kWh']),
-            'kWp': safe_float(location_data['total_kWp']),
-            'folder_has_files': 1 if location_data['photo_folders'] else 0,
-            'photo_folders': location_data['photo_folders'] or []
+            'kVA': location_data['total_kVA'] if location_data['total_kVA'] > 0 else None,
+            'kWh': location_data['total_kWh'] if location_data['total_kWh'] > 0 else None,
+            'kWp': location_data['total_kWp'] if location_data['total_kWp'] > 0 else None,
+            'folder_has_files': 1 if has_files else 0,
+            'google_folder_id': folder_id
         }
 
         map_data.append(project_data)
 
-    # Debug output - check what's being sent to template
-    print(f"Map data prepared with {len(map_data)} locations")
-    if map_data:
-        print("Sample location data:", json.dumps(map_data[0], indent=2))
-
     return render_template('client_map.html', map_data=map_data)
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
