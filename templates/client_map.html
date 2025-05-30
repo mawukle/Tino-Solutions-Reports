@@ -311,7 +311,7 @@
 
                 <div class="filter-group">
                     <label for="month-filter">Filter by Commissioning Month:</label>
-                    <select id="month-filter" multiple size="4">
+                    <select id="month-filter" multiple size="1">
                         <option value="1">January</option>
                         <option value="2">February</option>
                         <option value="3">March</option>
@@ -661,7 +661,7 @@
                 }
             });
         }
-        
+
         function applyFilters() {
             const clientSearch = document.getElementById("client-search").value.toLowerCase();
             const salesFilter = document.getElementById("sales-filter").value;
