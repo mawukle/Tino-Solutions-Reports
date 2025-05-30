@@ -259,6 +259,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .filter-group select[multiple] {
+            height: auto;
+            min-height: 100px;
+        }
     </style>
 </head>
 <body>
@@ -307,8 +311,7 @@
 
                 <div class="filter-group">
                     <label for="month-filter">Filter by Commissioning Month:</label>
-                    <select id="month-filter">
-                        <option value="0">All Months</option>
+                    <select id="month-filter" multiple size="4">
                         <option value="1">January</option>
                         <option value="2">February</option>
                         <option value="3">March</option>
@@ -647,13 +650,26 @@
             document.getElementById("sales-filter").addEventListener("change", applyFilters);
             document.getElementById("installer-filter").addEventListener("change", applyFilters);
             document.getElementById("month-filter").addEventListener("change", applyFilters);
-        }
 
+            // Add Ctrl+Click support for multi-select
+            document.getElementById("month-filter").addEventListener("mousedown", function(e) {
+                e.preventDefault();
+                const option = e.target;
+                if (option.tagName === 'OPTION') {
+                    option.selected = !option.selected;
+                    applyFilters();
+                }
+            });
+        }
+        
         function applyFilters() {
             const clientSearch = document.getElementById("client-search").value.toLowerCase();
             const salesFilter = document.getElementById("sales-filter").value;
             const installerFilter = document.getElementById("installer-filter").value;
-            const monthFilter = parseInt(document.getElementById("month-filter").value);
+
+            // Get selected months
+            const monthOptions = document.getElementById("month-filter").selectedOptions;
+            const selectedMonths = Array.from(monthOptions).map(opt => parseInt(opt.value));
 
             markers.forEach(marker => {
                 const project = marker.projectData;
@@ -663,11 +679,11 @@
                 const installerMatch = !installerFilter || project.lead_installer === installerFilter;
 
                 let monthMatch = true;
-                if (monthFilter > 0 && project.commissioning_date) {
+                if (selectedMonths.length > 0 && project.commissioning_date) {
                     const date = new Date(project.commissioning_date);
                     const projectMonth = date.getMonth() + 1; // JavaScript months are 0-11
-                    monthMatch = projectMonth === monthFilter;
-                } else if (monthFilter > 0 && !project.commissioning_date) {
+                    monthMatch = selectedMonths.includes(projectMonth);
+                } else if (selectedMonths.length > 0 && !project.commissioning_date) {
                     monthMatch = false;
                 }
 
@@ -680,7 +696,6 @@
                 }
             });
         }
-
         // Load the API when the page loads
         window.onload = loadGoogleMaps;
     </script>
