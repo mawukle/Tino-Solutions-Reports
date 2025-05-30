@@ -260,8 +260,22 @@
             text-overflow: ellipsis;
         }
         .filter-group select[multiple] {
+            height: 38px; /* Match height of other selects */
+            overflow: hidden;
+            transition: height 0.2s ease;
+        }
+
+        .filter-group select[multiple]:focus {
             height: auto;
-            min-height: 100px;
+            min-height: 38px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Style selected options */
+        .filter-group select[multiple] option:checked {
+            background-color: #3498db;
+            color: white;
         }
     </style>
 </head>
@@ -308,10 +322,9 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="month-filter">Filter by Commissioning Month:</label>
-                    <select id="month-filter" multiple size="4">
+                    <select id="month-filter" multiple>
                         <option value="1">January</option>
                         <option value="2">February</option>
                         <option value="3">March</option>
@@ -326,6 +339,7 @@
                         <option value="12">December</option>
                     </select>
                 </div>
+
             </div>
 
             <div id="map"></div>
@@ -649,15 +663,37 @@
             document.getElementById("client-search").addEventListener("input", applyFilters);
             document.getElementById("sales-filter").addEventListener("change", applyFilters);
             document.getElementById("installer-filter").addEventListener("change", applyFilters);
-            document.getElementById("month-filter").addEventListener("change", applyFilters);
 
-            // Add Ctrl+Click support for multi-select
-            document.getElementById("month-filter").addEventListener("mousedown", function(e) {
-                e.preventDefault();
-                const option = e.target;
-                if (option.tagName === 'OPTION') {
+            const monthFilter = document.getElementById("month-filter");
+            monthFilter.addEventListener("change", applyFilters);
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function(e) {
+                if (e.target !== monthFilter) {
+                    monthFilter.size = 1;
+                    monthFilter.style.height = "38px";
+                }
+            });
+
+            // Toggle dropdown on click
+            monthFilter.addEventListener("mousedown", function(e) {
+                if (e.target.tagName === 'OPTION') {
+                    e.preventDefault();
+                    const option = e.target;
                     option.selected = !option.selected;
                     applyFilters();
+                    return;
+                }
+
+                this.size = this.size === 1 ? 6 : 1;
+                this.style.height = this.size === 1 ? "38px" : "auto";
+            });
+
+            // Prevent dropdown from closing when selecting options with keyboard
+            monthFilter.addEventListener("keydown", function(e) {
+                if (e.key === "Escape") {
+                    this.size = 1;
+                    this.style.height = "38px";
                 }
             });
         }
