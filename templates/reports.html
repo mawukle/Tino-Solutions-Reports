@@ -330,7 +330,7 @@
         }
 
         if (selectedCharts.includes("statusChart")) {
-            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels, "Lead Installer");
+            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels, "Project Status");
         } else {
             document.getElementById("statusChart").parentNode.style.display = "none";
         }
