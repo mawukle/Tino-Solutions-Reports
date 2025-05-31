@@ -4773,34 +4773,34 @@ def reports():
                 invoice_amount /= exchange_rate
             invoice_data[proj.sales_person][month_year] += round(invoice_amount, 2)
 
-            # Revenue and capacities summaries
+            # Revenue summaries
             revenue_by_month[month_year]["Invoice Amount"] += round(invoice_amount, 2)
             revenue_by_month[month_year]["Amount Paid"] += round(amount_paid, 2)
-
-            capacity_by_month[month_year]["kVA"] += float(proj.kVA)
-            capacity_by_month[month_year]["kWh"] += float(proj.kWh)
-            capacity_by_month[month_year]["kWp"] += float(proj.kWp)
 
             # Project Status
             status_data['Started'][month_year] += 1
             if end:
-                status_data['Completed'][end.strftime('%Y-%m')] += 1
+                completed_month = end.strftime('%Y-%m')
+                status_data['Completed'][completed_month] += 1
+
+                # Only count capacities if project is completed (has commissioning date)
+                installed_capacities['kVA'][completed_month] += float(proj.kVA)
+                installed_capacities['kWh'][completed_month] += float(proj.kWh)
+                installed_capacities['kWp'][completed_month] += float(proj.kWp)
+                capacity_by_month[completed_month]["kVA"] += float(proj.kVA)
+                capacity_by_month[completed_month]["kWh"] += float(proj.kWh)
+                capacity_by_month[completed_month]["kWp"] += float(proj.kWp)
 
             # Totals (still keyed by start_date month)
             total_revenue['Invoice Amount'][month_year] += round(invoice_amount, 2)
             total_revenue['Amount Paid'][month_year] += round(amount_paid, 2)
-            installed_capacities['kVA'][month_year] += float(proj.kVA)
-            installed_capacities['kWh'][month_year] += float(proj.kWh)
-            installed_capacities['kWp'][month_year] += float(proj.kWp)
 
             # Installer stats
-            if proj.lead_installer:
-                if end:
-                    completed_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += 1
-                    kva_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kVA)
-                    kwh_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWh)
-                    kwp_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWp)
-
+            if proj.lead_installer and end:
+                completed_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += 1
+                kva_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kVA)
+                kwh_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWh)
+                kwp_per_installer[proj.lead_installer][end.strftime('%Y-%m')] += float(proj.kWp)
         # Collect all months
         all_months = sorted({month for d in [
             revenue_data, invoice_data, status_data,
@@ -4959,7 +4959,7 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
-        
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
