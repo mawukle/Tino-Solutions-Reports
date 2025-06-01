@@ -4839,11 +4839,24 @@ def reports():
         logging.info("chart_data['revenue_summary_by_month'] = %s", revenue_by_month)
         logging.info("chart_data['capacity_summary_by_month'] = %s", capacity_by_month)
 
-        return render_template('reports.html', labels=all_months, data=chart_data)
+        # Determine which template to render based on the route
+        if request.path == '/reports':
+            template_name = 'reports.html'
+        else:
+            template_name = 'install_reports.html'
+
+        return render_template(template_name,
+                            labels=all_months,
+                            data=chart_data,
+                            is_supervisor=(request.path == '/reports'))
 
     except Exception as e:
         logging.error(f"Error generating reports: {e}")
-        return render_template('reports.html', message='Failed to load report', labels=[], data={})
+        return render_template('reports.html',
+                            message='Failed to load report',
+                            labels=[],
+                            data={},
+                            is_supervisor=False)
 
 # Add this import at the top if not already present
 #from flask import jsonify

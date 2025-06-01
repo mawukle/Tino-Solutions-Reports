@@ -204,11 +204,11 @@
                 // If supervisor access is unlocked, go to /reports
                 window.location.href = "{{ url_for('reports') }}";
             } else {
-                // Otherwise, go to /install_reports (which will be handled by the same route)
-                window.location.href = "/install_reports";
+                // Otherwise, go to /install_reports
+                window.location.href = "{{ url_for('reports', _external=True) }}".replace('/reports', '/install_reports');
             }
         }
-        
+                
         // Optional: Allow pressing Enter to submit the code
         document.getElementById('supervisorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
