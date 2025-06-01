@@ -186,7 +186,7 @@
                 supervisorCards.classList.remove('hidden');
 
                 // Append supervisor cards to the main dashboard
-                document.getElementById('mainDashboard').appendChild(supervisorCards.children[0]);
+                //document.getElementById('mainDashboard').appendChild(supervisorCards.children[0]);
 
                 // Store in sessionStorage that supervisor access is granted
                 sessionStorage.setItem('supervisorAccess', 'true');
@@ -208,7 +208,7 @@
                 window.location.href = "{{ url_for('reports', _external=True) }}".replace('/reports', '/install_reports');
             }
         }
-                
+
         // Optional: Allow pressing Enter to submit the code
         document.getElementById('supervisorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
