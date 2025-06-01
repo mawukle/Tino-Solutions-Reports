@@ -1,10 +1,10 @@
+is there any inclination error:
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage - Tino Solutions Limited</title>
+    <!-- ... (keep your existing head content) ... -->
     <style>
+        /* ... (keep your existing styles) ... */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -98,11 +98,9 @@
         .hidden {
             display: none;
         }
-        #supervisorCards .dashboard {
-            margin-top: 0;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }        
+
+        /* Remove the supervisor cards separator style */
+        /* No need for #supervisorCards .dashboard styles anymore */
     </style>
 </head>
 <body>
@@ -115,7 +113,6 @@
             <div class="card">
                 <h3>Reports Dashboard</h3>
                 <p>View graphical representations of sales and project data</p>
-                <!-- Change this line in the Reports card -->
                 <a href="#" onclick="viewReports()">View Reports</a>
             </div>
 
@@ -125,7 +122,6 @@
                 <p>Submit and view daily task reports</p>
                 <a href="{{ url_for('assign_job') }}">Go to Tasks</a>
             </div>
-
 
             <!-- Projects - Available to all -->
             <div class="card">
@@ -140,6 +136,25 @@
                 <p>View client locations on an interactive map</p>
                 <a href="{{ url_for('client_map') }}">View Map</a>
             </div>
+
+            <!-- Supervisor-only cards (hidden by default) -->
+            <div class="card supervisor-card hidden">
+                <h3>Team Assignment</h3>
+                <p>Assign tasks to employees</p>
+                <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
+            </div>
+
+            <div class="card supervisor-card hidden">
+                <h3>New Client Entry</h3>
+                <p>Create database entries for new clients</p>
+                <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
+            </div>
+
+            <div class="card supervisor-card hidden">
+                <h3>Client Details</h3>
+                <p>View client billing and payment information</p>
+                <a href="{{ url_for('get_bdu') }}">View BDU</a>
+            </div>
         </div>
 
         <!-- Supervisor Access Section -->
@@ -148,29 +163,6 @@
             <p>Enter access code to unlock supervisor features</p>
             <input type="password" id="supervisorCode" placeholder="Enter access code">
             <button onclick="checkSupervisorAccess()">Unlock</button>
-        </div>
-
-        <!-- Supervisor-only cards (hidden by default) -->
-        <div id="supervisorCards" class="hidden">
-            <div class="dashboard">
-                <div class="card">
-                    <h3>Team Assignment</h3>
-                    <p>Assign tasks to employees</p>
-                    <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
-                </div>
-
-                <div class="card">
-                    <h3>New Client Entry</h3>
-                    <p>Create database entries for new clients</p>
-                    <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
-                </div>
-                <div class="card">
-                    <h3>Client Details</h3>
-                    <p>View client billing and payment information</p>
-                    <a href="{{ url_for('get_bdu') }}">View BDU</a>
-                </div>
-
-            </div>
         </div>
     </div>
 
@@ -181,17 +173,15 @@
         function checkSupervisorAccess() {
             const enteredCode = document.getElementById('supervisorCode').value;
             const supervisorAccessSection = document.getElementById('supervisorAccessSection');
-            const supervisorCards = document.getElementById('supervisorCards');
 
             if (enteredCode === SUPERVISOR_CODE) {
                 // Hide the access section
                 supervisorAccessSection.classList.add('hidden');
 
-                // Show the supervisor cards
-                supervisorCards.classList.remove('hidden');
-
-                // Append supervisor cards to the main dashboard
-                //document.getElementById('mainDashboard').appendChild(supervisorCards.children[0]);
+                // Show all supervisor cards
+                document.querySelectorAll('.supervisor-card').forEach(card => {
+                    card.classList.remove('hidden');
+                });
 
                 // Store in sessionStorage that supervisor access is granted
                 sessionStorage.setItem('supervisorAccess', 'true');
@@ -206,10 +196,8 @@
             const supervisorUnlocked = sessionStorage.getItem('supervisorAccess') === 'true';
 
             if (supervisorUnlocked) {
-                // If supervisor access is unlocked, go to /reports
                 window.location.href = "{{ url_for('reports') }}";
             } else {
-                // Otherwise, go to /install_reports
                 window.location.href = "{{ url_for('reports', _external=True) }}".replace('/reports', '/install_reports');
             }
         }
@@ -218,6 +206,16 @@
         document.getElementById('supervisorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkSupervisorAccess();
+            }
+        });
+
+        // On page load, check if supervisor access was previously granted
+        document.addEventListener('DOMContentLoaded', function() {
+            if (sessionStorage.getItem('supervisorAccess') === 'true') {
+                document.getElementById('supervisorAccessSection').classList.add('hidden');
+                document.querySelectorAll('.supervisor-card').forEach(card => {
+                    card.classList.remove('hidden');
+                });
             }
         });
     </script>
