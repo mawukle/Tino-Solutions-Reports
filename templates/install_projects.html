@@ -6,9 +6,6 @@
     <title>Projects</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script>
-        var teamMembers = {{ team_members | tojson }};
-    </script>
     <style>
         .table-container {
             overflow-x: auto;
@@ -25,20 +22,8 @@
         th {
             background-color: #85BB65;
         }
-        td[contenteditable="true"] {
-            background-color: #f9f9f9;
-            outline: none;
-        }
-        .buttons {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
         .message {
             color: red;
-        }
-        .upload-container {
-            margin-bottom: 20px;
         }
 
         /* Modal Styles */
@@ -66,13 +51,12 @@
             color: white;
             cursor: pointer;
         }
-
     </style>
 </head>
 <body>
     <div class="container_1">
         <img src="/static/logo.png" alt="Logo" class="logo">
-        <a href="/bdu" class="back-link">The Renewable Energy Experts</a>
+        <a href="/" class="back-link">The Renewable Energy Experts</a>
         <h1>TINO SOLUTIONS LIMITED<br>PROJECTS - INSTALL</h1>
         {% if message %}
         <p class="message">{{ message }}</p>
@@ -109,8 +93,6 @@
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
-                        <th>File Upload Button</th>
-
                     </tr>
                 </thead>
                 <tbody>
@@ -121,56 +103,24 @@
                                 <a href="{{ project.invoice_image_url }}" target="_blank">
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                                 </a>
-                            {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
-                                    <input type="file" name="invoice_image" accept="image/*">
-                                    <button type="submit">Upload</button>
-                                </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>{{ member }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>{{ member }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
-                        <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td>{{ project.client_name }}</td>
+                        <td>{{ project.town }}</td>
+                        <td>{{ project.phone_number }}</td>
+                        <td>{{ project.sales_person }}</td>
+                        <td>{{ project.lead_installer }}</td>
+                        <td>{{ project.start_date }}</td>
+                        <td>{{ project.commissioning_date }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
                             {% endif %}
                         </td>
-                        <td>
-                            <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
-                                <input type="file" name="file" multiple>
-                                <button type="submit">Upload</button>
-                            </form>
-                        </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <!-- Place the "Add New Row" button here -->
-        <div class="buttons" style="margin-top: 10px;">
-            <button id="add-row">Add New Row</button>
         </div>
 
         <!-- Ongoing Projects -->
@@ -188,7 +138,6 @@
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
-                        <th>File Upload Button</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -199,57 +148,26 @@
                                 <a href="{{ project.invoice_image_url }}" target="_blank">
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
                                 </a>
-                            {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
-                                    <input type="file" name="invoice_image" accept="image/*">
-                                    <button type="submit">Upload</button>
-                                </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
-                        <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td>{{ project.client_name }}</td>
+                        <td>{{ project.town }}</td>
+                        <td>{{ project.phone_number }}</td>
+                        <td>{{ project.sales_person }}</td>
+                        <td>{{ project.lead_installer }}</td>
+                        <td>{{ project.start_date }}</td>
+                        <td>{{ project.commissioning_date }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
                             {% endif %}
                         </td>
-                        <td>
-                            <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
-                                <input type="file" name="file" multiple>
-                                <button type="submit">Upload</button>
-                            </form>
-                        </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
         <!-- Completed Projects -->
         <h2>Completed Projects</h2>
         <div class="table-container">
@@ -265,7 +183,6 @@
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
-                        <th>File Upload Button</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -276,62 +193,27 @@
                                 <a href="{{ project.invoice_image_url }}" target="_blank">
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
                                 </a>
-                            {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
-                                    <input type="file" name="invoice_image" accept="image/*">
-                                    <button type="submit">Upload</button>
-                                </form>
                             {% endif %}
                         </td>
-                        <td contenteditable="true">{{ project.client_name }}</td>
-                        <td contenteditable="true">{{ project.town }}</td>
-                        <td contenteditable="true">{{ project.phone_number }}</td>
-                        <td>
-                            <select class="sales-person">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.sales_person == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <select class="lead-installer">
-                                <option value="">Select a Team Member</option>
-                                {% for member in team_members %}
-                                <option value="{{ member }}" {% if project.lead_installer == member %}selected{% endif %}>
-                                    {{ member }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
-                        <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td>{{ project.client_name }}</td>
+                        <td>{{ project.town }}</td>
+                        <td>{{ project.phone_number }}</td>
+                        <td>{{ project.sales_person }}</td>
+                        <td>{{ project.lead_installer }}</td>
+                        <td>{{ project.start_date }}</td>
+                        <td>{{ project.commissioning_date }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
                             {% endif %}
                         </td>
-                        <td>
-                            <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="folder_id" value="{{ project.folder_id }}">
-                                <input type="file" name="file" multiple>
-                                <button type="submit">Upload</button>
-                            </form>
-                        </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <!-- Save Changes button remains at its current position -->
-        <div class="buttons" style="margin-top: 10px;">
-            <button id="save-changes">Save Changes</button>
-        </div>
     </div>
+
     <!-- Image Modal -->
     <div id="imageModal" class="modal">
         <span class="close">&times;</span>
@@ -339,115 +221,6 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Save changes event
-            document.getElementById("save-changes").addEventListener("click", () => {
-                let saveButton = document.getElementById("save-changes");
-                saveButton.disabled = true; // Prevent duplicate requests
-
-                let updatedProjects = [];
-
-                document.querySelectorAll("tbody tr").forEach(row => {
-                    const projectID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td[contenteditable='true']");
-                    const inputs = row.querySelectorAll("input.date-input");
-                    const salesPersonSelect = row.querySelector(".sales-person");
-                    const leadInstallerSelect = row.querySelector(".lead-installer");
-
-                    let projectData = {
-                        project_id: projectID,
-                        client_name: cells[0]?.innerText.trim() || "",
-                        town: cells[1]?.innerText.trim() || "",
-                        phone_number: cells[2]?.innerText.trim() || "",
-                        sales_person: salesPersonSelect?.value || "",
-                        lead_installer: leadInstallerSelect?.value || "",
-                        start_date: inputs[0]?.value || "",
-                        commissioning_date: inputs[1]?.value || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
-                    };
-
-                    updatedProjects.push(projectData);
-                });
-
-                console.log("Updated Projects Data:", updatedProjects);
-
-                fetch("/update_projects", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ projects: updatedProjects })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.message === "Projects updated successfully") {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred while saving.");
-                })
-                .finally(() => {
-                    saveButton.disabled = false; // Re-enable button
-                });
-            });
-
-            // Add new row
-            document.getElementById("add-row").addEventListener("click", () => {
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>
-                        <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="project_id" value="">
-                            <input type="file" name="invoice_image" accept="image/*">
-                            <button type="submit">Upload</button>
-                        </form>
-                    </td>
-                    <td contenteditable="true"></td>  <!-- Client Name -->
-                    <td contenteditable="true"></td>  <!-- Town -->
-                    <td contenteditable="true"></td>  <!-- Phone Number -->
-                    <td>
-                        <select class="sales-person">
-                            <option value="">Select</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td>
-                        <select class="lead-installer">
-                            <option value="">Select</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td><input type="date" class="date-input"></td>  <!-- Start Date -->
-                    <td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
-                `;
-                document.querySelector("tbody").appendChild(newRow);
-            });
-
-            // Handle image upload
-            document.querySelectorAll("form[action='/upload_invoice']").forEach(form => {
-                form.addEventListener("submit", function(event) {
-                    event.preventDefault();
-                    let formData = new FormData(this);
-                    let projectID = this.querySelector("input[name='project_id']").value;
-
-                    fetch("/upload_invoice", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        if (data.refresh) {
-                            location.reload(); // Refresh page if upload was successful
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error uploading file:", error);
-                        alert("Error uploading file.");
-                    });
-                });
-            });
-
             // Image modal display
             const modal = document.getElementById("imageModal");
             const modalImg = document.getElementById("fullImage");
