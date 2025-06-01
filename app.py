@@ -4696,7 +4696,7 @@ def get_usd_to_ghc_rate():
         logging.error(f"Error fetching exchange rate: {e}")
         return 1  # Fallback to 1 to avoid crashes
 
-
+@app.route('/install_reports')
 @app.route('/reports')
 def reports():
     try:

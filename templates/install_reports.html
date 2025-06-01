@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Revenue Reports</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .container_1 {
+            padding: 20px;
+        }
+        /* Wrap each chart in a bordered box */
+        .chart-wrapper {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important; /* remove or override */
+            aspect-ratio: 1 / 1; /* new addition */
+            /*max-width: 800px;*/
+        }
+        .message {
+            color: red;
+        }
+        .filters {
+            margin: 10px 0;
+        }
+        select, input[type="month"] {
+            margin-right: 10px;
+            padding: 4px;
+        }
+        .button-download {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .filter-row label,
+        .filter-row select,
+        .filter-row input,
+        .filter-row button {
+            margin: 0;
+        }
+        .chart-toggle {
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+<div class="container_1">
+    <img src="/static/logo.png" alt="Logo" class="logo">
+    <a href="/projects" class="back-link">← Back to Projects</a>
+    <h1>TINO SOLUTIONS LIMITED<br>MONTHLY SALES AND PROJECTS REPORT - INSTALL REPORTS</h1>
+
+    {% if message %}
+    <p class="message">{{ message }}</p>
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="filters">
+        <div class="filter-row">
+            <label for="chartSelect">Select Charts to Display:</label>
+            <select id="chartSelect" class="chart-toggle" multiple size="9">
+                <option value="revenueChart" selected>Amount Received Chart</option>
+                <option value="invoiceChart" selected>Invoice Chart</option>
+                <option value="totalRevenueChart" selected>Total Revenue Chart</option>
+                <option value="kvaChart" selected>kVA Chart</option>
+                <option value="kwhChart" selected>kWh Chart</option>
+                <option value="kwpChart" selected>kWp Chart</option>
+                <option value="installedCapacitiesChart" selected>Installed Capacities Chart</option>
+                <option value="completedInstallerChart" selected>Installer Chart</option>
+                <option value="statusChart" selected>Project Status Chart</option>
+            </select>
+
+            <label for="fromMonth">From:</label>
+            <input type="month" id="fromMonth">
+
+            <label for="toMonth">To:</label>
+            <input type="month" id="toMonth">
+
+            <button onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- Each chart wrapped in a bordered div -->
+    <div class="chart-wrapper"><canvas id="revenueChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="invoiceChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="totalRevenueChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kvaChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kwhChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="kwpChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="installedCapacitiesChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="completedInstallerChart" style="display:none;"></canvas></div>
+    <div class="chart-wrapper"><canvas id="statusChart" style="display:none;"></canvas></div>
+
+
+
+    <!-- PDF Download -->
+    <button class="button-download" onclick="downloadPDF()">Download as PDF</button>
+</div>
+
+<script>
+
+    const labels = {{ labels | tojson }};
+    const allData = {{ data | tojson }};
+    const originalData = allData.revenue;
+    const chartInstances = {};
+    const colors = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8',
+        '#f58231', '#911eb4', '#46f0f0', '#f032e6',
+        '#bcf60c', '#fabebe', '#008080', '#e6beff'
+    ];
+
+    function formatMonthLabel(monthStr) {
+        const [year, month] = monthStr.split("-");
+        const date = new Date(year, parseInt(month) - 1);
+        return date.toLocaleString('default', { month: 'short', year: 'numeric' });  // e.g., "Jan 2025"
+    }
+
+
+    let chartInstance;
+
+    function buildFilteredChart(filteredData, filteredLabels) {
+        if (chartInstance) chartInstance.destroy();
+
+        const xLabels = Object.keys(filteredData);  // sales persons
+        const datasets = [];
+
+        if (xLabels.length === 0 || filteredLabels.length === 0) return;
+
+        filteredLabels.forEach((month, i) => {
+            const data = xLabels.map(person => {
+                const idx = labels.indexOf(month);
+                return filteredData[person][idx] ?? 0;
+            });
+
+            datasets.push({
+                label: formatMonthLabel(month),
+                data: data,
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1,
+                stack: 'stack1'
+            });
+        });
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: xLabels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Total Amount Received per Sales Person'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Sales Person'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount Paid (Revenue)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function buildChart(canvasId, title, yLabel, datasetObj, monthsToShow, xLabel = 'Sales Person') {
+        const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        const xLabels = Object.keys(datasetObj);
+        const datasets = [];
+
+        if (xLabels.length === 0 || monthsToShow.length === 0) {
+            wrapper.style.display = "none";  // Hide the entire wrapper if no data
+            return;
+        }
+
+        monthsToShow.forEach((month, i) => {
+            const data = xLabels.map(person => datasetObj[person][i] ?? 0);
+            datasets.push({
+                label: formatMonthLabel(month),
+                data: data,
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1,
+                stack: 'stack1'
+            });
+        });
+
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
+        if (!hasData) {
+            wrapper.style.display = "none";  // Hide the entire wrapper if empty
+            return;
+        }
+
+        wrapper.style.display = "block";  // Show the wrapper if it has data
+        canvas.style.display = "block";  // Show if it has data
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: xLabels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: xLabel  // Use the provided xLabel parameter
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
+    function applyFilters() {
+        const selectedPersons = ["all"];  // Always include all persons
+        const fromMonth = document.getElementById("fromMonth").value;
+        const toMonth = document.getElementById("toMonth").value;
+
+        // Filter the months (labels)
+        const filteredLabels = labels.filter(label => {
+            if (fromMonth && label < fromMonth) return false;
+            if (toMonth && label > toMonth) return false;
+            return true;
+        });
+
+        function filterDataSet(dataSet) {
+            const result = {};
+            for (const key in dataSet) {
+                if (!selectedPersons.includes("all") && !selectedPersons.includes(key)) continue;
+
+                const originalArray = dataSet[key];
+                const filteredArray = filteredLabels.map(month => {
+                    const idx = labels.indexOf(month);
+                    return originalArray[idx] ?? 0;
+                });
+
+                if (filteredArray.some(val => val !== 0)) {
+                    result[key] = filteredArray;
+                }
+            }
+            return result;
+        }
+
+        function filterGroupedData(dataSet) {
+            const result = {};
+            for (const month of filteredLabels) {
+                if (dataSet[month]) {
+                    result[month] = dataSet[month];
+                }
+            }
+            return result;
+        }
+
+        // Get selected chart IDs from checkboxes
+        const selectedCharts = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
+
+        if (selectedCharts.includes("revenueChart")) {
+            buildChart("revenueChart", "Total Amount Received per Sales Person", "Amount Received (USD)", filterDataSet(allData.revenue), filteredLabels);
+        } else {
+            document.getElementById("revenueChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("invoiceChart")) {
+            buildChart("invoiceChart", "Total Invoice Amount by Sales Person", "Invoice Amount (USD)", filterDataSet(allData.invoice), filteredLabels);
+        } else {
+            document.getElementById("invoiceChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("statusChart")) {
+            buildChart("statusChart", "Project Status Breakdown", "Number of Projects", filterDataSet(allData.status), filteredLabels, "Project Status");
+        } else {
+            document.getElementById("statusChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("completedInstallerChart")) {
+            buildChart("completedInstallerChart", "Projects Completed per Lead Installer", "Completed Projects", filterDataSet(allData.completed_per_installer), filteredLabels, "Lead Installer");
+        } else {
+            document.getElementById("completedInstallerChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("kvaChart")) {
+            buildChart("kvaChart", "Total kVA per Lead Installer", "kVA", filterDataSet(allData.kva_per_installer), filteredLabels, "Lead Installer");
+        } else {
+            document.getElementById("kvaChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("kwhChart")) {
+            buildChart("kwhChart", "Total kWh per Lead Installer", "kWh", filterDataSet(allData.kwh_per_installer), filteredLabels, "Lead Installer");
+        } else {
+            document.getElementById("kwhChart").parentNode.style.display = "none";
+        }
+
+        if (selectedCharts.includes("kwpChart")) {
+            buildChart("kwpChart", "Total kWp per Lead Installer", "kWp", filterDataSet(allData.kwp_per_installer), filteredLabels, "Lead Installer");
+        } else {
+            document.getElementById("kwpChart").parentNode.style.display = "none";
+        }
+
+        // NEW: Total Revenue Chart
+        // With this:
+        if (selectedCharts.includes("totalRevenueChart")) {
+            // Transform the revenue_summary_by_month data to match expected format
+            const revenueData = {};
+            for (const month in allData.revenue_summary_by_month) {
+                revenueData[month] = [
+                    allData.revenue_summary_by_month[month]["Invoice Amount"],
+                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                ];
+            }
+
+            // Create a special chart for revenue summary
+            createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
+        } else {
+            document.getElementById("totalRevenueChart").parentNode.style.display = "none";
+        }
+
+
+        // NEW: Installed Capacities Chart
+        // With this:
+        if (selectedCharts.includes("installedCapacitiesChart")) {
+            createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
+        } else {
+            document.getElementById("installedCapacitiesChart").parentNode.style.display = "none";
+        }
+    }
+
+    // Replace the createRevenueSummaryChart function with this new version:
+    function createRevenueSummaryChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+        const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        // First organize the data by metric (Invoice/Paid) then by month
+        const metrics = {
+            "Invoice Amount": {},
+            "Amount Paid": {}
+        };
+
+        // Filter months and populate the metrics data
+        monthsToShow.forEach(month => {
+            if (datasetObj[month]) {
+                metrics["Invoice Amount"][month] = datasetObj[month][0];
+                metrics["Amount Paid"][month] = datasetObj[month][1];
+            }
+        });
+
+        // Check if we have any data
+        const hasData = monthsToShow.some(month =>
+            (metrics["Invoice Amount"][month] || 0) > 0 ||
+            (metrics["Amount Paid"][month] || 0) > 0
+        );
+
+        if (!hasData) {
+            wrapper.style.display = "none";
+            return;
+        }
+
+        wrapper.style.display = "block";
+        canvas.style.display = "block";
+
+        // Prepare datasets - one for each month
+        const datasets = monthsToShow.map((month, i) => {
+            return {
+                label: formatMonthLabel(month),
+                data: [
+                    metrics["Invoice Amount"][month] || 0,
+                    metrics["Amount Paid"][month] || 0
+                ],
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1
+            };
+        });
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Invoice Amount", "Amount Received"],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Revenue Type'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    // Add this new function for the installed capacities chart
+    // Update the createInstalledCapacitiesChart function to properly handle the data structure:
+    function createInstalledCapacitiesChart(canvasId, title, yLabel, datasetObj, monthsToShow) {
+        const canvas = document.getElementById(canvasId);
+        const wrapper = canvas.parentNode; // Get the parent wrapper
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+        // Reorganize the data by month first, then by capacity type
+        const monthlyData = {};
+
+        // Get all capacity types
+        const capacityTypes = ['kVA', 'kWh', 'kWp'];
+
+        // Organize by month
+        capacityTypes.forEach(type => {
+            if (datasetObj[type]) {
+                for (const month in datasetObj[type]) {
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = {
+                            'kVA': 0,
+                            'kWh': 0,
+                            'kWp': 0
+                        };
+                    }
+                    // Round values to 2 decimal places when storing
+                    monthlyData[month][type] = Math.round(datasetObj[type][month] * 100) / 100;
+                }
+            }
+        });
+
+        // Filter months based on monthsToShow
+        const filteredMonths = monthsToShow.filter(month => monthlyData[month]);
+
+        if (filteredMonths.length === 0) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        // Prepare datasets - one for each month
+        const datasets = filteredMonths.map((month, i) => {
+            return {
+                label: formatMonthLabel(month),
+                data: [
+                    monthlyData[month]['kVA'] || 0,
+                    monthlyData[month]['kWh'] || 0,
+                    monthlyData[month]['kWp'] || 0
+                ],
+                backgroundColor: colors[i % colors.length],
+                borderWidth: 1
+            };
+        });
+
+        const hasData = datasets.some(ds => ds.data.some(val => val !== 0));
+        if (!hasData) {
+            wrapper.style.display = "none";
+            return;
+        }
+
+        wrapper.style.display = "block";
+        canvas.style.display = "block";
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["kVA", "kWh", "kWp"],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                // Format the value to 2 decimal places
+                                const roundedValue = Math.round(context.raw * 100) / 100;
+                                return `${context.dataset.label}: ${roundedValue.toFixed(2)} ${context.label}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Capacity Type'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yLabel
+                        },
+                        ticks: {
+                            // Format y-axis labels to 2 decimal places
+                            callback: function(value) {
+                                return value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function downloadPDF() {
+        const originalSettings = {};
+
+        // 1) Capture & override each chart's text settings
+        Object.keys(chartInstances).forEach(chartId => {
+            const chart = chartInstances[chartId];
+            if (!chart) return;
+
+            originalSettings[chartId] = {
+                tooltip:       chart.options.plugins.tooltip,
+                legendColor:   chart.options.plugins.legend?.labels?.color,
+                titleColor:    chart.options.plugins.title?.color,
+                xTitleColor:   chart.options.scales?.x?.title?.color,
+                yTitleColor:   chart.options.scales?.y?.title?.color,
+                xTicksColor:   chart.options.scales?.x?.ticks?.color,
+                yTicksColor:   chart.options.scales?.y?.ticks?.color,
+                xGridColor:    chart.options.scales?.x?.grid?.color,
+                yGridColor:    chart.options.scales?.y?.grid?.color
+            };
+
+            chart.options.plugins.tooltip = { enabled: false };
+
+            if (chart.options.plugins.legend?.labels) chart.options.plugins.legend.labels.color = '#FFFFFF';
+            if (chart.options.plugins.title) chart.options.plugins.title.color = '#FFFFFF';
+
+            ['x','y'].forEach(axis => {
+                const scale = chart.options.scales[axis];
+                if (!scale) return;
+                scale.title.color = '#FFFFFF';
+                scale.ticks.color = '#FFFFFF';
+                scale.grid.color  = '#FFFFFF';
+            });
+
+            chart.update();
+        });
+
+        // 2) Wait for charts to update before rendering to PDF
+        setTimeout(() => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const W = pdf.internal.pageSize.getWidth();
+            const H = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const chartW = W - 2 * margin;
+            const chartH = H - 2 * margin - 20;
+            let y = 20;
+
+            // Draw heading only once on the first page
+            pdf.setFontSize(18);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text("TINO SOLUTIONS LIMITED",            W / 2, y,   { align: 'center' });
+            pdf.text("MONTHLY SALES AND PROJECTS REPORT",  W / 2, y + 8, { align: 'center' });
+
+            // Draw logo top-right on first page
+            const logoImg = document.querySelector('.logo');
+            if (logoImg && logoImg.complete) {
+                const tmp = document.createElement('canvas');
+                tmp.width = logoImg.naturalWidth;
+                tmp.height = logoImg.naturalHeight;
+                tmp.getContext('2d').drawImage(logoImg, 0, 0);
+                const logoData = tmp.toDataURL('image/png');
+                const logoWidth = 30;
+                const logoHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * logoWidth;
+                pdf.addImage(logoData, 'PNG', W - margin - logoWidth, y - 8, logoWidth, logoHeight);
+            }
+
+            y += 20;
+
+            // Get visible charts
+            //const canvases = Array.from(document.querySelectorAll('canvas'))
+            //    .filter(c => c.style.display !== 'none');
+
+            const wrappers = Array.from(document.querySelectorAll('.chart-wrapper'))
+                .filter(w => w.style.display !== 'none');
+            const canvases = wrappers.map(w => w.querySelector('canvas'));
+
+
+            if (canvases.length === 0) {
+                alert('No charts to export');
+                restoreCharts();
+                return;
+            }
+
+            const totalPages = canvases.length;
+
+            // 3) Add charts page by page
+            canvases.forEach((canvas, idx) => {
+                if (idx > 0) {
+                    pdf.addPage();
+                    y = margin;
+                }
+
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const ratio = canvas.width / canvas.height;
+                let w = chartW, h = chartW / ratio;
+                if (h > chartH) {
+                    h = chartH;
+                    w = chartH * ratio;
+                }
+                pdf.addImage(imgData, 'JPEG', (W - w) / 2, y, w, h);
+
+                const title = getChartTitle(canvas.id);
+                if (title) {
+                    pdf.setFontSize(12);
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text(title, W / 2, y + h + 6, { align: 'center' });
+                }
+
+                // Add page number centered at the bottom
+                pdf.setFontSize(10);
+                pdf.setTextColor(100);
+                pdf.text(`Page ${idx + 1} of ${totalPages}`, W / 2, H - 10, { align: 'center' });
+            });
+
+            pdf.save("monthly_sales_report.pdf");
+
+            setTimeout(restoreCharts, 500);
+        }, 300);
+
+        function restoreCharts() {
+            Object.entries(originalSettings).forEach(([id, opts]) => {
+                const chart = chartInstances[id];
+                if (!chart) return;
+                chart.options.plugins.tooltip = opts.tooltip;
+                chart.options.plugins.legend.labels.color = opts.legendColor;
+                chart.options.plugins.title.color = opts.titleColor;
+                chart.options.scales.x.title.color = opts.xTitleColor;
+                chart.options.scales.y.title.color = opts.yTitleColor;
+                chart.options.scales.x.ticks.color = opts.xTicksColor;
+                chart.options.scales.y.ticks.color = opts.yTicksColor;
+                chart.options.scales.x.grid.color  = opts.xGridColor;
+                chart.options.scales.y.grid.color  = opts.yGridColor;
+                chart.update();
+            });
+        }
+    }
+
+    // Helper function to get chart title
+    function getChartTitle(canvasId) {
+        const chartInstance = chartInstances[canvasId];
+        if (chartInstance && chartInstance.options && chartInstance.options.plugins && chartInstance.options.plugins.title) {
+            return chartInstance.options.plugins.title.text;
+        }
+        return '';
+    }
+
+    // Initial load: Filter labels from January of the current year
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-indexed
+    const filteredLabels = labels.filter(label => {
+        const [year, month] = label.split("-");
+        return parseInt(year) === currentYear && parseInt(month) - 1 <= currentMonth;
+    });
+
+    function filterDataSetForInitialLoad(dataSet) {
+        const result = {};
+        for (const key in dataSet) {
+            const originalArray = dataSet[key];
+            const filteredArray = filteredLabels.map(month => {
+                const idx = labels.indexOf(month);
+                return originalArray[idx] ?? 0;
+            });
+
+            if (filteredArray.some(val => val !== 0)) {
+                result[key] = filteredArray;
+            }
+        }
+        return result;
+    }
+
+    const selectedChartsInit = Array.from(document.getElementById("chartSelect").selectedOptions).map(opt => opt.value);
+
+    if (selectedChartsInit.includes("revenueChart")) {
+        buildChart('revenueChart', 'Total Amount Received per Sales Person', 'Revenue (USD)', filterDataSetForInitialLoad(allData.revenue), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("invoiceChart")) {
+        buildChart('invoiceChart', 'Total Invoice Amount per Sales Person', 'Invoice Amount (USD)', filterDataSetForInitialLoad(allData.invoice), filteredLabels);
+    }
+
+    if (selectedChartsInit.includes("statusChart")) {
+        buildChart('statusChart', 'Project Status Breakdown', 'Number of Projects', filterDataSetForInitialLoad(allData.status), filteredLabels, "Project Status");
+    }
+
+    if (selectedChartsInit.includes("completedInstallerChart")) {
+        buildChart('completedInstallerChart', 'Projects Completed per Lead Installer', 'Completed Projects', filterDataSetForInitialLoad(allData.completed_per_installer), filteredLabels, "Lead Installer");
+    }
+
+    if (selectedChartsInit.includes("kvaChart")) {
+        buildChart('kvaChart', 'Total kVA per Lead Installer', 'kVA', filterDataSetForInitialLoad(allData.kva_per_installer), filteredLabels, "Lead Installer");
+    }
+
+    if (selectedChartsInit.includes("kwhChart")) {
+        buildChart('kwhChart', 'Total kWh per Lead Installer', 'kWh', filterDataSetForInitialLoad(allData.kwh_per_installer), filteredLabels, "Lead Installer");
+    }
+
+    if (selectedChartsInit.includes("kwpChart")) {
+        buildChart('kwpChart', 'Total kWp per Lead Installer', 'kWp', filterDataSetForInitialLoad(allData.kwp_per_installer), filteredLabels, "Lead Installer");
+    }
+
+    // With this:
+    if (selectedChartsInit.includes("totalRevenueChart")) {
+        // Transform the revenue_summary_by_month data to match expected format
+        const revenueData = {};
+        for (const month in allData.revenue_summary_by_month) {
+            if (filteredLabels.includes(month)) {
+                revenueData[month] = [
+                    allData.revenue_summary_by_month[month]["Invoice Amount"],
+                    allData.revenue_summary_by_month[month]["Amount Paid"]
+                ];
+            }
+        }
+        createRevenueSummaryChart("totalRevenueChart", "Total Revenue Breakdown", "Amount (USD)", revenueData, filteredLabels);
+    }
+
+    // With this:
+    if (selectedChartsInit.includes("installedCapacitiesChart")) {
+        createInstalledCapacitiesChart("installedCapacitiesChart", "Installed Capacities Breakdown", "Capacity", allData.installed_capacities, filteredLabels);
+    }
+
+</script>
+
+</body>
+</html>

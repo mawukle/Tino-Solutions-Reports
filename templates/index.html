@@ -110,7 +110,8 @@
             <div class="card">
                 <h3>Reports Dashboard</h3>
                 <p>View graphical representations of sales and project data</p>
-                <a href="{{ url_for('reports') }}">View Reports</a>
+                <!-- Change this line in the Reports card -->
+                <a href="#" onclick="viewReports()">View Reports</a>
             </div>
 
             <!-- Daily Tasks - Available to all -->
@@ -192,6 +193,19 @@
             } else {
                 alert("Incorrect access code. Please try again.");
                 document.getElementById('supervisorCode').value = '';
+            }
+        }
+
+        function viewReports() {
+            // Check if supervisor access is unlocked
+            const supervisorUnlocked = !document.getElementById('supervisorCards').classList.contains('hidden');
+
+            if (supervisorUnlocked) {
+                // If supervisor access is unlocked, go to /reports
+                window.location.href = "{{ url_for('reports') }}";
+            } else {
+                // Otherwise, go to /install_reports (which will be handled by the same route)
+                window.location.href = "/install_reports";
             }
         }
 
