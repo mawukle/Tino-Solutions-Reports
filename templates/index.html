@@ -135,13 +135,6 @@
                 <a href="#" onclick="viewProjects()">View Projects</a>
             </div>
 
-            <!-- Client Maps - Available to all -->
-            <div class="card">
-                <h3>Client Locations</h3>
-                <p>View client locations on an interactive map</p>
-                <a href="{{ url_for('client_map') }}">View Map</a>
-            </div>
-
             <!-- Supervisor-only cards (visible but locked by default) -->
             <div class="card locked" id="teamAssignmentCard">
                 <h3>Team Assignment</h3>
@@ -159,6 +152,13 @@
                 <h3>Client Details</h3>
                 <p>View client billing and payment information</p>
                 <a href="#" onclick="checkAccessThenRedirect('{{ url_for('get_bdu') }}')">View BDU</a>
+            </div>
+
+            <!-- Client Maps - Moved to password-protected section -->
+            <div class="card locked" id="clientLocationsCard">
+                <h3>Client Locations</h3>
+                <p>View client locations on an interactive map</p>
+                <a href="#" onclick="checkAccessThenRedirect('{{ url_for('client_map') }}')">View Map</a>
             </div>
         </div>
 
