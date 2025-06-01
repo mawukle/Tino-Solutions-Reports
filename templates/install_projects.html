@@ -86,11 +86,9 @@
                     <tr>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
-                        <th>Project Folder</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,15 +96,9 @@
                     <tr data-id="{{ project.project_id }}">
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
                         <td>{{ project.commissioning_date }}</td>
-                        <td>
-                            {% if project.folder_link %}
-                                <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
-                            {% endif %}
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -121,11 +113,9 @@
                     <tr>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
-                        <th>Project Folder</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -133,15 +123,9 @@
                     <tr data-id="{{ project.project_id }}">
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
                         <td>{{ project.commissioning_date }}</td>
-                        <td>
-                            {% if project.folder_link %}
-                                <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
-                            {% endif %}
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -156,11 +140,9 @@
                     <tr>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
-                        <th>Project Folder</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,15 +150,9 @@
                     <tr data-id="{{ project.project_id }}">
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
                         <td>{{ project.commissioning_date }}</td>
-                        <td>
-                            {% if project.folder_link %}
-                                <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
-                            {% endif %}
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
