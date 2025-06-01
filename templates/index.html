@@ -132,7 +132,7 @@
             <div class="card">
                 <h3>Projects</h3>
                 <p>View project timelines and status</p>
-                <a href="{{ url_for('get_projects') }}">View Projects</a>
+                <a href="#" onclick="viewProjects()">View Projects</a>
             </div>
 
             <!-- Client Maps - Available to all -->
@@ -211,6 +211,14 @@
                 window.location.href = "{{ url_for('reports') }}";
             } else {
                 window.location.href = "{{ url_for('reports', _external=True) }}".replace('/reports', '/install_reports');
+            }
+        }
+
+        function viewProjects() {
+            if (supervisorUnlocked) {
+                window.location.href = "{{ url_for('get_projects') }}";
+            } else {
+                window.location.href = "{{ url_for('get_projects', _external=True) }}".replace('/projects', '/install_projects');
             }
         }
 
