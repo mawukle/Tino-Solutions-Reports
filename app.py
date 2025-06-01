@@ -3787,17 +3787,19 @@ from flask import request, render_template
 from datetime import datetime, timedelta
 import logging
 
+@app.route('/install_projects', methods=['GET'])
 @app.route('/projects', methods=['GET'])
 def get_projects():
     message = request.args.get('message', '')
+    is_installer_view = request.path == '/install_projects'  # Check which endpoint was called
 
     # Retrieve filter values from request arguments
     start_date_from = request.args.get('start_date_from', '')
     start_date_to = request.args.get('start_date_to', '')
-    search_query = request.args.get('search_query', '').strip().lower()  # Get the search input
+    search_query = request.args.get('search_query', '').strip().lower()
 
     try:
-        # Base query
+        # Base query (same as your existing code)
         query = db.session.query(
             projects.project_id,
             projects.client_name,
@@ -3815,11 +3817,11 @@ def get_projects():
             projects.outstanding_balance,
             projects.expected_final_payment_date,
             projects.comment,
-            projects.folder_has_files,  # <-- Add this line
-            projects.google_folder_id  # <-- add this line
+            projects.folder_has_files,
+            projects.google_folder_id
         ).distinct()
 
-        # Apply date filters if provided
+        # Apply filters (same as your existing code)
         if start_date_from:
             start_date_from = datetime.strptime(start_date_from, '%Y-%m-%d')
             query = query.filter(projects.start_date >= start_date_from)
@@ -3828,7 +3830,6 @@ def get_projects():
             start_date_to = datetime.strptime(start_date_to, '%Y-%m-%d')
             query = query.filter(projects.start_date <= start_date_to)
 
-        # Apply search filter
         if search_query:
             query = query.filter(
                 (projects.client_name.ilike(f"%{search_query}%")) |
@@ -3849,7 +3850,6 @@ def get_projects():
         ongoing_projects = []
         completed_projects = []
 
-
         for project in projects_list:
             def format_date(date_value):
                 if date_value in [None, "0000-00-00"]:
@@ -3863,12 +3863,10 @@ def get_projects():
             expected_payment_date = format_date(project.expected_final_payment_date)
 
             folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
+            folder_id = project.google_folder_id
 
-            folder_id = project.google_folder_id  # Ensure this attribute exists
-
-            # Only trigger Celery task if folder hasn't been checked yet (None or False)
+            # Only trigger Celery task if folder hasn't been checked yet
             should_check_folder = folder_id and (project.folder_has_files is None or project.folder_has_files == 0)
-
             if should_check_folder:
                 update_folder_has_files.delay(project.project_id, folder_id)
 
@@ -3896,7 +3894,7 @@ def get_projects():
                 "comment": project.comment or ''
             }
 
-            # Categorize
+            # Categorize projects
             if project_data["client_name"] and project_data["town"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
                 new_projects.append(project_data)
             elif project_data["commissioning_date"] and project_data["start_date"]:
@@ -3904,28 +3902,36 @@ def get_projects():
             elif project_data["lead_installer"] and project_data["start_date"]:
                 ongoing_projects.append(project_data)
 
-        # Sort Ongoing Projects by most recent Start Date
+        # Sort projects
         ongoing_projects.sort(key=lambda x: x["start_date"], reverse=True)
-
-        # Sort Completed Projects by most recent Commissioning Date
         completed_projects.sort(key=lambda x: x["commissioning_date"], reverse=True)
 
+        # Determine which template to render
+        template_name = 'install_projects.html' if is_installer_view else 'projects.html'
+
         return render_template(
-            'projects.html',
+            template_name,
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
             team_members=team_members,
             message=message,
-            search_query=search_query,  # Pass search term back to template
+            search_query=search_query,
             start_date_from=start_date_from,
             start_date_to=start_date_to
         )
 
     except Exception as e:
         logging.error(f"Error fetching projects: {e}")
-        return render_template('projects.html', message='Database query failed', new_projects=[], ongoing_projects=[], completed_projects=[], team_members=[])
-
+        template_name = 'install_projects.html' if is_installer_view else 'projects.html'
+        return render_template(
+            template_name,
+            message='Database query failed',
+            new_projects=[],
+            ongoing_projects=[],
+            completed_projects=[],
+            team_members=[]
+        )
 
 
 @app.route('/update_projects', methods=['POST'])
