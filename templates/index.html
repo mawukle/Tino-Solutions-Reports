@@ -188,8 +188,8 @@
                 // Append supervisor cards to the main dashboard
                 document.getElementById('mainDashboard').appendChild(supervisorCards.children[0]);
 
-                // Remove the now-empty supervisorCards div
-                supervisorCards.remove();
+                // Store in sessionStorage that supervisor access is granted
+                sessionStorage.setItem('supervisorAccess', 'true');
             } else {
                 alert("Incorrect access code. Please try again.");
                 document.getElementById('supervisorCode').value = '';
@@ -197,8 +197,8 @@
         }
 
         function viewReports() {
-            // Check if supervisor access is unlocked
-            const supervisorUnlocked = !document.getElementById('supervisorCards').classList.contains('hidden');
+            // Check if supervisor access is unlocked from sessionStorage
+            const supervisorUnlocked = sessionStorage.getItem('supervisorAccess') === 'true';
 
             if (supervisorUnlocked) {
                 // If supervisor access is unlocked, go to /reports
@@ -208,7 +208,7 @@
                 window.location.href = "/install_reports";
             }
         }
-
+        
         // Optional: Allow pressing Enter to submit the code
         document.getElementById('supervisorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
