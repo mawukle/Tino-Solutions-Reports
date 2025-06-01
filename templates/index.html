@@ -120,12 +120,6 @@
                 <a href="{{ url_for('assign_job') }}">Go to Tasks</a>
             </div>
 
-            <!-- Client Details - Available to all -->
-            <div class="card">
-                <h3>Client Details</h3>
-                <p>View client billing and payment information</p>
-                <a href="{{ url_for('get_bdu') }}">View BDU</a>
-            </div>
 
             <!-- Projects - Available to all -->
             <div class="card">
@@ -164,6 +158,12 @@
                     <p>Create database entries for new clients</p>
                     <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
                 </div>
+                <div class="card">
+                    <h3>Client Details</h3>
+                    <p>View client billing and payment information</p>
+                    <a href="{{ url_for('get_bdu') }}">View BDU</a>
+                </div>
+
             </div>
         </div>
     </div>
