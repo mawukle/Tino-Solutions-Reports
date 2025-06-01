@@ -1,10 +1,10 @@
-is there any inclination error:
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... (keep your existing head content) ... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage - Tino Solutions Limited</title>
     <style>
-        /* ... (keep your existing styles) ... */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -95,12 +95,17 @@ is there any inclination error:
         .supervisor-access button:hover {
             background-color: #27ae60;
         }
-        .hidden {
-            display: none;
+        .locked {
+            opacity: 0.7;
+            position: relative;
         }
-
-        /* Remove the supervisor cards separator style */
-        /* No need for #supervisorCards .dashboard styles anymore */
+        .locked::after {
+            content: "🔒";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -137,28 +142,28 @@ is there any inclination error:
                 <a href="{{ url_for('client_map') }}">View Map</a>
             </div>
 
-            <!-- Supervisor-only cards (hidden by default) -->
-            <div class="card supervisor-card hidden">
+            <!-- Supervisor-only cards (visible but locked by default) -->
+            <div class="card locked" id="teamAssignmentCard">
                 <h3>Team Assignment</h3>
                 <p>Assign tasks to employees</p>
-                <a href="{{ url_for('assign_teams') }}">Assign Teams</a>
+                <a href="#" onclick="checkAccessThenRedirect('{{ url_for('assign_teams') }}')">Assign Teams</a>
             </div>
 
-            <div class="card supervisor-card hidden">
+            <div class="card locked" id="newClientCard">
                 <h3>New Client Entry</h3>
                 <p>Create database entries for new clients</p>
-                <a href="{{ url_for('newClient_entryForm') }}">New Client Form</a>
+                <a href="#" onclick="checkAccessThenRedirect('{{ url_for('newClient_entryForm') }}')">New Client Form</a>
             </div>
 
-            <div class="card supervisor-card hidden">
+            <div class="card locked" id="clientDetailsCard">
                 <h3>Client Details</h3>
                 <p>View client billing and payment information</p>
-                <a href="{{ url_for('get_bdu') }}">View BDU</a>
+                <a href="#" onclick="checkAccessThenRedirect('{{ url_for('get_bdu') }}')">View BDU</a>
             </div>
         </div>
 
         <!-- Supervisor Access Section -->
-        <div class="supervisor-access" id="supervisorAccessSection">
+        <div class="supervisor-access">
             <h3>Supervisor Access</h3>
             <p>Enter access code to unlock supervisor features</p>
             <input type="password" id="supervisorCode" placeholder="Enter access code">
@@ -169,32 +174,39 @@ is there any inclination error:
     <script>
         // Default supervisor access code
         const SUPERVISOR_CODE = "1234";
+        let supervisorUnlocked = false;
 
         function checkSupervisorAccess() {
             const enteredCode = document.getElementById('supervisorCode').value;
-            const supervisorAccessSection = document.getElementById('supervisorAccessSection');
 
             if (enteredCode === SUPERVISOR_CODE) {
-                // Hide the access section
-                supervisorAccessSection.classList.add('hidden');
-
-                // Show all supervisor cards
-                document.querySelectorAll('.supervisor-card').forEach(card => {
-                    card.classList.remove('hidden');
-                });
-
-                // Store in sessionStorage that supervisor access is granted
-                sessionStorage.setItem('supervisorAccess', 'true');
+                supervisorUnlocked = true;
+                unlockSupervisorCards();
+                alert("Supervisor access granted!");
+                document.getElementById('supervisorCode').value = '';
             } else {
                 alert("Incorrect access code. Please try again.");
                 document.getElementById('supervisorCode').value = '';
             }
         }
 
-        function viewReports() {
-            // Check if supervisor access is unlocked from sessionStorage
-            const supervisorUnlocked = sessionStorage.getItem('supervisorAccess') === 'true';
+        function unlockSupervisorCards() {
+            const lockedCards = document.querySelectorAll('.locked');
+            lockedCards.forEach(card => {
+                card.classList.remove('locked');
+                card.style.opacity = '1';
+            });
+        }
 
+        function checkAccessThenRedirect(url) {
+            if (supervisorUnlocked) {
+                window.location.href = url;
+            } else {
+                alert("Please enter the supervisor access code first.");
+            }
+        }
+
+        function viewReports() {
             if (supervisorUnlocked) {
                 window.location.href = "{{ url_for('reports') }}";
             } else {
@@ -206,16 +218,6 @@ is there any inclination error:
         document.getElementById('supervisorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkSupervisorAccess();
-            }
-        });
-
-        // On page load, check if supervisor access was previously granted
-        document.addEventListener('DOMContentLoaded', function() {
-            if (sessionStorage.getItem('supervisorAccess') === 'true') {
-                document.getElementById('supervisorAccessSection').classList.add('hidden');
-                document.querySelectorAll('.supervisor-card').forEach(card => {
-                    card.classList.remove('hidden');
-                });
             }
         });
     </script>
