@@ -84,10 +84,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
@@ -98,16 +96,8 @@
                 <tbody>
                     {% for project in new_projects %}
                     <tr data-id="{{ project.project_id }}">
-                        <td>
-                            {% if project.invoice_image_url %}
-                                <a href="{{ project.invoice_image_url }}" target="_blank">
-                                    <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
-                                </a>
-                            {% endif %}
-                        </td>
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.phone_number }}</td>
                         <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
@@ -129,10 +119,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
@@ -143,16 +131,8 @@
                 <tbody>
                     {% for project in ongoing_projects %}
                     <tr data-id="{{ project.project_id }}">
-                        <td>
-                            {% if project.invoice_image_url %}
-                                <a href="{{ project.invoice_image_url }}" target="_blank">
-                                    <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
-                                </a>
-                            {% endif %}
-                        </td>
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.phone_number }}</td>
                         <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
@@ -174,10 +154,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
-                        <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
                         <th>Start Date</th>
@@ -188,16 +166,8 @@
                 <tbody>
                     {% for project in completed_projects %}
                     <tr data-id="{{ project.project_id }}">
-                        <td>
-                            {% if project.invoice_image_url %}
-                                <a href="{{ project.invoice_image_url }}" target="_blank">
-                                    <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
-                                </a>
-                            {% endif %}
-                        </td>
                         <td>{{ project.client_name }}</td>
                         <td>{{ project.town }}</td>
-                        <td>{{ project.phone_number }}</td>
                         <td>{{ project.sales_person }}</td>
                         <td>{{ project.lead_installer }}</td>
                         <td>{{ project.start_date }}</td>
@@ -214,7 +184,7 @@
         </div>
     </div>
 
-    <!-- Image Modal -->
+    <!-- Image Modal (kept in case needed for other images) -->
     <div id="imageModal" class="modal">
         <span class="close">&times;</span>
         <img class="modal-content" id="fullImage">
