@@ -2317,25 +2317,35 @@ def autocomplete_client():
     term = request.args.get('term', '')
 
     try:
-        # Properly format the term for SQL LIKE
         search_term = f"%{term}%"
 
-        # Use SQLAlchemy to query the database
-        client_names = (
+        # Query both Client_List and projects tables
+        client_names_from_list = (
             db.session.query(Client_List.Client_Name)
             .filter(Client_List.Client_Name.like(search_term))
-            .limit(10)
+            .distinct()
+            .limit(5)
             .all()
         )
 
-        # Flatten the list of tuples into a list of names
-        client_name_list = [client[0] for client in client_names]
+        client_names_from_projects = (
+            db.session.query(projects.client_name)
+            .filter(projects.client_name.like(search_term))
+            .distinct()
+            .limit(5)
+            .all()
+        )
+
+        # Combine and deduplicate results
+        combined_names = [client[0] for client in client_names_from_list] + \
+                        [client[0] for client in client_names_from_projects]
+        unique_names = list(set(combined_names))[:10]  # Get top 10 unique names
 
     except Exception as e:
         logging.error(f"Error during autocomplete_client query: {e}")
-        client_name_list = []
+        unique_names = []
 
-    return jsonify(client_name_list)
+    return jsonify(unique_names)
 
 """
 @app.route('/autocomplete_client', methods=['GET'])
@@ -2848,13 +2858,26 @@ def assign_teams():
 def get_client_details():
     client_name = request.args.get('client_name')
     try:
-        # Query to get the town and phone number based on the client name
-        result = Client_List.query.filter_by(Client_Name=client_name).first()
+        # First try to get details from Client_List
+        client_list_result = Client_List.query.filter_by(Client_Name=client_name).first()
 
-        if result:
-            return jsonify({'town': result.Town, 'phone_number': result.Phone_Number})
-        else:
-            return jsonify({'town': '', 'phone_number': ''})
+        if client_list_result:
+            return jsonify({
+                'town': client_list_result.Town,
+                'phone_number': client_list_result.Phone_Number
+            })
+
+        # If not found in Client_List, try projects table
+        project_result = projects.query.filter_by(client_name=client_name).first()
+
+        if project_result:
+            return jsonify({
+                'town': project_result.town,
+                'phone_number': project_result.phone_number
+            })
+
+        # If not found in either table
+        return jsonify({'town': '', 'phone_number': ''})
 
     except Exception as e:
         logging.error(f"Error fetching client details: {e}")
@@ -2862,7 +2885,7 @@ def get_client_details():
 
     finally:
         db.session.close()
-
+        
 """
 @app.route('/get_client_details', methods=['GET'])
 def get_client_details():
