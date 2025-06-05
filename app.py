@@ -2885,7 +2885,7 @@ def get_client_details():
 
     finally:
         db.session.close()
-        
+
 """
 @app.route('/get_client_details', methods=['GET'])
 def get_client_details():
@@ -5001,6 +5001,147 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
+
+
+@app.route('/get_support_cases')
+def get_support_cases():
+    try:
+        cases = db.session.query(
+            support_cases.case_id,
+            support_cases.project_id,
+            support_cases.client_name,
+            support_cases.town,
+            support_cases.phone_number,
+            support_cases.issue_description,
+            support_cases.reported_date,
+            support_cases.resolved_date,
+            support_cases.status,
+            support_cases.priority,
+            support_cases.assigned_to,
+            support_cases.resolution_notes,
+            projects.client_name.label('project_client_name')
+        ).outerjoin(projects, support_cases.project_id == projects.project_id).all()
+
+        cases_list = []
+        for case in cases:
+            cases_list.append({
+                "case_id": case.case_id,
+                "project_id": case.project_id,
+                "client_name": case.client_name or (case.project_client_name if case.project_id else 'External System'),
+                "town": case.town,
+                "phone_number": case.phone_number,
+                "issue_description": case.issue_description,
+                "reported_date": case.reported_date.strftime('%Y-%m-%d') if case.reported_date else '',
+                "resolved_date": case.resolved_date.strftime('%Y-%m-%d') if case.resolved_date else '',
+                "status": case.status,
+                "priority": case.priority,
+                "assigned_to": case.assigned_to,
+                "resolution_notes": case.resolution_notes,
+                "is_project_case": case.project_id is not None
+            })
+
+        return jsonify(cases_list)
+    except Exception as e:
+        logging.error(f"Error fetching support cases: {e}")
+        return jsonify([])
+
+@app.route('/get_project_visits/<int:project_id>')
+def get_project_visits(project_id):
+    try:
+        visits = db.session.query(
+            project_visits.visit_id,
+            project_visits.visit_date,
+            project_visits.visit_purpose,
+            project_visits.visit_notes,
+            project_visits.technician
+        ).filter(project_visits.project_id == project_id).order_by(project_visits.visit_date.desc()).all()
+
+        visits_list = []
+        for visit in visits:
+            visits_list.append({
+                "visit_id": visit.visit_id,
+                "visit_date": visit.visit_date.strftime('%Y-%m-%d'),
+                "visit_purpose": visit.visit_purpose,
+                "visit_notes": visit.visit_notes,
+                "technician": visit.technician
+            })
+
+        return jsonify(visits_list)
+    except Exception as e:
+        logging.error(f"Error fetching project visits: {e}")
+        return jsonify([])
+
+@app.route('/add_support_case', methods=['POST'])
+def add_support_case():
+    try:
+        data = request.json
+        new_case = support_cases(
+            project_id=data.get('project_id'),
+            client_name=data.get('client_name'),
+            town=data.get('town'),
+            phone_number=data.get('phone_number'),
+            issue_description=data.get('issue_description'),
+            reported_date=datetime.strptime(data.get('reported_date'), '%Y-%m-%d') if data.get('reported_date') else datetime.now().date(),
+            status=data.get('status', 'Open'),
+            priority=data.get('priority', 'Medium'),
+            assigned_to=data.get('assigned_to')
+        )
+        db.session.add(new_case)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Support case added successfully"})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding support case: {e}")
+        return jsonify({"success": False, "message": "Failed to add support case"})
+
+@app.route('/add_project_visit', methods=['POST'])
+def add_project_visit():
+    try:
+        data = request.json
+        new_visit = project_visits(
+            project_id=data['project_id'],
+            visit_date=datetime.strptime(data['visit_date'], '%Y-%m-%d').date(),
+            visit_purpose=data['visit_purpose'],
+            visit_notes=data.get('visit_notes', ''),
+            technician=data.get('technician')
+        )
+        db.session.add(new_visit)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Project visit added successfully"})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding project visit: {e}")
+        return jsonify({"success": False, "message": "Failed to add project visit"})
+
+@app.route('/update_support_case/<int:case_id>', methods=['POST'])
+def update_support_case(case_id):
+    try:
+        data = request.json
+        case = db.session.query(support_cases).filter(support_cases.case_id == case_id).first()
+        if not case:
+            return jsonify({"success": False, "message": "Case not found"})
+
+        if 'status' in data:
+            case.status = data['status']
+            if data['status'] == 'Resolved' and not case.resolved_date:
+                case.resolved_date = datetime.now().date()
+            elif data['status'] != 'Resolved':
+                case.resolved_date = None
+
+        if 'resolution_notes' in data:
+            case.resolution_notes = data['resolution_notes']
+        if 'assigned_to' in data:
+            case.assigned_to = data['assigned_to']
+        if 'priority' in data:
+            case.priority = data['priority']
+
+        db.session.commit()
+        return jsonify({"success": True, "message": "Case updated successfully"})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating support case: {e}")
+        return jsonify({"success": False, "message": "Failed to update case"})
+
 
 if __name__ == '__main__':
 
