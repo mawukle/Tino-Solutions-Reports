@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pymysql
-from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items, sales_by_item, projects  # Import db only once from models
+from models import db, Client_List, Items_List, Team_Members, Assigned_Teams, job_team_members, Job_Pictures, Team_Members_Assigned, Job_Tracking, client_items, sales_by_item, projects, support_cases, project_visits   # Import db only once from models
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 #from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, and_, func, literal_column, desc, select, distinct, create_engine, case, text, or_
@@ -2885,7 +2885,7 @@ def get_client_details():
 
     finally:
         db.session.close()
-        
+
 """
 @app.route('/get_client_details', methods=['GET'])
 def get_client_details():
@@ -5001,6 +5001,215 @@ def client_map():
         map_data.append(project_data)
 
     return render_template('client_map.html', map_data=map_data)
+
+
+
+
+@app.route('/get_support_cases', methods=['GET'])
+def get_support_cases():
+    try:
+        # Get filter parameters from request
+        reported_date_from = request.args.get('reported_date_from', '')
+        reported_date_to = request.args.get('reported_date_to', '')
+        status_filter = request.args.get('status_filter', '')
+        priority_filter = request.args.get('priority_filter', '')
+        search_query = request.args.get('search_query', '').strip().lower()
+
+        # Base query
+        query = db.session.query(support_cases)
+
+        # Apply filters
+        if reported_date_from:
+            reported_date_from = datetime.strptime(reported_date_from, '%Y-%m-%d')
+            query = query.filter(support_cases.reported_date >= reported_date_from)
+
+        if reported_date_to:
+            reported_date_to = datetime.strptime(reported_date_to, '%Y-%m-%d')
+            query = query.filter(support_cases.reported_date <= reported_date_to)
+
+        if status_filter:
+            query = query.filter(support_cases.status == status_filter)
+
+        if priority_filter:
+            query = query.filter(support_cases.priority == priority_filter)
+
+        if search_query:
+            query = query.filter(
+                (support_cases.client_name.ilike(f"%{search_query}%")) |
+                (support_cases.town.ilike(f"%{search_query}%")) |
+                (support_cases.phone_number.ilike(f"%{search_query}%")) |
+                (support_cases.issue_description.ilike(f"%{search_query}%")) |
+                (support_cases.assigned_to.ilike(f"%{search_query}%"))
+            )
+
+        # Execute query
+        cases = query.order_by(support_cases.reported_date.desc()).all()
+
+        # Get team members for dropdowns
+        team_members = db.session.query(Team_Members.Team_Member_Name).all()
+        team_members = [member.Team_Member_Name for member in team_members]
+
+        return render_template('support_and_visits.html',
+                            support_cases=cases,
+                            project_visits=[],
+                            team_members=team_members)
+
+    except Exception as e:
+        logging.error(f"Error fetching support cases: {e}")
+        return render_template('support_and_visits.html',
+                            support_cases=[],
+                            project_visits=[],
+                            team_members=[],
+                            message='Error loading support cases')
+
+@app.route('/get_project_visits', methods=['GET'])
+def get_project_visits():
+    try:
+        # Get filter parameters from request
+        visit_date_from = request.args.get('visit_date_from', '')
+        visit_date_to = request.args.get('visit_date_to', '')
+        purpose_filter = request.args.get('purpose_filter', '')
+        search_query = request.args.get('search_query', '').strip().lower()
+
+        # Base query
+        query = db.session.query(project_visits)
+
+        # Apply filters
+        if visit_date_from:
+            visit_date_from = datetime.strptime(visit_date_from, '%Y-%m-%d')
+            query = query.filter(project_visits.visit_date >= visit_date_from)
+
+        if visit_date_to:
+            visit_date_to = datetime.strptime(visit_date_to, '%Y-%m-%d')
+            query = query.filter(project_visits.visit_date <= visit_date_to)
+
+        if purpose_filter:
+            query = query.filter(project_visits.visit_purpose == purpose_filter)
+
+        if search_query:
+            query = query.filter(
+                (project_visits.technician.ilike(f"%{search_query}%")) |
+                (project_visits.visit_notes.ilike(f"%{search_query}%"))
+            )
+
+        # Execute query
+        visits = query.order_by(project_visits.visit_date.desc()).all()
+
+        # Get team members for dropdowns
+        team_members = db.session.query(Team_Members.Team_Member_Name).all()
+        team_members = [member.Team_Member_Name for member in team_members]
+
+        return render_template('support_and_visits.html',
+                            support_cases=[],
+                            project_visits=visits,
+                            team_members=team_members)
+
+    except Exception as e:
+        logging.error(f"Error fetching project visits: {e}")
+        return render_template('support_and_visits.html',
+                            support_cases=[],
+                            project_visits=[],
+                            team_members=[],
+                            message='Error loading project visits')
+
+@app.route('/update_support_cases', methods=['POST'])
+def update_support_cases():
+    try:
+        data = request.get_json()
+        cases = data.get('cases', [])
+
+        for case_data in cases:
+            if case_data.get('case_id'):
+                # Update existing case
+                case = support_cases.query.get(case_data['case_id'])
+                if case:
+                    case.project_id = case_data.get('project_id') or None
+                    case.client_name = case_data.get('client_name', '')
+                    case.town = case_data.get('town', '')
+                    case.phone_number = case_data.get('phone_number', '')
+                    case.issue_description = case_data.get('issue_description', '')
+                    case.reported_date = datetime.strptime(case_data['reported_date'], '%Y-%m-%d') if case_data.get('reported_date') else None
+                    case.resolved_date = datetime.strptime(case_data['resolved_date'], '%Y-%m-%d') if case_data.get('resolved_date') else None
+                    case.status = case_data.get('status', 'Open')
+                    case.priority = case_data.get('priority', 'Medium')
+                    case.assigned_to = case_data.get('assigned_to', '')
+                    case.resolution_notes = case_data.get('resolution_notes', '')
+            else:
+                # Create new case
+                new_case = support_cases(
+                    project_id=case_data.get('project_id') or None,
+                    client_name=case_data.get('client_name', ''),
+                    town=case_data.get('town', ''),
+                    phone_number=case_data.get('phone_number', ''),
+                    issue_description=case_data.get('issue_description', ''),
+                    reported_date=datetime.strptime(case_data['reported_date'], '%Y-%m-%d') if case_data.get('reported_date') else None,
+                    resolved_date=datetime.strptime(case_data['resolved_date'], '%Y-%m-%d') if case_data.get('resolved_date') else None,
+                    status=case_data.get('status', 'Open'),
+                    priority=case_data.get('priority', 'Medium'),
+                    assigned_to=case_data.get('assigned_to', ''),
+                    resolution_notes=case_data.get('resolution_notes', '')
+                )
+                db.session.add(new_case)
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Support cases updated successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating support cases: {e}")
+        return jsonify({'success': False, 'message': f'Error updating support cases: {str(e)}'}), 500
+
+@app.route('/update_project_visits', methods=['POST'])
+def update_project_visits():
+    try:
+        data = request.get_json()
+        visits = data.get('visits', [])
+
+        for visit_data in visits:
+            if visit_data.get('visit_id'):
+                # Update existing visit
+                visit = project_visits.query.get(visit_data['visit_id'])
+                if visit:
+                    visit.project_id = visit_data.get('project_id') or None
+                    visit.visit_date = datetime.strptime(visit_data['visit_date'], '%Y-%m-%d') if visit_data.get('visit_date') else None
+                    visit.visit_purpose = visit_data.get('visit_purpose', 'Other')
+                    visit.technician = visit_data.get('technician', '')
+                    visit.visit_notes = visit_data.get('visit_notes', '')
+            else:
+                # Create new visit
+                new_visit = project_visits(
+                    project_id=visit_data.get('project_id') or None,
+                    visit_date=datetime.strptime(visit_data['visit_date'], '%Y-%m-%d') if visit_data.get('visit_date') else None,
+                    visit_purpose=visit_data.get('visit_purpose', 'Other'),
+                    technician=visit_data.get('technician', ''),
+                    visit_notes=visit_data.get('visit_notes', '')
+                )
+                db.session.add(new_visit)
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Project visits updated successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating project visits: {e}")
+        return jsonify({'success': False, 'message': f'Error updating project visits: {str(e)}'}), 500
+
+# Add this route to serve the combined page
+@app.route('/support_and_visits', methods=['GET'])
+def support_and_visits():
+    # Get initial data for both tabs
+    team_members = db.session.query(Team_Members.Team_Member_Name).all()
+    team_members = [member.Team_Member_Name for member in team_members]
+
+    # Get recent support cases and visits
+    recent_cases = support_cases.query.order_by(support_cases.reported_date.desc()).limit(50).all()
+    recent_visits = project_visits.query.order_by(project_visits.visit_date.desc()).limit(50).all()
+
+    return render_template('support_and_visits.html',
+                        support_cases=recent_cases,
+                        project_visits=recent_visits,
+                        team_members=team_members)
+
 
 if __name__ == '__main__':
 
