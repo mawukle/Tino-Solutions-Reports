@@ -371,11 +371,11 @@
                         </select>
                     </td>
                     <td>
-                        <select class="priority-select priority-{{ case.priority.lower() }}">
-                            <option value="Critical" {% if case.priority == 'Critical' %}selected{% endif %}>Critical</option>
-                            <option value="High" {% if case.priority == 'High' %}selected{% endif %}>High</option>
-                            <option value="Medium" {% if case.priority == 'Medium' %}selected{% endif %}>Medium</option>
-                            <option value="Low" {% if case.priority == 'Low' %}selected{% endif %}>Low</option>
+                        <select class="priority-select priority-medium">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
                         </select>
                     </td>
                     <td>
