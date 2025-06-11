@@ -303,6 +303,16 @@
                 let saveButton = document.getElementById("save-support-changes");
                 saveButton.disabled = true;
 
+                // First update all row classes based on current status
+                document.querySelectorAll("#supportCases tbody tr").forEach(row => {
+                    const statusSelect = row.querySelector(".status-select");
+                    if (statusSelect) {
+                        row.className = row.className.replace(/\bstatus-\S+/g, '');
+                        row.classList.add(`status-${statusSelect.value.toLowerCase().replace(' ', '-')}`);
+                    }
+                });
+
+                // Then proceed with saving
                 let updatedCases = [];
                 document.querySelectorAll("#supportCases tbody tr").forEach(row => {
                     const caseID = row.getAttribute("data-id") || null;
@@ -348,6 +358,17 @@
                 })
                 .finally(() => {
                     saveButton.disabled = false;
+                });
+            });
+
+            // Add this inside your DOMContentLoaded event listener
+            document.querySelectorAll(".status-select").forEach(select => {
+                select.addEventListener("change", function() {
+                    const row = this.closest("tr");
+                    // Remove all existing status classes
+                    row.className = row.className.replace(/\bstatus-\S+/g, '');
+                    // Add the new status class
+                    row.classList.add(`status-${this.value.toLowerCase().replace(' ', '-')}`);
                 });
             });
 
@@ -408,6 +429,15 @@
                 `;
 
                 document.querySelector("#supportCases tbody").appendChild(newRow);
+
+                // Add status change listener to the new row
+                const statusSelect = newRow.querySelector(".status-select");
+                statusSelect.addEventListener("change", function() {
+                    const row = this.closest("tr");
+                    row.className = row.className.replace(/\bstatus-\S+/g, '');
+                    row.classList.add(`status-${this.value.toLowerCase().replace(' ', '-')}`);
+                });
+
 
                 // Add the event listener to the new row's resolved date input
                 const resolvedDateInput = newRow.querySelector("td:nth-child(8) input.date-input");
