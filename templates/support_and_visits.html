@@ -78,17 +78,20 @@
         .status-closed {
             background-color: #e2e3e5; /* Light gray for closed */
         }
-        .priority-badge {
+        .priority-select {
             padding: 2px 6px;
             border-radius: 10px;
             font-size: 0.8em;
             font-weight: bold;
+            border: none;
+            outline: none;
+            width: 100%;
         }
-        .priority-critical { background-color: #dc3545; color: white; }
-        .priority-high { background-color: #fd7e14; color: white; }
-        .priority-medium { background-color: #ffc107; }
-        .priority-low { background-color: #28a745; color: white; }
-    </style>
+
+        .priority-select.priority-critical { background-color: #dc3545; color: white; }
+        .priority-select.priority-high { background-color: #fd7e14; color: white; }
+        .priority-select.priority-medium { background-color: #ffc107; }
+        .priority-select.priority-low { background-color: #28a745; color: white; }    </style>
 </head>
 <body>
     <div class="container_1">
@@ -319,11 +322,10 @@
                         reported_date: dateInputs[0]?.value || null,
                         resolved_date: dateInputs[1]?.value || null,
                         status: statusSelect?.value || "Open",
-                        priority: prioritySelect?.value || "Medium",
+                        priority: row.querySelector('.priority-select')?.value || "Medium",  // This line gets the priority
                         assigned_to: assignedToSelect?.value || null,
                         resolution_notes: cells[5]?.innerText.trim() || ""
                     };
-
                     updatedCases.push(caseData);
                 });
 
@@ -369,7 +371,7 @@
                         </select>
                     </td>
                     <td>
-                        <select class="priority-select">
+                        <select class="priority-select priority-medium">
                             <option value="Low">Low</option>
                             <option value="Medium" selected>Medium</option>
                             <option value="High">High</option>
@@ -432,6 +434,26 @@
                     saveButton.disabled = false;
                 });
             });
+
+            // Add this to your DOMContentLoaded event listener
+            document.querySelectorAll('.priority-select').forEach(select => {
+                // Set initial class based on selected value
+                updatePriorityClass(select);
+
+                // Update class when selection changes
+                select.addEventListener('change', function() {
+                    updatePriorityClass(this);
+                });
+            });
+
+            function updatePriorityClass(selectElement) {
+                // Remove all priority classes
+                selectElement.classList.remove('priority-critical', 'priority-high', 'priority-medium', 'priority-low');
+
+                // Add the appropriate class based on current value
+                const priority = selectElement.value.toLowerCase();
+                selectElement.classList.add(`priority-${priority}`);
+            }
 
             // Add new Project Visit
             document.getElementById("add-project-visit").addEventListener("click", () => {
