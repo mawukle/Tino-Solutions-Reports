@@ -164,7 +164,7 @@
                     </thead>
                     <tbody>
                         {% for case in support_cases %}
-                        <tr data-id="{{ case.case_id }}" class="status-{{ case.status.lower().replace(' ', '-') }}">
+                        <tr data-id="{{ case.case_id }}" class="status-{{ case.status.strip().lower().replace(' ', '-') }}">
                             <td>{{ case.case_id }}</td>
                             <td contenteditable="true">{{ case.project_id if case.project_id else '' }}</td>
                             <td contenteditable="true">{{ case.client_name }}</td>
