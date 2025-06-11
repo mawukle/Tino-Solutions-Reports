@@ -66,14 +66,28 @@
             border: 1px solid #ccc;
             border-top: none;
         }
-        .status-open { background-color: #ffcccc; }
-        .status-in-progress { background-color: #ffffcc; }
-        .status-resolved { background-color: #ccffcc; }
-        .status-closed { background-color: #cccccc; }
-        .priority-critical { background-color: #ff0000; color: white; }
-        .priority-high { background-color: #ff6666; }
-        .priority-medium { background-color: #ffff99; }
-        .priority-low { background-color: #ccffcc; }
+        .status-open {
+            background-color: #ffcccc; /* Light red for open cases */
+        }
+        .status-in-progress {
+            background-color: #fff3cd; /* Light yellow for in-progress */
+        }
+        .status-resolved {
+            background-color: #d4edda; /* Light green for resolved */
+        }
+        .status-closed {
+            background-color: #e2e3e5; /* Light gray for closed */
+        }
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .priority-critical { background-color: #dc3545; color: white; }
+        .priority-high { background-color: #fd7e14; color: white; }
+        .priority-medium { background-color: #ffc107; }
+        .priority-low { background-color: #28a745; color: white; }
     </style>
 </head>
 <body>
@@ -135,10 +149,10 @@
                             <th>Project ID</th>
                             <th>Client Name</th>
                             <th>Town</th>
-                            <th>Phone Number</th>
-                            <th>Issue Description</th>
-                            <th>Reported Date</th>
-                            <th>Resolved Date</th>
+                            <th>Phone</th>
+                            <th>Issue</th>
+                            <th>Reported</th>
+                            <th>Resolved</th>
                             <th>Status</th>
                             <th>Priority</th>
                             <th>Assigned To</th>
@@ -147,7 +161,7 @@
                     </thead>
                     <tbody>
                         {% for case in support_cases %}
-                        <tr data-id="{{ case.case_id }}" class="status-{{ case.status.lower().replace(' ', '-') }} priority-{{ case.priority.lower() }}">
+                        <tr data-id="{{ case.case_id }}" class="status-{{ case.status.lower().replace(' ', '-') }}">
                             <td>{{ case.case_id }}</td>
                             <td contenteditable="true">{{ case.project_id if case.project_id else '' }}</td>
                             <td contenteditable="true">{{ case.client_name }}</td>
@@ -165,12 +179,9 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="priority-select">
-                                    <option value="Low" {% if case.priority == 'Low' %}selected{% endif %}>Low</option>
-                                    <option value="Medium" {% if case.priority == 'Medium' %}selected{% endif %}>Medium</option>
-                                    <option value="High" {% if case.priority == 'High' %}selected{% endif %}>High</option>
-                                    <option value="Critical" {% if case.priority == 'Critical' %}selected{% endif %}>Critical</option>
-                                </select>
+                                <span class="priority-badge priority-{{ case.priority.lower() }}">
+                                    {{ case.priority }}
+                                </span>
                             </td>
                             <td>
                                 <select class="assigned-to-select">
