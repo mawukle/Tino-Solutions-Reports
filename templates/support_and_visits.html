@@ -387,8 +387,14 @@
                     <td contenteditable="true"></td>
                 `;
                 document.querySelector("#supportCases tbody").appendChild(newRow);
-            });
 
+                // Initialize the new priority select
+                const newPrioritySelect = newRow.querySelector('.priority-select');
+                newPrioritySelect.addEventListener('change', function() {
+                    updatePriorityClass(this);
+                });
+            });
+            
             // Save Project Visits changes
             document.getElementById("save-visit-changes").addEventListener("click", () => {
                 let saveButton = document.getElementById("save-visit-changes");
@@ -435,7 +441,7 @@
                 });
             });
 
-            // Add this to your DOMContentLoaded event listener
+            // Initialize priority selects on page load
             document.querySelectorAll('.priority-select').forEach(select => {
                 // Set initial class based on selected value
                 updatePriorityClass(select);
