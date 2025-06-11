@@ -348,6 +348,26 @@
                 });
             });
 
+            // Add event listeners for resolved date changes
+            document.querySelectorAll("#supportCases tbody tr").forEach(row => {
+                const resolvedDateInput = row.querySelector("td:nth-child(8) input.date-input");
+                const statusSelect = row.querySelector(".status-select");
+
+                if (resolvedDateInput && statusSelect) {
+                    resolvedDateInput.addEventListener("change", function() {
+                        if (this.value && statusSelect.value !== "Closed") {
+                            statusSelect.value = "Resolved";
+
+                            // Update the row's status class
+                            const row = this.closest("tr");
+                            row.className = row.className.replace(/\bstatus-\S+/g, '');
+                            row.classList.add("status-resolved");
+                        }
+                    });
+                }
+            });
+
+
             // Add new Support Case
             document.getElementById("add-support-case").addEventListener("click", () => {
                 const newRow = document.createElement("tr");
@@ -384,9 +404,24 @@
                     </td>
                     <td contenteditable="true"></td>
                 `;
-                document.querySelector("#supportCases tbody").appendChild(newRow);
-            });
 
+                document.querySelector("#supportCases tbody").appendChild(newRow);
+
+                // Add the event listener to the new row's resolved date input
+                const resolvedDateInput = newRow.querySelector("td:nth-child(8) input.date-input");
+                const statusSelect = newRow.querySelector(".status-select");
+
+                resolvedDateInput.addEventListener("change", function() {
+                    if (this.value && statusSelect.value !== "Closed") {
+                        statusSelect.value = "Resolved";
+
+                        // Update the row's status class
+                        const row = this.closest("tr");
+                        row.className = row.className.replace(/\bstatus-\S+/g, '');
+                        row.classList.add("status-resolved");
+                    }
+                });
+            });
             // Save Project Visits changes
             document.getElementById("save-visit-changes").addEventListener("click", () => {
                 let saveButton = document.getElementById("save-visit-changes");
