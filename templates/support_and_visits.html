@@ -66,18 +66,29 @@
             border: 1px solid #ccc;
             border-top: none;
         }
-        .status-open {
+
+        /* Updated status row coloring - removed !important and made more specific */
+        #supportCases tbody tr.status-open {
             background-color: #ffcccc; /* Light red for open cases */
         }
-        .status-in-progress {
+        #supportCases tbody tr.status-in-progress {
             background-color: #fff3cd; /* Light yellow for in-progress */
         }
-        .status-resolved {
+        #supportCases tbody tr.status-resolved {
             background-color: #d4edda; /* Light green for resolved */
         }
-        .status-closed {
+        #supportCases tbody tr.status-closed {
             background-color: #e2e3e5; /* Light gray for closed */
         }
+
+        /* Remove default alternating row colors */
+        #supportCases tbody tr:nth-child(even) {
+            background-color: inherit;
+        }
+        #supportCases tbody tr:nth-child(odd) {
+            background-color: inherit;
+        }
+
         .priority-select {
             padding: 2px 6px;
             border-radius: 10px;
@@ -91,7 +102,8 @@
         .priority-select.priority-critical { background-color: #dc3545; color: white; }
         .priority-select.priority-high { background-color: #fd7e14; color: white; }
         .priority-select.priority-medium { background-color: #ffc107; }
-        .priority-select.priority-low { background-color: #28a745; color: white; }    </style>
+        .priority-select.priority-low { background-color: #28a745; color: white; }
+    </style>
 </head>
 <body>
     <div class="container_1">
