@@ -5136,13 +5136,13 @@ def search_clients():
     try:
         # Search projects
         projects = db.session.query(
-            Projects.project_id,
-            Projects.client_name,
-            Projects.town,
-            Projects.phone_number,
-            Projects.invoice_image_url
+            projects.project_id,
+            projects.client_name,
+            projects.town,
+            projects.phone_number,
+            projects.invoice_image_url
         ).filter(
-            Projects.client_name.ilike(f"%{term}%")
+            projects.client_name.ilike(f"%{term}%")
         ).limit(10).all()
 
         # Search client list
