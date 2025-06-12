@@ -38,70 +38,32 @@
         .message {
             color: red;
         }
-        .tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            margin-bottom: 20px;
-        }
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-        }
-        .tab button:hover {
-            background-color: #ddd;
-        }
-        .tab button.active {
-            background-color: #85BB65;
-            color: white;
-        }
-        .tabcontent {
-            display: none;
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            border-top: none;
-        }
-        /* Replace your existing status classes with these: */
-        #supportCases table tbody tr.status-open {
+        /* Status color classes */
+        table tbody tr.status-open {
             background-color: #ffcccc !important; /* Light red for open cases */
         }
-
-        #supportCases table tbody tr.status-in-progress {
+        table tbody tr.status-in-progress {
             background-color: #fff3cd !important; /* Light yellow for in-progress */
         }
-
-        #supportCases table tbody tr.status-resolved {
+        table tbody tr.status-resolved {
             background-color: #d4edda !important; /* Light green for resolved */
         }
-
-        #supportCases table tbody tr.status-closed {
+        table tbody tr.status-closed {
             background-color: #e2e3e5 !important; /* Light gray for closed */
         }
-
-        /* Disable alternating row colors specifically for support cases table
-        #supportCases table tbody tr:nth-child(even),
-        #supportCases table tbody tr:nth-child(odd) {
-            background-color: inherit !important;
-        }*/
         .priority-select {
-            padding: 6px 12px; /* Increased padding for better visibility */
-            border-radius: 4px; /* Reduced rounded corners */
-            font-size: 0.9em; /* Slightly larger font */
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
             font-weight: bold;
-            border: 1px solid #ddd; /* Added subtle border */
+            border: 1px solid #ddd;
             outline: none;
             width: 100%;
-            min-width: 80px; /* Minimum width to ensure all text fits */
-            box-sizing: border-box; /* Include padding in width calculation */
-            cursor: pointer; /* Show pointer cursor on hover */
-            transition: all 0.2s ease; /* Smooth transitions for color changes */
+            min-width: 80px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-
         /* Priority color classes */
         .priority-select.priority-critical {
             background-color: #dc3545;
@@ -122,13 +84,9 @@
             color: white;
             border-color: #218838;
         }
-
-        /* Hover effects */
         .priority-select:hover {
             filter: brightness(95%);
         }
-
-        /* Focus effects */
         .priority-select:focus {
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
@@ -143,212 +101,121 @@
         <p class="message">{{ message }}</p>
         {% endif %}
 
-        <!-- Tab navigation -->
-        <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'supportCases')">Support Cases</button>
-            <button class="tablinks" onclick="openTab(event, 'projectVisits')">Project Visits</button>
+        <form method="GET" action="{{ url_for('get_support_cases') }}"
+              style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap;">
+            <label for="reported_date_from">From:</label>
+            <input type="date" id="reported_date_from" name="reported_date_from" value="{{ request.args.get('reported_date_from', '') }}">
+
+            <label for="reported_date_to">To:</label>
+            <input type="date" id="reported_date_to" name="reported_date_to" value="{{ request.args.get('reported_date_to', '') }}">
+
+            <label for="status_filter">Status:</label>
+            <select id="status_filter" name="status_filter">
+                <option value="">All</option>
+                <option value="Open" {% if request.args.get('status_filter') == 'Open' %}selected{% endif %}>Open</option>
+                <option value="In Progress" {% if request.args.get('status_filter') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Resolved" {% if request.args.get('status_filter') == 'Resolved' %}selected{% endif %}>Resolved</option>
+                <option value="Closed" {% if request.args.get('status_filter') == 'Closed' %}selected{% endif %}>Closed</option>
+            </select>
+
+            <label for="priority_filter">Priority:</label>
+            <select id="priority_filter" name="priority_filter">
+                <option value="">All</option>
+                <option value="Critical" {% if request.args.get('priority_filter') == 'Critical' %}selected{% endif %}>Critical</option>
+                <option value="High" {% if request.args.get('priority_filter') == 'High' %}selected{% endif %}>High</option>
+                <option value="Medium" {% if request.args.get('priority_filter') == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Low" {% if request.args.get('priority_filter') == 'Low' %}selected{% endif %}>Low</option>
+            </select>
+
+            <label for="project_filter">Type:</label>
+            <select id="project_filter" name="project_filter">
+                <option value="">All</option>
+                <option value="project" {% if request.args.get('project_filter') == 'project' %}selected{% endif %}>Project Visits</option>
+                <option value="support" {% if request.args.get('project_filter') == 'support' %}selected{% endif %}>Support Cases</option>
+            </select>
+
+            <input type="text" id="search-box" name="search_query" placeholder="Search..."
+                   value="{{ request.args.get('search_query', '') }}"
+                   style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
+                   autocomplete="off">
+
+            <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Project ID</th>
+                        <th>Client Name</th>
+                        <th>Town</th>
+                        <th>Phone</th>
+                        <th>Issue/Visit Purpose</th>
+                        <th>Reported/Visit Date</th>
+                        <th>Resolved</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Assigned To</th>
+                        <th>Resolution Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in support_cases %}
+                    <tr data-id="{{ case.case_id }}" class="status-{{ case.status.strip().lower().replace(' ', '-') }}">
+                        <td>{{ case.case_id }}</td>
+                        <td contenteditable="true">{{ case.project_id if case.project_id else '' }}</td>
+                        <td contenteditable="true">{{ case.client_name }}</td>
+                        <td contenteditable="true">{{ case.town if case.town else '' }}</td>
+                        <td contenteditable="true">{{ case.phone_number if case.phone_number else '' }}</td>
+                        <td contenteditable="true">{{ case.issue_description if case.issue_description else '' }}</td>
+                        <td><input type="date" class="date-input" value="{{ case.reported_date.strftime('%Y-%m-%d') if case.reported_date else '' }}" /></td>
+                        <td><input type="date" class="date-input" value="{{ case.resolved_date.strftime('%Y-%m-%d') if case.resolved_date else '' }}" /></td>
+                        <td>
+                            <select class="status-select">
+                                <option value="Open" {% if case.status == 'Open' %}selected{% endif %}>Open</option>
+                                <option value="In Progress" {% if case.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                <option value="Resolved" {% if case.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="Closed" {% if case.status == 'Closed' %}selected{% endif %}>Closed</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="priority-select priority-{{ case.priority.lower() }}">
+                                <option value="Low" {% if case.priority == 'Low' %}selected{% endif %}>Low</option>
+                                <option value="Medium" {% if case.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="High" {% if case.priority == 'High' %}selected{% endif %}>High</option>
+                                <option value="Critical" {% if case.priority == 'Critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="assigned-to-select">
+                                <option value="">Unassigned</option>
+                                {% for member in team_members %}
+                                <option value="{{ member }}" {% if case.assigned_to == member %}selected{% endif %}>{{ member }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td contenteditable="true">{{ case.resolution_notes if case.resolution_notes else '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
-        <!-- Support Cases Tab -->
-        <div id="supportCases" class="tabcontent" style="display: block;">
-            <form method="GET" action="{{ url_for('get_support_cases') }}"
-                  style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                <label for="reported_date_from">From:</label>
-                <input type="date" id="reported_date_from" name="reported_date_from" value="{{ request.args.get('reported_date_from', '') }}">
-
-                <label for="reported_date_to">To:</label>
-                <input type="date" id="reported_date_to" name="reported_date_to" value="{{ request.args.get('reported_date_to', '') }}">
-
-                <label for="status_filter">Status:</label>
-                <select id="status_filter" name="status_filter">
-                    <option value="">All</option>
-                    <option value="Open" {% if request.args.get('status_filter') == 'Open' %}selected{% endif %}>Open</option>
-                    <option value="In Progress" {% if request.args.get('status_filter') == 'In Progress' %}selected{% endif %}>In Progress</option>
-                    <option value="Resolved" {% if request.args.get('status_filter') == 'Resolved' %}selected{% endif %}>Resolved</option>
-                    <option value="Closed" {% if request.args.get('status_filter') == 'Closed' %}selected{% endif %}>Closed</option>
-                </select>
-
-                <label for="priority_filter">Priority:</label>
-                <select id="priority_filter" name="priority_filter">
-                    <option value="">All</option>
-                    <option value="Critical" {% if request.args.get('priority_filter') == 'Critical' %}selected{% endif %}>Critical</option>
-                    <option value="High" {% if request.args.get('priority_filter') == 'High' %}selected{% endif %}>High</option>
-                    <option value="Medium" {% if request.args.get('priority_filter') == 'Medium' %}selected{% endif %}>Medium</option>
-                    <option value="Low" {% if request.args.get('priority_filter') == 'Low' %}selected{% endif %}>Low</option>
-                </select>
-
-                <input type="text" id="search-box" name="search_query" placeholder="Search..."
-                       value="{{ request.args.get('search_query', '') }}"
-                       style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
-                       autocomplete="off">
-
-                <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
-            </form>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Case ID</th>
-                            <th>Project ID</th>
-                            <th>Client Name</th>
-                            <th>Town</th>
-                            <th>Phone</th>
-                            <th>Issue</th>
-                            <th>Reported</th>
-                            <th>Resolved</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Assigned To</th>
-                            <th>Resolution Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in support_cases %}
-                        <tr data-id="{{ case.case_id }}" class="status-{{ case.status.strip().lower().replace(' ', '-') }}">
-                            <td>{{ case.case_id }}</td>
-                            <td contenteditable="true">{{ case.project_id if case.project_id else '' }}</td>
-                            <td contenteditable="true">{{ case.client_name }}</td>
-                            <td contenteditable="true">{{ case.town if case.town else '' }}</td>
-                            <td contenteditable="true">{{ case.phone_number if case.phone_number else '' }}</td>
-                            <td contenteditable="true">{{ case.issue_description if case.issue_description else '' }}</td>
-                            <td><input type="date" class="date-input" value="{{ case.reported_date.strftime('%Y-%m-%d') if case.reported_date else '' }}" /></td>
-                            <td><input type="date" class="date-input" value="{{ case.resolved_date.strftime('%Y-%m-%d') if case.resolved_date else '' }}" /></td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="Open" {% if case.status == 'Open' %}selected{% endif %}>Open</option>
-                                    <option value="In Progress" {% if case.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                    <option value="Resolved" {% if case.status == 'Resolved' %}selected{% endif %}>Resolved</option>
-                                    <option value="Closed" {% if case.status == 'Closed' %}selected{% endif %}>Closed</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="priority-select priority-{{ case.priority.lower() }}">
-                                    <option value="Low" {% if case.priority == 'Low' %}selected{% endif %}>Low</option>
-                                    <option value="Medium" {% if case.priority == 'Medium' %}selected{% endif %}>Medium</option>
-                                    <option value="High" {% if case.priority == 'High' %}selected{% endif %}>High</option>
-                                    <option value="Critical" {% if case.priority == 'Critical' %}selected{% endif %}>Critical</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="assigned-to-select">
-                                    <option value="">Unassigned</option>
-                                    {% for member in team_members %}
-                                    <option value="{{ member }}" {% if case.assigned_to == member %}selected{% endif %}>{{ member }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td contenteditable="true">{{ case.resolution_notes if case.resolution_notes else '' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="buttons">
-                <button id="add-support-case">Add New Support Case</button>
-                <button id="save-support-changes">Save Changes</button>
-            </div>
-        </div>
-
-        <!-- Project Visits Tab -->
-        <div id="projectVisits" class="tabcontent">
-            <form method="GET" action="{{ url_for('get_project_visits') }}"
-                  style="display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                <label for="visit_date_from">From:</label>
-                <input type="date" id="visit_date_from" name="visit_date_from" value="{{ request.args.get('visit_date_from', '') }}">
-
-                <label for="visit_date_to">To:</label>
-                <input type="date" id="visit_date_to" name="visit_date_to" value="{{ request.args.get('visit_date_to', '') }}">
-
-                <label for="purpose_filter">Purpose:</label>
-                <select id="purpose_filter" name="purpose_filter">
-                    <option value="">All</option>
-                    <option value="Installation" {% if request.args.get('purpose_filter') == 'Installation' %}selected{% endif %}>Installation</option>
-                    <option value="Defect Rectification" {% if request.args.get('purpose_filter') == 'Defect Rectification' %}selected{% endif %}>Defect Rectification</option>
-                    <option value="Maintenance" {% if request.args.get('purpose_filter') == 'Maintenance' %}selected{% endif %}>Maintenance</option>
-                    <option value="Inspection" {% if request.args.get('purpose_filter') == 'Inspection' %}selected{% endif %}>Inspection</option>
-                    <option value="Other" {% if request.args.get('purpose_filter') == 'Other' %}selected{% endif %}>Other</option>
-                </select>
-
-                <input type="text" id="search-visits" name="search_query" placeholder="Search..."
-                       value="{{ request.args.get('search_query', '') }}"
-                       style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
-                       autocomplete="off">
-
-                <button type="submit" style="width: auto; white-space: nowrap;">Filter</button>
-            </form>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Visit ID</th>
-                            <th>Project ID</th>
-                            <th>Visit Date</th>
-                            <th>Visit Purpose</th>
-                            <th>Technician</th>
-                            <th>Visit Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for visit in project_visits %}
-                        <tr data-id="{{ visit.visit_id }}">
-                            <td>{{ visit.visit_id }}</td>
-                            <td contenteditable="true">{{ visit.project_id }}</td>
-                            <td><input type="date" class="date-input" value="{{ visit.visit_date.strftime('%Y-%m-%d') }}" /></td>
-                            <td>
-                                <select class="purpose-select">
-                                    <option value="Installation" {% if visit.visit_purpose == 'Installation' %}selected{% endif %}>Installation</option>
-                                    <option value="Defect Rectification" {% if visit.visit_purpose == 'Defect Rectification' %}selected{% endif %}>Defect Rectification</option>
-                                    <option value="Maintenance" {% if visit.visit_purpose == 'Maintenance' %}selected{% endif %}>Maintenance</option>
-                                    <option value="Inspection" {% if visit.visit_purpose == 'Inspection' %}selected{% endif %}>Inspection</option>
-                                    <option value="Other" {% if visit.visit_purpose == 'Other' %}selected{% endif %}>Other</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="technician-select">
-                                    <option value="">Unassigned</option>
-                                    {% for member in team_members %}
-                                    <option value="{{ member }}" {% if visit.technician == member %}selected{% endif %}>{{ member }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td contenteditable="true">{{ visit.visit_notes if visit.visit_notes else '' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="buttons">
-                <button id="add-project-visit">Add New Project Visit</button>
-                <button id="save-visit-changes">Save Changes</button>
-            </div>
+        <div class="buttons">
+            <button id="add-case">Add New Entry</button>
+            <button id="save-changes">Save Changes</button>
         </div>
     </div>
 
     <script>
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
-            // Save Support Cases changes
-            document.getElementById("save-support-changes").addEventListener("click", () => {
-                let saveButton = document.getElementById("save-support-changes");
+            // Save changes
+            document.getElementById("save-changes").addEventListener("click", () => {
+                let saveButton = document.getElementById("save-changes");
                 saveButton.disabled = true;
 
                 let updatedCases = [];
-                document.querySelectorAll("#supportCases tbody tr").forEach(row => {
+                document.querySelectorAll("tbody tr").forEach(row => {
                     const caseID = row.getAttribute("data-id") || null;
                     const cells = row.querySelectorAll("td[contenteditable='true']");
                     const dateInputs = row.querySelectorAll("input.date-input");
@@ -366,7 +233,7 @@
                         reported_date: dateInputs[0]?.value || null,
                         resolved_date: dateInputs[1]?.value || null,
                         status: statusSelect?.value || "Open",
-                        priority: row.querySelector('.priority-select')?.value || "Medium",  // This line gets the priority
+                        priority: prioritySelect?.value || "Medium",
                         assigned_to: assignedToSelect?.value || null,
                         resolution_notes: cells[5]?.innerText.trim() || ""
                     };
@@ -387,15 +254,15 @@
                 })
                 .catch(error => {
                     console.error("Error:", error);
-                    alert("An error occurred while saving support cases.");
+                    alert("An error occurred while saving changes.");
                 })
                 .finally(() => {
                     saveButton.disabled = false;
                 });
             });
 
-            // Add new Support Case
-            document.getElementById("add-support-case").addEventListener("click", () => {
+            // Add new entry
+            document.getElementById("add-case").addEventListener("click", () => {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                     <td>New</td>
@@ -430,58 +297,12 @@
                     </td>
                     <td contenteditable="true"></td>
                 `;
-                document.querySelector("#supportCases tbody").appendChild(newRow);
+                document.querySelector("tbody").appendChild(newRow);
 
                 // Initialize the new priority select
                 const newPrioritySelect = newRow.querySelector('.priority-select');
                 newPrioritySelect.addEventListener('change', function() {
                     updatePriorityClass(this);
-                });
-            });
-
-            // Save Project Visits changes
-            document.getElementById("save-visit-changes").addEventListener("click", () => {
-                let saveButton = document.getElementById("save-visit-changes");
-                saveButton.disabled = true;
-
-                let updatedVisits = [];
-                document.querySelectorAll("#projectVisits tbody tr").forEach(row => {
-                    const visitID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td[contenteditable='true']");
-                    const dateInput = row.querySelector("input.date-input");
-                    const purposeSelect = row.querySelector(".purpose-select");
-                    const technicianSelect = row.querySelector(".technician-select");
-
-                    let visitData = {
-                        visit_id: visitID,
-                        project_id: cells[0]?.innerText.trim() || null,
-                        visit_date: dateInput?.value || null,
-                        visit_purpose: purposeSelect?.value || "Other",
-                        technician: technicianSelect?.value || null,
-                        visit_notes: cells[1]?.innerText.trim() || ""
-                    };
-
-                    updatedVisits.push(visitData);
-                });
-
-                fetch("/update_project_visits", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ visits: updatedVisits })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.success) {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred while saving project visits.");
-                })
-                .finally(() => {
-                    saveButton.disabled = false;
                 });
             });
 
@@ -504,33 +325,6 @@
                 const priority = selectElement.value.toLowerCase();
                 selectElement.classList.add(`priority-${priority}`);
             }
-
-            // Add new Project Visit
-            document.getElementById("add-project-visit").addEventListener("click", () => {
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>New</td>
-                    <td contenteditable="true"></td>
-                    <td><input type="date" class="date-input" value="${new Date().toISOString().split('T')[0]}"></td>
-                    <td>
-                        <select class="purpose-select">
-                            <option value="Installation">Installation</option>
-                            <option value="Defect Rectification">Defect Rectification</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Inspection">Inspection</option>
-                            <option value="Other" selected>Other</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="technician-select">
-                            <option value="">Unassigned</option>
-                            ${teamMembers.map(member => `<option value="${member}">${member}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td contenteditable="true"></td>
-                `;
-                document.querySelector("#projectVisits tbody").appendChild(newRow);
-            });
         });
     </script>
 </body>

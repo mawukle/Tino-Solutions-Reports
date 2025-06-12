@@ -5013,6 +5013,7 @@ def get_support_cases():
         reported_date_to = request.args.get('reported_date_to', '')
         status_filter = request.args.get('status_filter', '')
         priority_filter = request.args.get('priority_filter', '')
+        project_filter = request.args.get('project_filter', '')
         search_query = request.args.get('search_query', '').strip().lower()
 
         # Base query
@@ -5033,13 +5034,19 @@ def get_support_cases():
         if priority_filter:
             query = query.filter(support_cases.priority == priority_filter)
 
+        if project_filter == 'project':
+            query = query.filter(support_cases.project_id.isnot(None))
+        elif project_filter == 'support':
+            query = query.filter(support_cases.project_id.is_(None))
+
         if search_query:
             query = query.filter(
                 (support_cases.client_name.ilike(f"%{search_query}%")) |
                 (support_cases.town.ilike(f"%{search_query}%")) |
                 (support_cases.phone_number.ilike(f"%{search_query}%")) |
                 (support_cases.issue_description.ilike(f"%{search_query}%")) |
-                (support_cases.assigned_to.ilike(f"%{search_query}%"))
+                (support_cases.assigned_to.ilike(f"%{search_query}%")) |
+                (support_cases.resolution_notes.ilike(f"%{search_query}%"))
             )
 
         # Execute query
@@ -5051,66 +5058,14 @@ def get_support_cases():
 
         return render_template('support_and_visits.html',
                             support_cases=cases,
-                            project_visits=[],
                             team_members=team_members)
 
     except Exception as e:
         logging.error(f"Error fetching support cases: {e}")
         return render_template('support_and_visits.html',
                             support_cases=[],
-                            project_visits=[],
                             team_members=[],
                             message='Error loading support cases')
-
-@app.route('/get_project_visits', methods=['GET'])
-def get_project_visits():
-    try:
-        # Get filter parameters from request
-        visit_date_from = request.args.get('visit_date_from', '')
-        visit_date_to = request.args.get('visit_date_to', '')
-        purpose_filter = request.args.get('purpose_filter', '')
-        search_query = request.args.get('search_query', '').strip().lower()
-
-        # Base query
-        query = db.session.query(project_visits)
-
-        # Apply filters
-        if visit_date_from:
-            visit_date_from = datetime.strptime(visit_date_from, '%Y-%m-%d')
-            query = query.filter(project_visits.visit_date >= visit_date_from)
-
-        if visit_date_to:
-            visit_date_to = datetime.strptime(visit_date_to, '%Y-%m-%d')
-            query = query.filter(project_visits.visit_date <= visit_date_to)
-
-        if purpose_filter:
-            query = query.filter(project_visits.visit_purpose == purpose_filter)
-
-        if search_query:
-            query = query.filter(
-                (project_visits.technician.ilike(f"%{search_query}%")) |
-                (project_visits.visit_notes.ilike(f"%{search_query}%"))
-            )
-
-        # Execute query
-        visits = query.order_by(project_visits.visit_date.desc()).all()
-
-        # Get team members for dropdowns
-        team_members = db.session.query(Team_Members.Team_Member_Name).all()
-        team_members = [member.Team_Member_Name for member in team_members]
-
-        return render_template('support_and_visits.html',
-                            support_cases=[],
-                            project_visits=visits,
-                            team_members=team_members)
-
-    except Exception as e:
-        logging.error(f"Error fetching project visits: {e}")
-        return render_template('support_and_visits.html',
-                            support_cases=[],
-                            project_visits=[],
-                            team_members=[],
-                            message='Error loading project visits')
 
 @app.route('/update_support_cases', methods=['POST'])
 def update_support_cases():
@@ -5152,64 +5107,25 @@ def update_support_cases():
                 db.session.add(new_case)
 
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Support cases updated successfully'})
+        return jsonify({'success': True, 'message': 'Cases updated successfully'})
 
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error updating support cases: {e}")
-        return jsonify({'success': False, 'message': f'Error updating support cases: {str(e)}'}), 500
+        logging.error(f"Error updating cases: {e}")
+        return jsonify({'success': False, 'message': f'Error updating cases: {str(e)}'}), 500
 
-@app.route('/update_project_visits', methods=['POST'])
-def update_project_visits():
-    try:
-        data = request.get_json()
-        visits = data.get('visits', [])
-
-        for visit_data in visits:
-            if visit_data.get('visit_id'):
-                # Update existing visit
-                visit = project_visits.query.get(visit_data['visit_id'])
-                if visit:
-                    visit.project_id = visit_data.get('project_id') or None
-                    visit.visit_date = datetime.strptime(visit_data['visit_date'], '%Y-%m-%d') if visit_data.get('visit_date') else None
-                    visit.visit_purpose = visit_data.get('visit_purpose', 'Other')
-                    visit.technician = visit_data.get('technician', '')
-                    visit.visit_notes = visit_data.get('visit_notes', '')
-            else:
-                # Create new visit
-                new_visit = project_visits(
-                    project_id=visit_data.get('project_id') or None,
-                    visit_date=datetime.strptime(visit_data['visit_date'], '%Y-%m-%d') if visit_data.get('visit_date') else None,
-                    visit_purpose=visit_data.get('visit_purpose', 'Other'),
-                    technician=visit_data.get('technician', ''),
-                    visit_notes=visit_data.get('visit_notes', '')
-                )
-                db.session.add(new_visit)
-
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Project visits updated successfully'})
-
-    except Exception as e:
-        db.session.rollback()
-        logging.error(f"Error updating project visits: {e}")
-        return jsonify({'success': False, 'message': f'Error updating project visits: {str(e)}'}), 500
-
-# Add this route to serve the combined page
 @app.route('/support_and_visits', methods=['GET'])
 def support_and_visits():
-    # Get initial data for both tabs
+    # Get initial data
     team_members = db.session.query(Team_Members.Team_Member_Name).all()
     team_members = [member.Team_Member_Name for member in team_members]
 
-    # Get recent support cases and visits
+    # Get recent cases
     recent_cases = support_cases.query.order_by(support_cases.reported_date.desc()).limit(50).all()
-    recent_visits = project_visits.query.order_by(project_visits.visit_date.desc()).limit(50).all()
 
     return render_template('support_and_visits.html',
                         support_cases=recent_cases,
-                        project_visits=recent_visits,
                         team_members=team_members)
-
 
 if __name__ == '__main__':
 
