@@ -216,8 +216,8 @@
                                 <div class="client-search-results"></div>
                             </div>
                         </td>
-                        <td class="town-cell">{{ case.town if case.town else '' }}</td>
-                        <td class="phone-cell">{{ case.phone_number if case.phone_number else '' }}</td>
+                        <td class="town-cell" contenteditable="true">{{ case.town if case.town else '' }}</td>
+                        <td class="phone-cell" contenteditable="true">{{ case.phone_number if case.phone_number else '' }}</td>
                         <td contenteditable="true">{{ case.issue_description if case.issue_description else '' }}</td>
                         <td><input type="date" class="date-input" value="{{ case.reported_date.strftime('%Y-%m-%d') if case.reported_date else '' }}" /></td>
                         <td><input type="date" class="date-input" value="{{ case.resolved_date.strftime('%Y-%m-%d') if case.resolved_date else '' }}" /></td>
@@ -293,14 +293,22 @@
                                             ${project.phone_number ? 'Phone: ' + project.phone_number : ''}
                                         </div>
                                     `;
+                                    // In the initClientSearch function, modify the click handlers:
                                     div.addEventListener('click', () => {
                                         input.value = project.client_name;
                                         input.setAttribute('data-project-id', project.project_id);
 
-                                        // Update town and phone
+                                        // Only update town and phone if they're empty or if we're selecting from dropdown
                                         const row = input.closest('tr');
-                                        row.querySelector('.town-cell').textContent = project.town || '';
-                                        row.querySelector('.phone-cell').textContent = project.phone_number || '';
+                                        const townCell = row.querySelector('.town-cell');
+                                        const phoneCell = row.querySelector('.phone-cell');
+
+                                        if (!townCell.textContent.trim()) {
+                                            townCell.textContent = project.town || '';
+                                        }
+                                        if (!phoneCell.textContent.trim()) {
+                                            phoneCell.textContent = project.phone_number || '';
+                                        }
 
                                         // Update project ID cell
                                         const projectIdCell = row.querySelector('td:nth-child(2)');
@@ -358,6 +366,25 @@
                     document.addEventListener('click', function(e) {
                         if (!input.parentNode.contains(e.target)) {
                             input.parentNode.querySelector('.client-search-results').style.display = 'none';
+                        }
+                    });
+                });
+                // Add this to your initClientSearch function
+                document.querySelectorAll('.town-cell, .phone-cell').forEach(cell => {
+                    cell.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent closing dropdown when clicking on these cells
+                    });
+
+                    cell.addEventListener('input', function() {
+                        // Clear any project association if manually editing
+                        const row = this.closest('tr');
+                        const clientInput = row.querySelector('.client-name-input');
+                        clientInput.removeAttribute('data-project-id');
+
+                        // Clear project ID if manually editing town/phone
+                        const projectIdCell = row.querySelector('td:nth-child(2)');
+                        if (projectIdCell.textContent.trim() === '') {
+                            projectIdCell.textContent = '';
                         }
                     });
                 });
@@ -435,8 +462,8 @@
                             <div class="client-search-results"></div>
                         </div>
                     </td>
-                    <td class="town-cell"></td>
-                    <td class="phone-cell"></td>
+                    <td class="town-cell" contenteditable="true"></td>
+                    <td class="phone-cell" contenteditable="true"></td>
                     <td contenteditable="true"></td>
                     <td><input type="date" class="date-input" value="${new Date().toISOString().split('T')[0]}"></td>
                     <td><input type="date" class="date-input"></td>
