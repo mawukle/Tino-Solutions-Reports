@@ -89,19 +89,49 @@
             background-color: inherit !important;
         }*/
         .priority-select {
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.8em;
+            padding: 6px 12px; /* Increased padding for better visibility */
+            border-radius: 4px; /* Reduced rounded corners */
+            font-size: 0.9em; /* Slightly larger font */
             font-weight: bold;
-            border: none;
+            border: 1px solid #ddd; /* Added subtle border */
             outline: none;
             width: 100%;
+            min-width: 80px; /* Minimum width to ensure all text fits */
+            box-sizing: border-box; /* Include padding in width calculation */
+            cursor: pointer; /* Show pointer cursor on hover */
+            transition: all 0.2s ease; /* Smooth transitions for color changes */
         }
 
-        .priority-select.priority-critical { background-color: #dc3545; color: white; }
-        .priority-select.priority-high { background-color: #fd7e14; color: white; }
-        .priority-select.priority-medium { background-color: #ffc107; }
-        .priority-select.priority-low { background-color: #28a745; color: white; }
+        /* Priority color classes */
+        .priority-select.priority-critical {
+            background-color: #dc3545;
+            color: white;
+            border-color: #c82333;
+        }
+        .priority-select.priority-high {
+            background-color: #fd7e14;
+            color: white;
+            border-color: #e46a0a;
+        }
+        .priority-select.priority-medium {
+            background-color: #ffc107;
+            border-color: #e0a800;
+        }
+        .priority-select.priority-low {
+            background-color: #28a745;
+            color: white;
+            border-color: #218838;
+        }
+
+        /* Hover effects */
+        .priority-select:hover {
+            filter: brightness(95%);
+        }
+
+        /* Focus effects */
+        .priority-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
     </style>
 </head>
 <body>
