@@ -387,7 +387,7 @@
 
                                             if (fileId) {
                                                 const iframe = document.createElement('iframe');
-                                                iframe.src = `https://drive.google.com/embed?id=${fileId}`;
+                                                iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
                                                 iframe.className = 'invoice-preview';
                                                 iframe.style.width = '300px';
                                                 iframe.style.height = '200px';
@@ -408,8 +408,7 @@
                                                 setTimeout(() => {
                                                     previewContainer.innerHTML = '';
                                                 }, 100000);
-                                            }
-                                              else {
+                                            } else {
                                                 previewContainer.innerHTML = '<div class="invoice-error">Invalid invoice URL</div>';
                                             }
                                         }
