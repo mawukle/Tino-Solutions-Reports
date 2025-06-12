@@ -124,6 +124,15 @@
             max-height: 200px;
             display: block;
             margin-top: 5px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* For iframe preview */
+        .invoice-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
         .project-info {
             font-size: 0.9em;
@@ -363,29 +372,45 @@
                                             const previewContainer = input.parentNode.querySelector('.invoice-preview-container');
                                             previewContainer.innerHTML = ''; // Clear any existing preview
 
-                                            const preview = document.createElement('img');
-                                            preview.src = project.invoice_image_url;
-                                            preview.className = 'invoice-preview';
-                                            preview.onerror = () => {
-                                                preview.remove();
-                                                previewContainer.innerHTML = '<div class="invoice-error">Preview not available</div>';
-                                            };
-                                            previewContainer.appendChild(preview);
+                                            // Extract file ID from Google Drive URL
+                                            let fileId = '';
+                                            try {
+                                                const url = new URL(project.invoice_image_url);
+                                                if (url.hostname === 'drive.google.com') {
+                                                    fileId = url.searchParams.get('id') || project.invoice_image_url.split('id=')[1];
+                                                } else {
+                                                    fileId = project.invoice_image_url; // In case it's already just the ID
+                                                }
+                                            } catch (e) {
+                                                fileId = project.invoice_image_url; // Fallback if URL parsing fails
+                                            }
 
-                                            // Add close button
-                                            const closeBtn = document.createElement('button');
-                                            closeBtn.textContent = '×';
-                                            closeBtn.className = 'close-preview';
-                                            closeBtn.addEventListener('click', (e) => {
-                                                e.stopPropagation();
-                                                previewContainer.innerHTML = '';
-                                            });
-                                            previewContainer.appendChild(closeBtn);
+                                            if (fileId) {
+                                                const iframe = document.createElement('iframe');
+                                                iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+                                                iframe.className = 'invoice-preview';
+                                                iframe.style.width = '300px';
+                                                iframe.style.height = '200px';
+                                                iframe.frameBorder = '0';
+                                                previewContainer.appendChild(iframe);
 
-                                            // Auto-close after 10 seconds
-                                            setTimeout(() => {
-                                                previewContainer.innerHTML = '';
-                                            }, 10000);
+                                                // Add close button
+                                                const closeBtn = document.createElement('button');
+                                                closeBtn.textContent = '×';
+                                                closeBtn.className = 'close-preview';
+                                                closeBtn.addEventListener('click', (e) => {
+                                                    e.stopPropagation();
+                                                    previewContainer.innerHTML = '';
+                                                });
+                                                previewContainer.appendChild(closeBtn);
+
+                                                // Auto-close after 10 seconds
+                                                setTimeout(() => {
+                                                    previewContainer.innerHTML = '';
+                                                }, 10000);
+                                            } else {
+                                                previewContainer.innerHTML = '<div class="invoice-error">Invalid invoice URL</div>';
+                                            }
                                         }
                                     });
                                     resultsContainer.appendChild(div);
