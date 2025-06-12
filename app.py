@@ -5134,8 +5134,8 @@ def search_clients():
         return jsonify({'projects': [], 'clients': []})
 
     try:
-        # Search projects
-        projects = db.session.query(
+        # Search projects - make sure 'projects' is your actual model class
+        projects_results = db.session.query(
             projects.project_id,
             projects.client_name,
             projects.town,
@@ -5146,7 +5146,7 @@ def search_clients():
         ).limit(10).all()
 
         # Search client list
-        clients = db.session.query(
+        clients_results = db.session.query(
             Client_List.Client_Name,
             Client_List.Town,
             Client_List.Phone_Number
@@ -5161,18 +5161,17 @@ def search_clients():
                 'town': p.town,
                 'phone_number': p.phone_number,
                 'invoice_image_url': p.invoice_image_url
-            } for p in projects],
+            } for p in projects_results],
             'clients': [{
                 'Client_Name': c.Client_Name,
                 'Town': c.Town,
                 'Phone_Number': c.Phone_Number
-            } for c in clients]
+            } for c in clients_results]
         })
 
     except Exception as e:
         logging.error(f"Error searching clients: {e}")
         return jsonify({'projects': [], 'clients': []})
-
 
 if __name__ == '__main__':
 
