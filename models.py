@@ -191,19 +191,3 @@ class support_cases(db.Model):
 
     def __repr__(self):
         return f"<support_cases(case_id={self.case_id}, client_name={self.client_name}, status={self.status})>"
-
-class project_visits(db.Model):
-    __tablename__ = 'project_visits'
-
-    visit_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.project_id'), nullable=False)
-    visit_date = db.Column(db.Date, nullable=False)
-    visit_purpose = db.Column(db.Enum('Installation', 'Defect Rectification', 'Maintenance', 'Inspection', 'Other'), nullable=False)
-    visit_notes = db.Column(db.Text, nullable=True)
-    technician = db.Column(db.String(100), nullable=True)
-
-    # Relationship
-    project = relationship('projects', backref='project_visits')
-
-    def __repr__(self):
-        return f"<project_visits(visit_id={self.visit_id}, project_id={self.project_id}, visit_date={self.visit_date})>"
