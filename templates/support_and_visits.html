@@ -66,17 +66,27 @@
             border: 1px solid #ccc;
             border-top: none;
         }
-        .status-open {
-            background-color: #ffcccc; /* Light red for open cases */
+        /* Replace your existing status classes with these: */
+        #supportCases table tbody tr.status-open {
+            background-color: #ffcccc !important; /* Light red for open cases */
         }
-        .status-in-progress {
-            background-color: #fff3cd; /* Light yellow for in-progress */
+
+        #supportCases table tbody tr.status-in-progress {
+            background-color: #fff3cd !important; /* Light yellow for in-progress */
         }
-        .status-resolved {
-            background-color: #d4edda; /* Light green for resolved */
+
+        #supportCases table tbody tr.status-resolved {
+            background-color: #d4edda !important; /* Light green for resolved */
         }
-        .status-closed {
-            background-color: #e2e3e5; /* Light gray for closed */
+
+        #supportCases table tbody tr.status-closed {
+            background-color: #e2e3e5 !important; /* Light gray for closed */
+        }
+
+        /* Disable alternating row colors specifically for support cases table */
+        #supportCases table tbody tr:nth-child(even),
+        #supportCases table tbody tr:nth-child(odd) {
+            background-color: inherit !important;
         }
         .priority-select {
             padding: 2px 6px;
