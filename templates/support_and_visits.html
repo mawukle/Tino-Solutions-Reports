@@ -130,7 +130,48 @@
             color: #555;
             margin-top: 5px;
         }
+        .invoice-preview-container {
+            position: relative;
+            display: inline-block;
+        }
 
+        .invoice-preview {
+            max-width: 300px;
+            max-height: 200px;
+            display: block;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .close-preview {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-preview:hover {
+            background: rgba(0,0,0,0.9);
+        }
+
+        .invoice-error {
+            color: #dc3545;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -214,6 +255,7 @@
                                        data-original-phone="{{ case.phone_number if case.phone_number else '' }}"
                                        data-original-project="{{ case.project_id if case.project_id else '' }}">
                                 <div class="client-search-results"></div>
+                                <div class="invoice-preview-container"></div> <!-- Add this line -->
                             </div>
                         </td>
                         <td class="town-cell" contenteditable="true">{{ case.town if case.town else '' }}</td>
@@ -293,7 +335,7 @@
                                             ${project.phone_number ? 'Phone: ' + project.phone_number : ''}
                                         </div>
                                     `;
-                                    // In the initClientSearch function, modify the click handlers:
+                                    // In the initClientSearch function, modify the click handler for projects:
                                     div.addEventListener('click', () => {
                                         input.value = project.client_name;
                                         input.setAttribute('data-project-id', project.project_id);
@@ -318,12 +360,32 @@
 
                                         // Show invoice preview if available
                                         if (project.invoice_image_url) {
+                                            const previewContainer = input.parentNode.querySelector('.invoice-preview-container');
+                                            previewContainer.innerHTML = ''; // Clear any existing preview
+
                                             const preview = document.createElement('img');
                                             preview.src = project.invoice_image_url;
                                             preview.className = 'invoice-preview';
-                                            preview.onerror = () => preview.remove();
-                                            resultsContainer.parentNode.appendChild(preview);
-                                            setTimeout(() => preview.remove(), 5000);
+                                            preview.onerror = () => {
+                                                preview.remove();
+                                                previewContainer.innerHTML = '<div class="invoice-error">Preview not available</div>';
+                                            };
+                                            previewContainer.appendChild(preview);
+
+                                            // Add close button
+                                            const closeBtn = document.createElement('button');
+                                            closeBtn.textContent = '×';
+                                            closeBtn.className = 'close-preview';
+                                            closeBtn.addEventListener('click', (e) => {
+                                                e.stopPropagation();
+                                                previewContainer.innerHTML = '';
+                                            });
+                                            previewContainer.appendChild(closeBtn);
+
+                                            // Auto-close after 10 seconds
+                                            setTimeout(() => {
+                                                previewContainer.innerHTML = '';
+                                            }, 10000);
                                         }
                                     });
                                     resultsContainer.appendChild(div);
@@ -460,6 +522,7 @@
                         <div class="client-search">
                             <input type="text" class="client-name-input">
                             <div class="client-search-results"></div>
+                            <div class="invoice-preview-container"></div>
                         </div>
                     </td>
                     <td class="town-cell" contenteditable="true"></td>
