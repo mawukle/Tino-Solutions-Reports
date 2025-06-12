@@ -6,6 +6,9 @@
     <title>Support Cases & Project Visits</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
         var teamMembers = {{ team_members | tojson }};
     </script>
@@ -90,6 +93,44 @@
         .priority-select:focus {
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
+        .client-search {
+            position: relative;
+        }
+        .client-search-results {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            display: none;
+        }
+        .client-search-results div {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .client-search-results div:hover {
+            background-color: #f5f5f5;
+        }
+        .client-type {
+            font-size: 0.8em;
+            color: #666;
+            margin-left: 5px;
+        }
+        .invoice-preview {
+            max-width: 300px;
+            max-height: 200px;
+            display: block;
+            margin-top: 5px;
+        }
+        .project-info {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -165,9 +206,18 @@
                     <tr data-id="{{ case.case_id }}" class="status-{{ case.status.strip().lower().replace(' ', '-') }}">
                         <td>{{ case.case_id }}</td>
                         <td contenteditable="true">{{ case.project_id if case.project_id else '' }}</td>
-                        <td contenteditable="true">{{ case.client_name }}</td>
-                        <td contenteditable="true">{{ case.town if case.town else '' }}</td>
-                        <td contenteditable="true">{{ case.phone_number if case.phone_number else '' }}</td>
+                        <td>
+                            <div class="client-search">
+                                <input type="text" class="client-name-input" value="{{ case.client_name }}"
+                                       data-original-client="{{ case.client_name }}"
+                                       data-original-town="{{ case.town if case.town else '' }}"
+                                       data-original-phone="{{ case.phone_number if case.phone_number else '' }}"
+                                       data-original-project="{{ case.project_id if case.project_id else '' }}">
+                                <div class="client-search-results"></div>
+                            </div>
+                        </td>
+                        <td class="town-cell">{{ case.town if case.town else '' }}</td>
+                        <td class="phone-cell">{{ case.phone_number if case.phone_number else '' }}</td>
                         <td contenteditable="true">{{ case.issue_description if case.issue_description else '' }}</td>
                         <td><input type="date" class="date-input" value="{{ case.reported_date.strftime('%Y-%m-%d') if case.reported_date else '' }}" /></td>
                         <td><input type="date" class="date-input" value="{{ case.resolved_date.strftime('%Y-%m-%d') if case.resolved_date else '' }}" /></td>
@@ -199,6 +249,7 @@
                     </tr>
                     {% endfor %}
                 </tbody>
+
             </table>
         </div>
         <div class="buttons">
@@ -209,7 +260,113 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Save changes
+            // Initialize client search functionality
+            function initClientSearch() {
+                document.querySelectorAll('.client-name-input').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const searchTerm = this.value.trim();
+                        const resultsContainer = this.parentNode.querySelector('.client-search-results');
+
+                        if (searchTerm.length < 2) {
+                            resultsContainer.style.display = 'none';
+                            return;
+                        }
+
+                        fetch(`/search_clients?term=${encodeURIComponent(searchTerm)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                resultsContainer.innerHTML = '';
+
+                                if (data.projects.length === 0 && data.clients.length === 0) {
+                                    resultsContainer.style.display = 'none';
+                                    return;
+                                }
+
+                                // Add projects first
+                                data.projects.forEach(project => {
+                                    const div = document.createElement('div');
+                                    div.innerHTML = `
+                                        ${project.client_name}
+                                        <span class="client-type">(Project ID: ${project.project_id})</span>
+                                        <div class="project-info">
+                                            ${project.town ? 'Town: ' + project.town + '<br>' : ''}
+                                            ${project.phone_number ? 'Phone: ' + project.phone_number : ''}
+                                        </div>
+                                    `;
+                                    div.addEventListener('click', () => {
+                                        input.value = project.client_name;
+                                        input.setAttribute('data-project-id', project.project_id);
+
+                                        // Update town and phone
+                                        const row = input.closest('tr');
+                                        row.querySelector('.town-cell').textContent = project.town || '';
+                                        row.querySelector('.phone-cell').textContent = project.phone_number || '';
+
+                                        // Update project ID cell
+                                        const projectIdCell = row.querySelector('td:nth-child(2)');
+                                        projectIdCell.textContent = project.project_id;
+
+                                        resultsContainer.style.display = 'none';
+
+                                        // Show invoice preview if available
+                                        if (project.invoice_image_url) {
+                                            const preview = document.createElement('img');
+                                            preview.src = project.invoice_image_url;
+                                            preview.className = 'invoice-preview';
+                                            preview.onerror = () => preview.remove();
+                                            resultsContainer.parentNode.appendChild(preview);
+                                            setTimeout(() => preview.remove(), 5000);
+                                        }
+                                    });
+                                    resultsContainer.appendChild(div);
+                                });
+
+                                // Add clients
+                                data.clients.forEach(client => {
+                                    const div = document.createElement('div');
+                                    div.innerHTML = `
+                                        ${client.Client_Name}
+                                        <span class="client-type">(Client)</span>
+                                        <div class="project-info">
+                                            ${client.Town ? 'Town: ' + client.Town + '<br>' : ''}
+                                            ${client.Phone_Number ? 'Phone: ' + client.Phone_Number : ''}
+                                        </div>
+                                    `;
+                                    div.addEventListener('click', () => {
+                                        input.value = client.Client_Name;
+                                        input.removeAttribute('data-project-id');
+
+                                        // Update town and phone
+                                        const row = input.closest('tr');
+                                        row.querySelector('.town-cell').textContent = client.Town || '';
+                                        row.querySelector('.phone-cell').textContent = client.Phone_Number || '';
+
+                                        // Clear project ID if switching from project to client
+                                        const projectIdCell = row.querySelector('td:nth-child(2)');
+                                        projectIdCell.textContent = '';
+
+                                        resultsContainer.style.display = 'none';
+                                    });
+                                    resultsContainer.appendChild(div);
+                                });
+
+                                resultsContainer.style.display = 'block';
+                            });
+                    });
+
+                    // Hide results when clicking elsewhere
+                    document.addEventListener('click', function(e) {
+                        if (!input.parentNode.contains(e.target)) {
+                            input.parentNode.querySelector('.client-search-results').style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Initialize client search on page load
+            initClientSearch();
+
+            // Save changes (updated to handle new client search fields)
             document.getElementById("save-changes").addEventListener("click", () => {
                 let saveButton = document.getElementById("save-changes");
                 saveButton.disabled = true;
@@ -217,25 +374,30 @@
                 let updatedCases = [];
                 document.querySelectorAll("tbody tr").forEach(row => {
                     const caseID = row.getAttribute("data-id") || null;
-                    const cells = row.querySelectorAll("td[contenteditable='true']");
+                    const projectIdCell = row.querySelector("td:nth-child(2)");
+                    const clientNameInput = row.querySelector(".client-name-input");
+                    const townCell = row.querySelector(".town-cell");
+                    const phoneCell = row.querySelector(".phone-cell");
+                    const issueCell = row.querySelector("td:nth-child(6)");
                     const dateInputs = row.querySelectorAll("input.date-input");
                     const statusSelect = row.querySelector(".status-select");
                     const prioritySelect = row.querySelector(".priority-select");
                     const assignedToSelect = row.querySelector(".assigned-to-select");
+                    const resolutionNotesCell = row.querySelector("td:nth-child(12)");
 
                     let caseData = {
                         case_id: caseID,
-                        project_id: cells[0]?.innerText.trim() || null,
-                        client_name: cells[1]?.innerText.trim() || "",
-                        town: cells[2]?.innerText.trim() || "",
-                        phone_number: cells[3]?.innerText.trim() || "",
-                        issue_description: cells[4]?.innerText.trim() || "",
+                        project_id: projectIdCell?.textContent.trim() || null,
+                        client_name: clientNameInput?.value.trim() || "",
+                        town: townCell?.textContent.trim() || "",
+                        phone_number: phoneCell?.textContent.trim() || "",
+                        issue_description: issueCell?.textContent.trim() || "",
                         reported_date: dateInputs[0]?.value || null,
                         resolved_date: dateInputs[1]?.value || null,
                         status: statusSelect?.value || "Open",
                         priority: prioritySelect?.value || "Medium",
                         assigned_to: assignedToSelect?.value || null,
-                        resolution_notes: cells[5]?.innerText.trim() || ""
+                        resolution_notes: resolutionNotesCell?.textContent.trim() || ""
                     };
                     updatedCases.push(caseData);
                 });
@@ -261,15 +423,20 @@
                 });
             });
 
-            // Add new entry
+            // Add new entry (updated with client search field)
             document.getElementById("add-case").addEventListener("click", () => {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                     <td>New</td>
                     <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
+                    <td>
+                        <div class="client-search">
+                            <input type="text" class="client-name-input">
+                            <div class="client-search-results"></div>
+                        </div>
+                    </td>
+                    <td class="town-cell"></td>
+                    <td class="phone-cell"></td>
                     <td contenteditable="true"></td>
                     <td><input type="date" class="date-input" value="${new Date().toISOString().split('T')[0]}"></td>
                     <td><input type="date" class="date-input"></td>
@@ -299,6 +466,9 @@
                 `;
                 document.querySelector("tbody").appendChild(newRow);
 
+                // Initialize client search for the new row
+                initClientSearch();
+
                 // Initialize the new priority select
                 const newPrioritySelect = newRow.querySelector('.priority-select');
                 newPrioritySelect.addEventListener('change', function() {
@@ -327,5 +497,6 @@
             }
         });
     </script>
+
 </body>
 </html>

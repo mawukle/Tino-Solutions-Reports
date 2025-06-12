@@ -5127,6 +5127,53 @@ def support_and_visits():
                         support_cases=recent_cases,
                         team_members=team_members)
 
+@app.route('/search_clients', methods=['GET'])
+def search_clients():
+    term = request.args.get('term', '').strip()
+    if not term:
+        return jsonify({'projects': [], 'clients': []})
+
+    try:
+        # Search projects
+        projects = db.session.query(
+            Projects.project_id,
+            Projects.client_name,
+            Projects.town,
+            Projects.phone_number,
+            Projects.invoice_image_url
+        ).filter(
+            Projects.client_name.ilike(f"%{term}%")
+        ).limit(10).all()
+
+        # Search client list
+        clients = db.session.query(
+            Client_List.Client_Name,
+            Client_List.Town,
+            Client_List.Phone_Number
+        ).filter(
+            Client_List.Client_Name.ilike(f"%{term}%")
+        ).limit(10).all()
+
+        return jsonify({
+            'projects': [{
+                'project_id': p.project_id,
+                'client_name': p.client_name,
+                'town': p.town,
+                'phone_number': p.phone_number,
+                'invoice_image_url': p.invoice_image_url
+            } for p in projects],
+            'clients': [{
+                'Client_Name': c.Client_Name,
+                'Town': c.Town,
+                'Phone_Number': c.Phone_Number
+            } for c in clients]
+        })
+
+    except Exception as e:
+        logging.error(f"Error searching clients: {e}")
+        return jsonify({'projects': [], 'clients': []})
+
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
