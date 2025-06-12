@@ -66,29 +66,18 @@
             border: 1px solid #ccc;
             border-top: none;
         }
-
-        /* Updated status row coloring - removed !important and made more specific */
-        #supportCases tbody tr.status-open {
+        .status-open {
             background-color: #ffcccc; /* Light red for open cases */
         }
-        #supportCases tbody tr.status-in-progress {
+        .status-in-progress {
             background-color: #fff3cd; /* Light yellow for in-progress */
         }
-        #supportCases tbody tr.status-resolved {
+        .status-resolved {
             background-color: #d4edda; /* Light green for resolved */
         }
-        #supportCases tbody tr.status-closed {
+        .status-closed {
             background-color: #e2e3e5; /* Light gray for closed */
         }
-
-        /* Remove default alternating row colors */
-        #supportCases tbody tr:nth-child(even) {
-            background-color: inherit;
-        }
-        #supportCases tbody tr:nth-child(odd) {
-            background-color: inherit;
-        }
-
         .priority-select {
             padding: 2px 6px;
             border-radius: 10px;
