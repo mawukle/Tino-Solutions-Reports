@@ -222,23 +222,23 @@
 
         <form method="GET" action="{{ url_for('get_support_cases') }}"
               style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 150px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
                 <label for="reported_date_from" style="min-width: 40px;">From:</label>
                 <input type="date" id="reported_date_from" name="reported_date_from"
                        value="{{ request.args.get('reported_date_from', '') }}"
-                       style="flex: 1; min-width: 120px;">
+                       style="flex: 1; min-width: 50px;">
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 150px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
                 <label for="reported_date_to" style="min-width: 30px;">To:</label>
                 <input type="date" id="reported_date_to" name="reported_date_to"
                        value="{{ request.args.get('reported_date_to', '') }}"
-                       style="flex: 1; min-width: 120px;">
+                       style="flex: 1; min-width: 50px;">
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 150px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
                 <label for="status_filter" style="min-width: 50px;">Status:</label>
-                <select id="status_filter" name="status_filter" style="flex: 1; min-width: 120px;">
+                <select id="status_filter" name="status_filter" style="flex: 1; min-width: 50px;">
                     <option value="">All</option>
                     <option value="Open" {% if request.args.get('status_filter') == 'Open' %}selected{% endif %}>Open</option>
                     <option value="In Progress" {% if request.args.get('status_filter') == 'In Progress' %}selected{% endif %}>In Progress</option>
@@ -247,9 +247,9 @@
                 </select>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 150px;">
-                <label for="priority_filter" style="min-width: 60px;">Priority:</label>
-                <select id="priority_filter" name="priority_filter" style="flex: 1; min-width: 120px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
+                <label for="priority_filter" style="min-width: 50px;">Priority:</label>
+                <select id="priority_filter" name="priority_filter" style="flex: 1; min-width: 50px;">
                     <option value="">All</option>
                     <option value="Critical" {% if request.args.get('priority_filter') == 'Critical' %}selected{% endif %}>Critical</option>
                     <option value="High" {% if request.args.get('priority_filter') == 'High' %}selected{% endif %}>High</option>
@@ -258,19 +258,19 @@
                 </select>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 150px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
                 <label for="project_filter" style="min-width: 40px;">Type:</label>
-                <select id="project_filter" name="project_filter" style="flex: 1; min-width: 120px;">
+                <select id="project_filter" name="project_filter" style="flex: 1; min-width: 50px;">
                     <option value="">All</option>
                     <option value="project" {% if request.args.get('project_filter') == 'project' %}selected{% endif %}>Project Visits</option>
                     <option value="support" {% if request.args.get('project_filter') == 'support' %}selected{% endif %}>Support Cases</option>
                 </select>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 200px;">
+            <div style="display: flex; align-items: center; gap: 5px; flex: 1 1 50px;">
                 <input type="text" id="search-box" name="search_query" placeholder="Search..."
                        value="{{ request.args.get('search_query', '') }}"
-                       style="flex: 1; min-width: 120px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
+                       style="flex: 1; min-width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
                        autocomplete="off">
                 <button type="submit" style="padding: 5px 10px; white-space: nowrap;">Filter</button>
             </div>
