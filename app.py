@@ -5049,8 +5049,22 @@ def get_support_cases():
                 (support_cases.resolution_notes.ilike(f"%{search_query}%"))
             )
 
-        # Execute query
-        cases = query.order_by(support_cases.reported_date.desc()).all()
+        # Define the custom order for status
+        status_order = case(
+            [
+                (support_cases.status == 'Open', 0),
+                (support_cases.status == 'In Progress', 1),
+                (support_cases.status == 'Resolved', 2),
+                (support_cases.status == 'Closed', 3)
+            ],
+            else_=4
+        )
+
+        # Execute query with custom ordering
+        cases = query.order_by(
+            status_order,  # First sort by status in our custom order
+            support_cases.reported_date.desc()  # Then sort by date descending within each status group
+        ).all()
 
         # Get team members for dropdowns
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
@@ -5116,17 +5130,31 @@ def update_support_cases():
 
 @app.route('/support_and_visits', methods=['GET'])
 def support_and_visits():
-    # Get initial data
+    # Get team members
     team_members = db.session.query(Team_Members.Team_Member_Name).all()
     team_members = [member.Team_Member_Name for member in team_members]
 
-    # Get recent cases
-    recent_cases = support_cases.query.order_by(support_cases.reported_date.desc()).limit(50).all()
+    # Define the custom order for status
+    status_order = case(
+        [
+            (support_cases.status == 'Open', 0),
+            (support_cases.status == 'In Progress', 1),
+            (support_cases.status == 'Resolved', 2),
+            (support_cases.status == 'Closed', 3)
+        ],
+        else_=4
+    )
+
+    # Get recent cases with the same ordering
+    recent_cases = support_cases.query.order_by(
+        status_order,
+        support_cases.reported_date.desc()
+    ).limit(50).all()
 
     return render_template('support_and_visits.html',
                         support_cases=recent_cases,
                         team_members=team_members)
-
+                        
 @app.route('/search_clients', methods=['GET'])
 def search_clients():
     term = request.args.get('term', '').strip()
