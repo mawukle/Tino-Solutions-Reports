@@ -181,6 +181,27 @@
             font-size: 0.8em;
             margin-top: 5px;
         }
+        /* Client name cell styling */
+        td:nth-child(3) {
+            min-width: 200px;  /* Minimum width for the client name column */
+            max-width: 300px;  /* Maximum width before wrapping */
+            white-space: normal !important;  /* Allow text to wrap */
+            word-wrap: break-word;  /* Break long words if needed */
+        }
+
+        /* Client name input field styling */
+        .client-name-input {
+            width: 100%;  /* Take full width of cell */
+            min-width: 180px;  /* Minimum width */
+            max-width: 280px;  /* Maximum width */
+            white-space: normal;  /* Allow text to wrap */
+            word-wrap: break-word;  /* Break long words */
+            overflow: visible;  /* Show all content */
+            height: auto;  /* Auto height */
+            min-height: 30px;  /* Minimum height */
+            padding: 5px;  /* Add some padding */
+            box-sizing: border-box;  /* Include padding in width */
+        }
     </style>
 </head>
 <body>
@@ -262,9 +283,10 @@
                                        data-original-client="{{ case.client_name }}"
                                        data-original-town="{{ case.town if case.town else '' }}"
                                        data-original-phone="{{ case.phone_number if case.phone_number else '' }}"
-                                       data-original-project="{{ case.project_id if case.project_id else '' }}">
+                                       data-original-project="{{ case.project_id if case.project_id else '' }}"
+                                       style="width: 100%; min-height: 30px; white-space: normal;">
                                 <div class="client-search-results"></div>
-                                <div class="invoice-preview-container"></div> <!-- Add this line -->
+                                <div class="invoice-preview-container"></div>
                             </div>
                         </td>
                         <td class="town-cell" contenteditable="true">{{ case.town if case.town else '' }}</td>
@@ -545,11 +567,12 @@
                     <td contenteditable="true"></td>
                     <td>
                         <div class="client-search">
-                            <input type="text" class="client-name-input">
+                            <input type="text" class="client-name-input" style="width: 100%; min-height: 30px; white-space: normal;">
                             <div class="client-search-results"></div>
                             <div class="invoice-preview-container"></div>
                         </div>
                     </td>
+
                     <td class="town-cell" contenteditable="true"></td>
                     <td class="phone-cell" contenteditable="true"></td>
                     <td contenteditable="true"></td>
