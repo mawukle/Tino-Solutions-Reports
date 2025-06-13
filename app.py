@@ -5051,13 +5051,11 @@ def get_support_cases():
 
         # Define the custom order for status
         status_order = case(
-            [
                 (support_cases.status == 'Open', 0),
                 (support_cases.status == 'In Progress', 1),
                 (support_cases.status == 'Resolved', 2),
-                (support_cases.status == 'Closed', 3)
-            ],
-            else_=4
+                (support_cases.status == 'Closed', 3),
+                else_=4
         )
 
         # Execute query with custom ordering
@@ -5136,13 +5134,11 @@ def support_and_visits():
 
     # Define the custom order for status
     status_order = case(
-        [
             (support_cases.status == 'Open', 0),
             (support_cases.status == 'In Progress', 1),
             (support_cases.status == 'Resolved', 2),
-            (support_cases.status == 'Closed', 3)
-        ],
-        else_=4
+            (support_cases.status == 'Closed', 3),
+            else_=4
     )
 
     # Get recent cases with the same ordering
@@ -5154,7 +5150,7 @@ def support_and_visits():
     return render_template('support_and_visits.html',
                         support_cases=recent_cases,
                         team_members=team_members)
-                        
+
 @app.route('/search_clients', methods=['GET'])
 def search_clients():
     term = request.args.get('term', '').strip()
