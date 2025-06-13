@@ -66,7 +66,6 @@
             color: white;
             cursor: pointer;
         }
-
     </style>
 </head>
 <body>
@@ -103,6 +102,7 @@
                         <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
+                        <th>Google Coordinates</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
@@ -110,7 +110,7 @@
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
-
+                        <th>Comment</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,6 +131,15 @@
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
+                        <td class="google-coordinates">
+                            {% if project.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ project.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ project.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
@@ -162,7 +171,7 @@
                                 <button type="submit">Upload</button>
                             </form>
                         </td>
-
+                        <td contenteditable="true">{{ project.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -182,6 +191,7 @@
                         <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
+                        <th>Google Coordinates</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
@@ -189,6 +199,7 @@
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
+                        <th>Comment</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -209,6 +220,15 @@
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
+                        <td class="google-coordinates">
+                            {% if project.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ project.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ project.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
@@ -244,7 +264,7 @@
                                 <button type="submit">Upload</button>
                             </form>
                         </td>
-
+                        <td contenteditable="true">{{ project.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -259,6 +279,7 @@
                         <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
+                        <th>Google Coordinates</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Lead Installer</th>
@@ -266,6 +287,7 @@
                         <th>Commissioning Date</th>
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
+                        <th>Comment</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -286,6 +308,15 @@
                         </td>
                         <td contenteditable="true">{{ project.client_name }}</td>
                         <td contenteditable="true">{{ project.town }}</td>
+                        <td class="google-coordinates">
+                            {% if project.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ project.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ project.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true">{{ project.phone_number }}</td>
                         <td>
                             <select class="sales-person">
@@ -321,7 +352,7 @@
                                 <button type="submit">Upload</button>
                             </form>
                         </td>
-
+                        <td contenteditable="true">{{ project.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -352,17 +383,22 @@
                     const inputs = row.querySelectorAll("input.date-input");
                     const salesPersonSelect = row.querySelector(".sales-person");
                     const leadInstallerSelect = row.querySelector(".lead-installer");
+                    const googleCoordinates = row.querySelector(".google-coordinates a")
+                        ? row.querySelector(".google-coordinates a").getAttribute("href").split('=')[1]
+                        : row.querySelector(".google-coordinates span")?.innerText.trim() || "";
 
                     let projectData = {
                         project_id: projectID,
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
+                        google_coordinates: googleCoordinates,
                         phone_number: cells[2]?.innerText.trim() || "",
                         sales_person: salesPersonSelect?.value || "",
                         lead_installer: leadInstallerSelect?.value || "",
                         start_date: inputs[0]?.value || "",
                         commissioning_date: inputs[1]?.value || "",
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : ""
+                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : "",
+                        comment: cells[3]?.innerText.trim() || ""
                     };
 
                     updatedProjects.push(projectData);
@@ -404,6 +440,9 @@
                     </td>
                     <td contenteditable="true"></td>  <!-- Client Name -->
                     <td contenteditable="true"></td>  <!-- Town -->
+                    <td class="google-coordinates">
+                        <span contenteditable="true"></span>
+                    </td>
                     <td contenteditable="true"></td>  <!-- Phone Number -->
                     <td>
                         <select class="sales-person">
@@ -419,6 +458,15 @@
                     </td>
                     <td><input type="date" class="date-input"></td>  <!-- Start Date -->
                     <td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
+                    <td></td>  <!-- Project Folder -->
+                    <td>
+                        <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="folder_id" value="">
+                            <input type="file" name="file" multiple>
+                            <button type="submit">Upload</button>
+                        </form>
+                    </td>
+                    <td contenteditable="true"></td>  <!-- Comment -->
                 `;
                 document.querySelector("tbody").appendChild(newRow);
             });
