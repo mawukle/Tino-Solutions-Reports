@@ -108,6 +108,10 @@
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
+                        <th>kVA</th>
+                        <th>kWh</th>
+                        <th>kWp</th>
+
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
                         <th>Comment</th>
@@ -159,6 +163,9 @@
                         </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td contenteditable="true">{{ project.kVA or '' }}</td>
+                        <td contenteditable="true">{{ project.kWh or '' }}</td>
+                        <td contenteditable="true">{{ project.kWp or '' }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
@@ -197,6 +204,10 @@
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
+                        <th>kVA</th>
+                        <th>kWh</th>
+                        <th>kWp</th>
+
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
                         <th>Comment</th>
@@ -252,6 +263,9 @@
                         </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td contenteditable="true">{{ project.kVA or '' }}</td>
+                        <td contenteditable="true">{{ project.kWh or '' }}</td>
+                        <td contenteditable="true">{{ project.kWp or '' }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
@@ -285,6 +299,10 @@
                         <th>Lead Installer</th>
                         <th>Start Date</th>
                         <th>Commissioning Date</th>
+                        <th>kVA</th>
+                        <th>kWh</th>
+                        <th>kWp</th>
+
                         <th>Project Folder</th>
                         <th>File Upload Button</th>
                         <th>Comment</th>
@@ -340,6 +358,9 @@
                         </td>
                         <td><input type="date" class="date-input" value="{{ project.start_date }}" /></td>
                         <td><input type="date" class="date-input" value="{{ project.commissioning_date }}" /></td>
+                        <td contenteditable="true">{{ project.kVA or '' }}</td>
+                        <td contenteditable="true">{{ project.kWh or '' }}</td>
+                        <td contenteditable="true">{{ project.kWp or '' }}</td>
                         <td>
                             {% if project.folder_link %}
                                 <a href="{{ project.folder_link }}" target="_blank">View Folder</a>
@@ -397,6 +418,10 @@
                         lead_installer: leadInstallerSelect?.value || "",
                         start_date: inputs[0]?.value || "",
                         commissioning_date: inputs[1]?.value || "",
+                        kVA: cells[3]?.innerText.trim() || "0",
+                        kWh: cells[4]?.innerText.trim() || "0",
+                        kWp: cells[5]?.innerText.trim() || "0",
+
                         invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : "",
                         comment: cells[3]?.innerText.trim() || ""
                     };
@@ -458,6 +483,9 @@
                     </td>
                     <td><input type="date" class="date-input"></td>  <!-- Start Date -->
                     <td><input type="date" class="date-input"></td>  <!-- Commissioning Date -->
+                    <td contenteditable="true">0</td>  <!-- kVA -->
+                    <td contenteditable="true">0</td>  <!-- kWh -->
+                    <td contenteditable="true">0</td>  <!-- kWp -->
                     <td></td>  <!-- Project Folder -->
                     <td>
                         <form action="/upload_file_to_folder" method="post" enctype="multipart/form-data">

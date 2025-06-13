@@ -3841,7 +3841,11 @@ def get_projects():
             projects.expected_final_payment_date,
             projects.comment,
             projects.folder_has_files,
-            projects.google_folder_id
+            projects.google_folder_id,
+            projects.kVA,
+            projects.kWh,
+            projects.kWp
+
         ).distinct()
 
         # Apply filters (same as your existing code)
@@ -3905,6 +3909,10 @@ def get_projects():
                 "lead_installer": project.lead_installer or '',
                 "start_date": start_date,
                 "commissioning_date": commissioning_date,
+                "kVA": project.kVA or 0,
+                "kWh": project.kWh or 0,
+                "kWp": project.kWp or 0,
+
                 "invoice_image_url": project.invoice_image_url or '',
                 "folder_id": folder_id,
                 "folder_link": folder_link,
@@ -3987,6 +3995,10 @@ def update_projects():
                         'lead_installer': project.get('lead_installer') if 'lead_installer' in project else existing_project.lead_installer,
                         'start_date': project.get('start_date', existing_project.start_date),
                         'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date),
+                        'kVA': float(project.get('kVA', existing_project.kVA if project_id else 0)),
+                        'kWh': float(project.get('kWh', existing_project.kWh if project_id else 0)),
+                        'kWp': float(project.get('kWp', existing_project.kWp if project_id else 0)),
+
                         'invoice_image_url': project.get('invoice_image_url', existing_project.invoice_image_url),
                         'google_coordinates': project.get('google_coordinates', existing_project.google_coordinates),
                         'currency': project.get('currency', existing_project.currency),
