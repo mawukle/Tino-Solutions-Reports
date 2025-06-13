@@ -181,7 +181,23 @@
             font-size: 0.8em;
             margin-top: 5px;
         }
+        /* Client name cell styling */
+        .client-name-cell {
+            min-height: 60px;  /* Increased height to accommodate 2 lines */
+            height: auto;
+            white-space: normal; /* Allow text to wrap */
+            vertical-align: top; /* Align content to top */
+            padding: 8px;
+        }
 
+        .client-name-input {
+            width: 100%;
+            min-height: 40px; /* Make input taller */
+            box-sizing: border-box;
+            white-space: normal; /* Allow text to wrap */
+            overflow: visible; /* Show all text */
+            resize: none; /* Prevent manual resizing */
+        }
     </style>
 </head>
 <body>
@@ -296,6 +312,17 @@
                                 <option value="{{ member }}" {% if case.assigned_to == member %}selected{% endif %}>{{ member }}</option>
                                 {% endfor %}
                             </select>
+                        </td>
+                        <td class="client-name-cell">
+                            <div class="client-search">
+                                <input type="text" class="client-name-input" value="{{ case.client_name }}"
+                                       data-original-client="{{ case.client_name }}"
+                                       data-original-town="{{ case.town if case.town else '' }}"
+                                       data-original-phone="{{ case.phone_number if case.phone_number else '' }}"
+                                       data-original-project="{{ case.project_id if case.project_id else '' }}">
+                                <div class="client-search-results"></div>
+                                <div class="invoice-preview-container"></div>
+                            </div>
                         </td>
                         <td contenteditable="true">{{ case.resolution_notes if case.resolution_notes else '' }}</td>
                     </tr>
@@ -544,7 +571,7 @@
                 newRow.innerHTML = `
                     <td>New</td>
                     <td contenteditable="true"></td>
-                    <td>
+                    <td class="client-name-cell">
                         <div class="client-search">
                             <input type="text" class="client-name-input">
                             <div class="client-search-results"></div>
