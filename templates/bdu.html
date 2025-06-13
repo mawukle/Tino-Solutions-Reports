@@ -212,6 +212,7 @@
         </div>
 
         <!-- Clients in Good Standing -->
+        <!-- Clients in Good Standing -->
         <h2>Clients in Good Standing</h2>
         <div class="table-container">
             <table>
@@ -220,11 +221,12 @@
                         <th>Invoice</th>
                         <th>Client Name</th>
                         <th>Town</th>
+                        <th>Google Coordinates</th>
                         <th>Phone Number</th>
                         <th>Sales Person</th>
                         <th>Currency</th>
                         <th>Invoice Amount</th>
-                        <th>Amount Paid</th> <!-- Added this column -->
+                        <th>Amount Paid</th>
                         <th>Outstanding Balance</th>
                         <th>Comment</th>
                     </tr>
@@ -247,6 +249,15 @@
                         </td>
                         <td contenteditable="true" class="client-name">{{ good.client_name }}</td>
                         <td contenteditable="true" class="town">{{ good.town }}</td>
+                        <td class="google-coordinates">
+                            {% if good.google_coordinates %}
+                                <a href="https://www.google.com/maps?q={{ good.google_coordinates }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span contenteditable="true">{{ good.google_coordinates }}</span>
+                            {% endif %}
+                        </td>
                         <td contenteditable="true" class="phone-number">{{ good.phone_number }}</td>
                         <td>
                             <select class="sales-person">
@@ -265,7 +276,7 @@
                             </select>
                         </td>
                         <td contenteditable="true" class="invoice-amount">{{ good.invoice_amount }}</td>
-                        <td contenteditable="true" class="amount-paid">{{ good.amount_paid }}</td> <!-- Added this column -->
+                        <td contenteditable="true" class="amount-paid">{{ good.amount_paid }}</td>
                         <td class="outstanding-balance">{{ good.outstanding_balance }}</td>
                         <td contenteditable="true" class="comment">{{ good.comment }}</td>
                     </tr>
