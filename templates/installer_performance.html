@@ -158,6 +158,8 @@
                     {{ installer.system_metrics.total_kVA|round(1) }} /
                     {{ installer.system_metrics.total_kWh|round(1) }} /
                     {{ installer.system_metrics.total_kWp|round(1) }}
+                    <br>
+                    <span class="weight-label">{{ installer.system_metrics.percentage_of_max|round(1) }}% of max</span>
                 </td>
                 <td>
                     {{ installer.support_cases.resolved }} /
