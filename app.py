@@ -5209,8 +5209,7 @@ def search_clients():
         logging.error(f"Error searching clients: {e}")
         return jsonify({'projects': [], 'clients': []})
 
-
-
+"""
 @app.route('/installer_performance')
 def installer_performance():
     # Get date range from request (default to current year)
@@ -5297,7 +5296,7 @@ def installer_performance():
                          performance_data=performance_data,
                          start_date=start_date,
                          end_date=end_date)
-
+"""
 
 
 if __name__ == '__main__':
