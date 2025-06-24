@@ -31,6 +31,7 @@
         th {
             background-color: #85BB65;
             color: white;
+            position: relative;
         }
         tr:nth-child(even) {
             background-color: #f2f2f2;
@@ -46,6 +47,22 @@
         }
         .poor {
             color: red;
+        }
+        .weight-input {
+            width: 40px;
+            text-align: center;
+        }
+        .weight-label {
+            display: block;
+            font-size: 0.8em;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+        .weights-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -64,18 +81,58 @@
         </form>
     </div>
 
+    <div class="weights-form">
+        <form method="POST" action="/installer_performance">
+            <h3>Adjust Scoring Weights (Total must sum to 100%)</h3>
+            <input type="hidden" name="start_date" value="{{ start_date }}">
+            <input type="hidden" name="end_date" value="{{ end_date }}">
+
+            <label>Completion Rate:
+                <input type="number" class="weight-input" name="completion_rate_weight"
+                       value="{{ (weights.completion_rate * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <label>Efficiency (Install Time):
+                <input type="number" class="weight-input" name="efficiency_weight"
+                       value="{{ (weights.efficiency * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <label>System Size:
+                <input type="number" class="weight-input" name="system_size_weight"
+                       value="{{ (weights.system_size * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <label>Support Cases:
+                <input type="number" class="weight-input" name="support_cases_weight"
+                       value="{{ (weights.support_cases * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <label>Documentation:
+                <input type="number" class="weight-input" name="documentation_weight"
+                       value="{{ (weights.documentation * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <label>Installation Volume:
+                <input type="number" class="weight-input" name="volume_weight"
+                       value="{{ (weights.volume * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
+            <button type="submit">Update Weights</button>
+        </form>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>Rank</th>
                 <th>Installer</th>
                 <th>Performance Score</th>
-                <th>Total Installations</th>
-                <th>Completion Rate</th>
-                <th>Avg. Install Time (days)</th>
-                <th>Avg. System Size (kVA/kWh/kWp)</th>
-                <th>Support Cases (Resolved/Total)</th>
-                <th>Documentation Complete</th>
+                <th>Total Installations<br><span class="weight-label">Weight: {{ (weights.volume * 100)|round(1) }}%</span></th>
+                <th>Completion Rate<br><span class="weight-label">Weight: {{ (weights.completion_rate * 100)|round(1) }}%</span></th>
+                <th>Avg. Install Time (days)<br><span class="weight-label">Weight: {{ (weights.efficiency * 100)|round(1) }}%</span></th>
+                <th>Avg. System Size (kVA/kWh/kWp)<br><span class="weight-label">Weight: {{ (weights.system_size * 100)|round(1) }}%</span></th>
+                <th>Support Cases (Resolved/Total)<br><span class="weight-label">Weight: {{ (weights.support_cases * 100)|round(1) }}%</span></th>
+                <th>Documentation Complete<br><span class="weight-label">Weight: {{ (weights.documentation * 100)|round(1) }}%</span></th>
             </tr>
         </thead>
         <tbody>

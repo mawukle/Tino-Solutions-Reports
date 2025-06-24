@@ -5377,18 +5377,8 @@ def calculate_documentation_completeness(installer_name, start_date=None, end_da
         logger.error(f"Documentation error for {installer_name}: {str(e)}")
         return 0.0
 
-def calculate_performance_score(metrics):
-    """Calculate weighted performance score with volume adjustment"""
-    # Base weights
-    weights = {
-        'completion_rate': 0.20,
-        'efficiency': 0.05,
-        'system_size': 0.30,
-        'support_cases': 0.05,
-        'documentation': 0.10,
-        'volume': 0.30  # New weight for installation volume
-    }
-
+def calculate_performance_score(metrics, weights):
+    """Calculate weighted performance score with adjustable weights"""
     # Calculate efficiency score (lower time is better)
     efficiency_score = max(0.0, 100.0 - (metrics['avg_install_time'] * 10.0)) if metrics['avg_install_time'] else 0.0
 
@@ -5402,7 +5392,7 @@ def calculate_performance_score(metrics):
     max_projects = max(1, project_count)  # Prevent division by zero
     volume_score = min(100.0, (project_count / max_projects) * 100 * 2)  # Scale up to better reward volume
 
-    # Calculate overall score
+    # Calculate overall score using provided weights
     overall_score = (
         (metrics['completion_rate'] * weights['completion_rate']) +
         (efficiency_score * weights['efficiency']) +
@@ -5418,6 +5408,35 @@ def calculate_performance_score(metrics):
 def installer_performance():
     """Main route for installer performance report"""
     try:
+        # Default weights
+        default_weights = {
+            'completion_rate': 0.20,
+            'efficiency': 0.05,
+            'system_size': 0.30,
+            'support_cases': 0.05,
+            'documentation': 0.10,
+            'volume': 0.30
+        }
+
+        # Get weights from form submission or use defaults
+        if request.method == 'POST':
+            weights = {
+                'completion_rate': safe_float(request.form.get('completion_rate_weight', 0.20)),
+                'efficiency': safe_float(request.form.get('efficiency_weight', 0.05)),
+                'system_size': safe_float(request.form.get('system_size_weight', 0.30)),
+                'support_cases': safe_float(request.form.get('support_cases_weight', 0.05)),
+                'documentation': safe_float(request.form.get('documentation_weight', 0.10)),
+                'volume': safe_float(request.form.get('volume_weight', 0.30))
+            }
+            # Normalize weights to sum to 1
+            total = sum(weights.values())
+            if total > 0:
+                weights = {k: v/total for k, v in weights.items()}
+        else:
+            weights = default_weights
+
+
+
         # Date handling with validation
         start_date = end_date = None
         start_str = request.args.get('start_date')
@@ -5462,7 +5481,7 @@ def installer_performance():
                 'documentation_score': calculate_documentation_completeness(name, start_date, end_date)
             }
 
-            score = calculate_performance_score(metrics)
+            score = calculate_performance_score(metrics, weights)  # Pass weights to function
 
             # Pre-calculate values for template
             performance_score = round(score, 1)
@@ -5500,6 +5519,7 @@ def installer_performance():
             performance_data=performance_data,
             start_date=start_str or '',
             end_date=end_str or ''
+            weights=weights  # Pass weights to template
         )
 
     except Exception as e:
