@@ -5296,7 +5296,7 @@ def installer_performance():
                          performance_data=performance_data,
                          start_date=start_date,
                          end_date=end_date)
-"""
+
 
 def calculate_completion_rate(installer_name, start_date=None, end_date=None):
     query = db.session.query(projects)
@@ -5492,7 +5492,7 @@ def installer_performance():
         start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
         end_date=end_date.strftime('%Y-%m-%d') if end_date else ''
     )
-
+"""
 
 
 if __name__ == '__main__':
