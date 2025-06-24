@@ -69,8 +69,8 @@
             <tr>
                 <th>Rank</th>
                 <th>Installer</th>
-                <th>Total Installations</th>
                 <th>Performance Score</th>
+                <th>Total Installations</th>
                 <th>Completion Rate</th>
                 <th>Avg. Install Time (days)</th>
                 <th>Avg. System Size (kVA/kWh/kWp)</th>
@@ -83,10 +83,10 @@
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ installer.installer_name }}</td>
-                <td>{{ installer.total_installations }}</td>
                 <td class="performance-score {{ installer.performance_class }}">
                     {{ installer.performance_score }}
                 </td>
+                <td>{{ installer.total_installations }}</td>
                 <td>{{ installer.completion_rate }}</td>
                 <td>{{ installer.avg_installation_days }}</td>
                 <td>
