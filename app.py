@@ -5294,7 +5294,7 @@ def calculate_avg_installation_time(installer_name, start_date=None, end_date=No
         return None
 
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
-    """Calculate average system size metrics"""
+    """Calculate total system size metrics"""
     try:
         query = db.session.query(
             func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
@@ -5310,21 +5310,20 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
         result = query.first()
-        count = result.count if result and result.count > 0 else 1  # Avoid division by zero
 
         return {
-            'avg_kVA': safe_float(result.total_kVA / count),
-            'avg_kWh': safe_float(result.total_kWh / count),
-            'avg_kWp': safe_float(result.total_kWp / count),
+            'total_kVA': safe_float(result.total_kVA),
+            'total_kWh': safe_float(result.total_kWh),
+            'total_kWp': safe_float(result.total_kWp),
             'total_projects': result.count
         }
 
     except Exception as e:
         logger.error(f"System metrics error for {installer_name}: {str(e)}")
         return {
-            'avg_kVA': 0.0,
-            'avg_kWh': 0.0,
-            'avg_kWp': 0.0,
+            'total_kVA': 0.0,
+            'total_kWh': 0.0,
+            'total_kWp': 0.0,
             'total_projects': 0
         }
 
@@ -5385,10 +5384,10 @@ def calculate_performance_score(metrics, weights):
     # Calculate efficiency score (lower time is better)
     efficiency_score = max(0.0, 100.0 - (metrics['avg_install_time'] * 10.0)) if metrics['avg_install_time'] else 0.0
 
-    # Calculate system size score
-    system_size_score = (metrics['system_metrics']['avg_kVA'] +
-                        metrics['system_metrics']['avg_kWh'] +
-                        metrics['system_metrics']['avg_kWp']) / 3.0
+    # Calculate system size score (using totals now)
+    system_size_score = (metrics['system_metrics']['total_kVA'] +
+                        metrics['system_metrics']['total_kWh'] +
+                        metrics['system_metrics']['total_kWp']) / 3.0
 
     # Calculate volume score (normalized to 0-100 scale)
     project_count = metrics['system_metrics']['total_projects']
@@ -5406,7 +5405,7 @@ def calculate_performance_score(metrics, weights):
     )
 
     return min(100.0, overall_score)  # Cap at 100%
-
+    
 @app.route('/installer_performance', methods=['GET', 'POST'])
 def installer_performance():
     """Main route for installer performance report"""
