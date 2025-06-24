@@ -5382,8 +5382,8 @@ def calculate_performance_score(metrics):
     # Base weights
     weights = {
         'completion_rate': 0.20,
-        'efficiency': 0.20,
-        'system_size': 0.15,
+        'efficiency': 0.05,
+        'system_size': 0.30,
         'support_cases': 0.15,
         'documentation': 0.10,
         'volume': 0.20  # New weight for installation volume
