@@ -5405,7 +5405,7 @@ def calculate_performance_score(metrics, weights):
     )
 
     return min(100.0, overall_score)  # Cap at 100%
-    
+
 @app.route('/installer_performance', methods=['GET', 'POST'])
 def installer_performance():
     """Main route for installer performance report"""
@@ -5508,10 +5508,10 @@ def installer_performance():
                 'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
                 'completion_rate': f"{round(metrics['completion_rate'], 1)}%",
                 'avg_installation_days': round(metrics['avg_install_time'], 1) if metrics['avg_install_time'] else "N/A",
-                'avg_system_size': {
-                    'kVA': round(metrics['system_metrics']['avg_kVA'], 1),
-                    'kWh': round(metrics['system_metrics']['avg_kWh'], 1),
-                    'kWp': round(metrics['system_metrics']['avg_kWp'], 1)
+                'system_metrics': {  # Changed from avg_system_size to just system_metrics
+                    'total_kVA': metrics['system_metrics']['total_kVA'],
+                    'total_kWh': metrics['system_metrics']['total_kWh'],
+                    'total_kWp': metrics['system_metrics']['total_kWp']
                 },
                 'support_cases': {
                     'total': metrics['support_metrics']['total_cases'],
@@ -5519,11 +5519,10 @@ def installer_performance():
                     'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
                 },
                 'documentation_completeness': f"{round(metrics['documentation_score'], 1)}%",
-                'total_installations': metrics['system_metrics']['total_projects'],  # Add installation count
+                'total_installations': metrics['system_metrics']['total_projects'],
                 'performance_score': f"{performance_score}%",
-                'performance_class': performance_class  # Pre-calculated CSS class
+                'performance_class': performance_class
             })
-
         # Sort by performance score
         performance_data.sort(
             key=lambda x: safe_float(x['performance_score'].rstrip('%'), 0.0),
