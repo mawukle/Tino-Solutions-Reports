@@ -5329,7 +5329,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
         }
 
 def calculate_support_cases(installer_name, start_date=None, end_date=None):
-    """Calculate support case metrics"""
+    """Calculate support case metrics (treats both 'Resolved' and 'Closed' as resolved)"""
     try:
         query = db.session.query(support_cases).join(
             projects,
@@ -5342,7 +5342,10 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
             query = query.filter(support_cases.reported_date.between(start_date, end_date))
 
         total = query.count()
-        resolved = query.filter(support_cases.status == 'Resolved').count()
+        resolved = query.filter(
+            (support_cases.status == 'Resolved') |
+            (support_cases.status == 'Closed')
+        ).count()
 
         return {
             'total_cases': total,
@@ -5357,7 +5360,7 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
             'resolved_cases': 0,
             'resolution_rate': 100.0
         }
-
+        
 def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
     """Calculate documentation completeness percentage"""
     try:
