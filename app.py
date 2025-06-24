@@ -5384,9 +5384,9 @@ def calculate_performance_score(metrics):
         'completion_rate': 0.20,
         'efficiency': 0.05,
         'system_size': 0.30,
-        'support_cases': 0.15,
+        'support_cases': 0.05,
         'documentation': 0.10,
-        'volume': 0.20  # New weight for installation volume
+        'volume': 0.30  # New weight for installation volume
     }
 
     # Calculate efficiency score (lower time is better)
