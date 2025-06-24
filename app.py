@@ -5360,7 +5360,7 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
             'resolved_cases': 0,
             'resolution_rate': 100.0
         }
-        
+
 def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
     """Calculate documentation completeness percentage"""
     try:
@@ -5421,7 +5421,7 @@ def installer_performance():
             'volume': 0.30
         }
 
-        # Get weights from form submission or use defaults
+        # Get weights from form submission or use existing weights from GET params
         if request.method == 'POST':
             weights = {
                 'completion_rate': safe_float(request.form.get('completion_rate_weight', 0.20)),
@@ -5431,13 +5431,27 @@ def installer_performance():
                 'documentation': safe_float(request.form.get('documentation_weight', 0.10)),
                 'volume': safe_float(request.form.get('volume_weight', 0.30))
             }
-            # Normalize weights to sum to 1
-            total = sum(weights.values())
-            if total > 0:
-                weights = {k: v/total for k, v in weights.items()}
+            # Get dates from form (POST request carries them as hidden fields)
+            start_str = request.form.get('start_date')
+            end_str = request.form.get('end_date')
         else:
-            weights = default_weights
+            # For GET requests, try to get weights from query params first
+            weights = {
+                'completion_rate': safe_float(request.args.get('completion_rate_weight', default_weights['completion_rate'])),
+                'efficiency': safe_float(request.args.get('efficiency_weight', default_weights['efficiency'])),
+                'system_size': safe_float(request.args.get('system_size_weight', default_weights['system_size'])),
+                'support_cases': safe_float(request.args.get('support_cases_weight', default_weights['support_cases'])),
+                'documentation': safe_float(request.args.get('documentation_weight', default_weights['documentation'])),
+                'volume': safe_float(request.args.get('volume_weight', default_weights['volume']))
+            }
+            # Get dates from query params
+            start_str = request.args.get('start_date')
+            end_str = request.args.get('end_date')
 
+        # Normalize weights to sum to 1
+        total = sum(weights.values())
+        if total > 0:
+            weights = {k: v/total for k, v in weights.items()}
 
 
         # Date handling with validation

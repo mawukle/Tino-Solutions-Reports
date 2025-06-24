@@ -77,6 +77,14 @@
             <label for="end_date">To:</label>
             <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
 
+            <!-- Include current weights as hidden fields -->
+            <input type="hidden" name="completion_rate_weight" value="{{ (weights.completion_rate * 100)|round(1) }}">
+            <input type="hidden" name="efficiency_weight" value="{{ (weights.efficiency * 100)|round(1) }}">
+            <input type="hidden" name="system_size_weight" value="{{ (weights.system_size * 100)|round(1) }}">
+            <input type="hidden" name="support_cases_weight" value="{{ (weights.support_cases * 100)|round(1) }}">
+            <input type="hidden" name="documentation_weight" value="{{ (weights.documentation * 100)|round(1) }}">
+            <input type="hidden" name="volume_weight" value="{{ (weights.volume * 100)|round(1) }}">
+
             <button type="submit">Filter</button>
         </form>
     </div>
@@ -120,7 +128,7 @@
             <button type="submit">Update Weights</button>
         </form>
     </div>
-
+    
     <table>
         <thead>
             <tr>
