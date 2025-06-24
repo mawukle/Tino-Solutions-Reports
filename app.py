@@ -5214,27 +5214,49 @@ def search_clients():
 
 
 
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash
+import os
+import logging
+from datetime import datetime, date
+from sqlalchemy import func
+from models import db, projects, support_cases  # Assuming these are your models
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Global helper function
+def safe_float(value, default=0.0):
+    """Safely convert a value to float with extensive error handling"""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.warning(f"Could not convert {value} to float: {str(e)}")
+        return default
 
 def calculate_completion_rate(installer_name, start_date=None, end_date=None):
+    """Calculate project completion rate for an installer"""
     try:
-        query = db.session.query(projects)
+        query = db.session.query(projects).filter(
+            projects.lead_installer == installer_name
+        )
 
         if start_date and end_date:
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
-        total_projects = query.filter(projects.lead_installer == installer_name).count()
-        completed_projects = query.filter(
-            projects.lead_installer == installer_name,
-            projects.commissioning_date.isnot(None)
-        ).count()
+        total = query.count()
+        completed = query.filter(projects.commissioning_date.isnot(None)).count()
 
-        return float(completed_projects / total_projects * 100) if total_projects > 0 else 0.0
+        return safe_float(completed / total * 100) if total > 0 else 0.0
 
     except Exception as e:
-        logging.error(f"Error in completion rate calculation: {str(e)}")
+        logger.error(f"Completion rate error for {installer_name}: {str(e)}")
         return 0.0
 
 def calculate_avg_installation_time(installer_name, start_date=None, end_date=None):
+    """Calculate average installation time in days"""
     try:
         query = db.session.query(
             projects.start_date,
@@ -5249,40 +5271,36 @@ def calculate_avg_installation_time(installer_name, start_date=None, end_date=No
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
         installations = query.all()
-
         if not installations:
             return None
 
         total_days = 0
-        valid_installations = 0
+        valid_count = 0
 
-        for start, commissioning in installations:
+        for start, end in installations:
             try:
-                # Convert to date objects if they aren't already
-                if isinstance(start, str):
-                    start = datetime.strptime(start, '%Y-%m-%d').date()
-                if isinstance(commissioning, str):
-                    commissioning = datetime.strptime(commissioning, '%Y-%m-%d').date()
-
-                if start and commissioning:
-                    total_days += (commissioning - start).days
-                    valid_installations += 1
-            except (TypeError, ValueError) as e:
+                start_date = start if isinstance(start, date) else datetime.strptime(start, '%Y-%m-%d').date()
+                end_date = end if isinstance(end, date) else datetime.strptime(end, '%Y-%m-%d').date()
+                total_days += (end_date - start_date).days
+                valid_count += 1
+            except Exception as e:
+                logger.warning(f"Skipping invalid date pair: {start}, {end}: {str(e)}")
                 continue
 
-        return float(total_days / valid_installations) if valid_installations > 0 else None
+        return safe_float(total_days / valid_count) if valid_count > 0 else None
 
     except Exception as e:
-        logging.error(f"Error calculating avg installation time: {str(e)}")
+        logger.error(f"Installation time error for {installer_name}: {str(e)}")
         return None
 
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
+    """Calculate average system size metrics"""
     try:
         query = db.session.query(
-            func.sum(projects.kVA).label('total_kVA'),
-            func.sum(projects.kWh).label('total_kWh'),
-            func.sum(projects.kWp).label('total_kWp'),
-            func.count().label('project_count')
+            func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
+            func.coalesce(func.sum(projects.kWh), 0.0).label('total_kWh'),
+            func.coalesce(func.sum(projects.kWp), 0.0).label('total_kWp'),
+            func.count().label('count')
         ).filter(
             projects.lead_installer == installer_name,
             projects.commissioning_date.isnot(None)
@@ -5292,16 +5310,17 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
         result = query.first()
+        count = result.count if result and result.count > 0 else 1  # Avoid division by zero
 
         return {
-            'avg_kVA': float(result.total_kVA / result.project_count) if result.project_count > 0 else 0.0,
-            'avg_kWh': float(result.total_kWh / result.project_count) if result.project_count > 0 else 0.0,
-            'avg_kWp': float(result.total_kWp / result.project_count) if result.project_count > 0 else 0.0,
-            'total_projects': int(result.project_count)
+            'avg_kVA': safe_float(result.total_kVA / count),
+            'avg_kWh': safe_float(result.total_kWh / count),
+            'avg_kWp': safe_float(result.total_kWp / count),
+            'total_projects': result.count
         }
 
     except Exception as e:
-        logging.error(f"Error calculating system size metrics: {str(e)}")
+        logger.error(f"System metrics error for {installer_name}: {str(e)}")
         return {
             'avg_kVA': 0.0,
             'avg_kWh': 0.0,
@@ -5310,10 +5329,9 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
         }
 
 def calculate_support_cases(installer_name, start_date=None, end_date=None):
+    """Calculate support case metrics"""
     try:
-        query = db.session.query(
-            support_cases
-        ).join(
+        query = db.session.query(support_cases).join(
             projects,
             support_cases.project_id == projects.project_id
         ).filter(
@@ -5323,17 +5341,17 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
         if start_date and end_date:
             query = query.filter(support_cases.reported_date.between(start_date, end_date))
 
-        total_cases = query.count()
-        resolved_cases = query.filter(support_cases.status == 'Resolved').count()
+        total = query.count()
+        resolved = query.filter(support_cases.status == 'Resolved').count()
 
         return {
-            'total_cases': int(total_cases),
-            'resolved_cases': int(resolved_cases),
-            'resolution_rate': float(resolved_cases / total_cases * 100) if total_cases > 0 else 100.0
+            'total_cases': total,
+            'resolved_cases': resolved,
+            'resolution_rate': safe_float(resolved / total * 100) if total > 0 else 100.0
         }
 
     except Exception as e:
-        logging.error(f"Error calculating support cases: {str(e)}")
+        logger.error(f"Support cases error for {installer_name}: {str(e)}")
         return {
             'total_cases': 0,
             'resolved_cases': 0,
@@ -5341,6 +5359,7 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
         }
 
 def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
+    """Calculate documentation completeness percentage"""
     try:
         query = db.session.query(projects).filter(
             projects.lead_installer == installer_name
@@ -5349,158 +5368,123 @@ def calculate_documentation_completeness(installer_name, start_date=None, end_da
         if start_date and end_date:
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
-        total_projects = query.count()
-        documented_projects = query.filter(
-            projects.folder_has_files == True
-        ).count()
+        total = query.count()
+        documented = query.filter(projects.folder_has_files == True).count()
 
-        return float(documented_projects / total_projects * 100) if total_projects > 0 else 0.0
+        return safe_float(documented / total * 100) if total > 0 else 0.0
 
     except Exception as e:
-        logging.error(f"Error calculating documentation completeness: {str(e)}")
+        logger.error(f"Documentation error for {installer_name}: {str(e)}")
         return 0.0
 
-def calculate_installer_performance(installer_name, start_date=None, end_date=None):
-    try:
-        # Calculate all metrics with proper error handling
-        completion_rate = safe_float(calculate_completion_rate(installer_name, start_date, end_date)) or 0.0
-        avg_install_time = safe_float(calculate_avg_installation_time(installer_name, start_date, end_date))
+def calculate_performance_score(metrics):
+    """Calculate weighted performance score"""
+    weights = {
+        'completion_rate': 0.25,
+        'efficiency': 0.25,
+        'system_size': 0.20,
+        'support_cases': 0.20,
+        'documentation': 0.10
+    }
 
-        system_metrics = calculate_system_size_metrics(installer_name, start_date, end_date) or {
-            'avg_kVA': 0.0,
-            'avg_kWh': 0.0,
-            'avg_kWp': 0.0,
-            'total_projects': 0
-        }
+    efficiency_score = max(0.0, 100.0 - (metrics['avg_install_time'] * 10.0)) if metrics['avg_install_time'] else 0.0
+    system_size_score = (metrics['system_metrics']['avg_kVA'] +
+                        metrics['system_metrics']['avg_kWh'] +
+                        metrics['system_metrics']['avg_kWp']) / 3.0
 
-        support_metrics = calculate_support_cases(installer_name, start_date, end_date) or {
-            'total_cases': 0,
-            'resolved_cases': 0,
-            'resolution_rate': 100.0
-        }
+    return (
+        (metrics['completion_rate'] * weights['completion_rate']) +
+        (efficiency_score * weights['efficiency']) +
+        (system_size_score * weights['system_size']) +
+        (metrics['support_metrics']['resolution_rate'] * weights['support_cases']) +
+        (metrics['documentation_score'] * weights['documentation'])
+    )
 
-        documentation_score = safe_float(calculate_documentation_completeness(installer_name, start_date, end_date)) or 0.0
-
-        # Calculate weighted score
-        weights = {
-            'completion_rate': 0.25,
-            'efficiency': 0.25,
-            'system_size': 0.20,
-            'support_cases': 0.20,
-            'documentation': 0.10
-        }
-
-        # Normalize efficiency (lower time is better)
-        efficiency_score = 0.0
-        if avg_install_time is not None and avg_install_time > 0:
-            efficiency_score = max(0.0, 100.0 - (avg_install_time * 10.0))
-
-        # Calculate overall score with safe float conversions
-        system_size_score = (safe_float(system_metrics['avg_kVA']) +
-                           safe_float(system_metrics['avg_kWh']) +
-                           safe_float(system_metrics['avg_kWp'])) / 3.0
-
-        overall_score = (
-            (completion_rate * weights['completion_rate']) +
-            (efficiency_score * weights['efficiency']) +
-            (system_size_score * weights['system_size']) +
-            (safe_float(support_metrics['resolution_rate']) * weights['support_cases']) +
-            (documentation_score * weights['documentation'])
-        )
-
-        return {
-            'installer_name': installer_name,
-            'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
-            'completion_rate': f"{round(completion_rate, 1)}%",
-            'avg_installation_days': round(avg_install_time, 1) if avg_install_time is not None else "N/A",
-            'avg_system_size': {
-                'kVA': round(safe_float(system_metrics['avg_kVA']), 1),
-                'kWh': round(safe_float(system_metrics['avg_kWh']), 1),
-                'kWp': round(safe_float(system_metrics['avg_kWp']), 1)
-            },
-            'support_cases': {
-                'total': int(support_metrics.get('total_cases', 0)),
-                'resolved': int(support_metrics.get('resolved_cases', 0)),
-                'resolution_rate': f"{round(safe_float(support_metrics.get('resolution_rate', 100.0)), 1)}%"
-            },
-            'documentation_completeness': f"{round(documentation_score, 1)}%",
-            'performance_score': f"{round(overall_score, 1)}%"
-        }
-
-    except Exception as e:
-        logging.error(f"Error calculating performance for {installer_name}: {str(e)}")
-        return None
-
-def safe_float(value):
-    """Safely convert a value to float, returning 0.0 if conversion fails"""
-    if value is None:
-        return 0.0
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return 0.0
-        
 @app.route('/installer_performance', methods=['GET'])
 def installer_performance():
+    """Main route for installer performance report"""
     try:
-        # Get date range from request
-        start_date_str = request.args.get('start_date', None)
-        end_date_str = request.args.get('end_date', None)
+        # Date handling with validation
+        start_date = end_date = None
+        start_str = request.args.get('start_date')
+        end_str = request.args.get('end_date')
 
-        # Convert dates if provided
-        start_date = None
-        end_date = None
-        if start_date_str:
+        if start_str:
             try:
-                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
             except ValueError:
-                flash("Invalid start date format. Please use YYYY-MM-DD.")
-        if end_date_str:
-            try:
-                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            except ValueError:
-                flash("Invalid end date format. Please use YYYY-MM-DD.")
+                flash("Invalid start date format. Use YYYY-MM-DD.")
+                return redirect(url_for('installer_performance'))
 
-        # Get all installers
+        if end_str:
+            try:
+                end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash("Invalid end date format. Use YYYY-MM-DD.")
+                return redirect(url_for('installer_performance'))
+
+        if start_date and end_date and start_date > end_date:
+            flash("Start date must be before end date")
+            return redirect(url_for('installer_performance'))
+
+        # Get installers with projects
         installers = db.session.query(
             projects.lead_installer
         ).filter(
             projects.lead_installer.isnot(None)
         ).distinct().all()
 
-        # Calculate performance for each installer
         performance_data = []
-        for installer in installers:
-            if installer.lead_installer:  # Skip None values
-                performance = calculate_installer_performance(
-                    installer.lead_installer,
-                    start_date,
-                    end_date
-                )
-                if performance:  # Only add if calculation succeeded
-                    performance_data.append(performance)
+        for inst in installers:
+            if not inst.lead_installer:
+                continue
 
-        # Sort by performance score (highest first)
-        def get_score(x):
-            try:
-                if x['performance_score'] != 'N/A':
-                    return float(x['performance_score'].rstrip('%'))
-                return 0.0
-            except (ValueError, KeyError, AttributeError):
-                return 0.0
+            name = inst.lead_installer
+            metrics = {
+                'completion_rate': calculate_completion_rate(name, start_date, end_date),
+                'avg_install_time': calculate_avg_installation_time(name, start_date, end_date),
+                'system_metrics': calculate_system_size_metrics(name, start_date, end_date),
+                'support_metrics': calculate_support_cases(name, start_date, end_date),
+                'documentation_score': calculate_documentation_completeness(name, start_date, end_date)
+            }
 
-        performance_data.sort(key=get_score, reverse=True)
+            score = calculate_performance_score(metrics)
+
+            performance_data.append({
+                'installer_name': name,
+                'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
+                'completion_rate': f"{round(metrics['completion_rate'], 1)}%",
+                'avg_installation_days': round(metrics['avg_install_time'], 1) if metrics['avg_install_time'] else "N/A",
+                'avg_system_size': {
+                    'kVA': round(metrics['system_metrics']['avg_kVA'], 1),
+                    'kWh': round(metrics['system_metrics']['avg_kWh'], 1),
+                    'kWp': round(metrics['system_metrics']['avg_kWp'], 1)
+                },
+                'support_cases': {
+                    'total': metrics['support_metrics']['total_cases'],
+                    'resolved': metrics['support_metrics']['resolved_cases'],
+                    'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
+                },
+                'documentation_completeness': f"{round(metrics['documentation_score'], 1)}%",
+                'performance_score': f"{round(score, 1)}%"
+            })
+
+        # Sort by performance score
+        performance_data.sort(
+            key=lambda x: safe_float(x['performance_score'].rstrip('%'), 0.0),
+            reverse=True
+        )
 
         return render_template(
             'installer_performance.html',
             performance_data=performance_data,
-            start_date=start_date_str if start_date_str else '',
-            end_date=end_date_str if end_date_str else ''
+            start_date=start_str or '',
+            end_date=end_str or ''
         )
 
     except Exception as e:
-        logging.error(f"Error in installer_performance route: {str(e)}")
-        flash("An error occurred while generating the performance report.")
+        logger.error(f"Route error: {str(e)}", exc_info=True)
+        flash("An error occurred while generating the report.")
         return redirect(url_for('index'))
 
 if __name__ == '__main__':
