@@ -5404,7 +5404,7 @@ def calculate_performance_score(metrics, weights):
 
     return min(100.0, overall_score)  # Cap at 100%
 
-@app.route('/installer_performance', methods=['GET'])
+@app.route('/installer_performance', methods=['GET', 'POST'])
 def installer_performance():
     """Main route for installer performance report"""
     try:
