@@ -161,6 +161,7 @@
                     {% if installer.system_metrics.percentage_of_max is defined %}
                     <br>
                     <span class="weight-label">{{ installer.system_metrics.percentage_of_max|round(1) }}% of max</span>
+                    {% endif %}
                 </td>
                 <td>
                     {{ installer.support_cases.resolved }} /
