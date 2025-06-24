@@ -5298,6 +5298,202 @@ def installer_performance():
                          end_date=end_date)
 """
 
+def calculate_completion_rate(installer_name, start_date=None, end_date=None):
+    query = db.session.query(projects)
+
+    if start_date and end_date:
+        query = query.filter(projects.commissioning_date.between(start_date, end_date))
+
+    total_projects = query.filter(projects.lead_installer == installer_name).count()
+    completed_projects = query.filter(
+        projects.lead_installer == installer_name,
+        projects.commissioning_date.isnot(None)
+    ).count()
+
+    return (completed_projects / total_projects * 100) if total_projects > 0 else 0
+
+def calculate_avg_installation_time(installer_name, start_date=None, end_date=None):
+    query = db.session.query(
+        projects.start_date,
+        projects.commissioning_date
+    ).filter(
+        projects.lead_installer == installer_name,
+        projects.start_date.isnot(None),
+        projects.commissioning_date.isnot(None)
+    )
+
+    if start_date and end_date:
+        query = query.filter(projects.commissioning_date.between(start_date, end_date))
+
+    installations = query.all()
+
+    if not installations:
+        return None
+
+    total_days = sum(
+        (commissioning - start).days
+        for start, commissioning in installations
+        if commissioning and start
+    )
+
+    return total_days / len(installations)
+
+
+def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
+    query = db.session.query(
+        func.sum(projects.kVA).label('total_kVA'),
+        func.sum(projects.kWh).label('total_kWh'),
+        func.sum(projects.kWp).label('total_kWp'),
+        func.count().label('project_count')
+    ).filter(
+        projects.lead_installer == installer_name,
+        projects.commissioning_date.isnot(None)
+    )
+
+    if start_date and end_date:
+        query = query.filter(projects.commissioning_date.between(start_date, end_date))
+
+    result = query.first()
+
+    return {
+        'avg_kVA': result.total_kVA / result.project_count if result.project_count > 0 else 0,
+        'avg_kWh': result.total_kWh / result.project_count if result.project_count > 0 else 0,
+        'avg_kWp': result.total_kWp / result.project_count if result.project_count > 0 else 0,
+        'total_projects': result.project_count
+    }
+
+
+def calculate_support_cases(installer_name, start_date=None, end_date=None):
+    query = db.session.query(
+        support_cases
+    ).join(
+        projects,
+        support_cases.project_id == projects.project_id
+    ).filter(
+        projects.lead_installer == installer_name
+    )
+
+    if start_date and end_date:
+        query = query.filter(support_cases.reported_date.between(start_date, end_date))
+
+    total_cases = query.count()
+    resolved_cases = query.filter(support_cases.status == 'Resolved').count()
+
+    return {
+        'total_cases': total_cases,
+        'resolved_cases': resolved_cases,
+        'resolution_rate': (resolved_cases / total_cases * 100) if total_cases > 0 else 100
+    }
+
+
+def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
+    query = db.session.query(projects).filter(
+        projects.lead_installer == installer_name
+    )
+
+    if start_date and end_date:
+        query = query.filter(projects.commissioning_date.between(start_date, end_date))
+
+    total_projects = query.count()
+    documented_projects = query.filter(
+        projects.folder_has_files == True
+    ).count()
+
+    return (documented_projects / total_projects * 100) if total_projects > 0 else 0
+
+
+def calculate_installer_performance(installer_name, start_date=None, end_date=None):
+    # Calculate all metrics
+    completion_rate = calculate_completion_rate(installer_name, start_date, end_date)
+    avg_install_time = calculate_avg_installation_time(installer_name, start_date, end_date)
+    system_metrics = calculate_system_size_metrics(installer_name, start_date, end_date)
+    support_metrics = calculate_support_cases(installer_name, start_date, end_date)
+    documentation_score = calculate_documentation_completeness(installer_name, start_date, end_date)
+
+    # Calculate weighted score (adjust weights as needed)
+    weights = {
+        'completion_rate': 0.25,
+        'efficiency': 0.25,
+        'system_size': 0.20,
+        'support_cases': 0.20,
+        'documentation': 0.10
+    }
+
+    # Normalize efficiency (lower time is better)
+    efficiency_score = 0
+    if avg_install_time:
+        # Assuming 10 days is the benchmark (adjust as needed)
+        efficiency_score = max(0, 100 - (avg_install_time * 10))
+
+    # Calculate overall score
+    overall_score = (
+        (completion_rate * weights['completion_rate']) +
+        (efficiency_score * weights['efficiency']) +
+        ((system_metrics['avg_kVA'] + system_metrics['avg_kWh'] + system_metrics['avg_kWp']) / 3 * weights['system_size']) +
+        (support_metrics['resolution_rate'] * weights['support_cases']) +
+        (documentation_score * weights['documentation'])
+    )
+
+    return {
+        'installer_name': installer_name,
+        'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
+        'completion_rate': f"{round(completion_rate, 1)}%",
+        'avg_installation_days': round(avg_install_time, 1) if avg_install_time else "N/A",
+        'avg_system_size': {
+            'kVA': round(system_metrics['avg_kVA'], 1),
+            'kWh': round(system_metrics['avg_kWh'], 1),
+            'kWp': round(system_metrics['avg_kWp'], 1)
+        },
+        'support_cases': {
+            'total': support_metrics['total_cases'],
+            'resolved': support_metrics['resolved_cases'],
+            'resolution_rate': f"{round(support_metrics['resolution_rate'], 1)}%"
+        },
+        'documentation_completeness': f"{round(documentation_score, 1)}%",
+        'performance_score': f"{round(overall_score, 1)}%"
+    }
+
+@app.route('/installer_performance', methods=['GET'])
+def installer_performance():
+    # Get date range from request
+    start_date = request.args.get('start_date', None)
+    end_date = request.args.get('end_date', None)
+
+    # Convert dates if provided
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    # Get all installers
+    installers = db.session.query(
+        projects.lead_installer
+    ).filter(
+        projects.lead_installer.isnot(None)
+    ).distinct().all()
+
+    # Calculate performance for each installer
+    performance_data = []
+    for installer in installers:
+        if installer.lead_installer:  # Skip None values
+            performance = calculate_installer_performance(
+                installer.lead_installer,
+                start_date,
+                end_date
+            )
+            performance_data.append(performance)
+
+    # Sort by performance score (highest first)
+    performance_data.sort(key=lambda x: float(x['performance_score'][:-1]), reverse=True)
+
+    return render_template(
+        'installer_performance.html',
+        performance_data=performance_data,
+        start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
+        end_date=end_date.strftime('%Y-%m-%d') if end_date else ''
+    )
+
+
 
 if __name__ == '__main__':
 

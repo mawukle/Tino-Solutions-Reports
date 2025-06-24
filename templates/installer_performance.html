@@ -4,10 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installer Performance Report</title>
-    <link rel="stylesheet" href="/static/style.css">
     <style>
-        .performance-container {
+        body {
+            font-family: Arial, sans-serif;
             margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
         }
         table {
             width: 100%;
@@ -21,90 +30,81 @@
         }
         th {
             background-color: #85BB65;
-            position: sticky;
-            top: 0;
+            color: white;
         }
-        .good {
-            background-color: #d4edda;
-        }
-        .average {
-            background-color: #fff3cd;
-        }
-        .poor {
-            background-color: #f8d7da;
-        }
-        .filter-form {
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
         .performance-score {
             font-weight: bold;
-            font-size: 1.1em;
+        }
+        .good {
+            color: green;
+        }
+        .average {
+            color: orange;
+        }
+        .poor {
+            color: red;
         }
     </style>
 </head>
 <body>
-    <div class="container_1">
-        <img src="/static/logo.png" alt="Logo" class="logo">
-        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-            <a href="/index" class="back-link">Home</a>
-            <a href="/get_projects" class="back-link">Projects</a>
-        </div>
+    <h1>Installer Performance Report</h1>
 
-        <h1>Installer Performance Report</h1>
+    <div class="filter-form">
+        <form method="GET" action="/installer_performance">
+            <label for="start_date">From:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
 
-        <div class="filter-form">
-            <form method="GET" action="{{ url_for('installer_performance') }}">
-                <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+            <label for="end_date">To:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
 
-                <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
-
-                <button type="submit">Apply Filter</button>
-            </form>
-        </div>
-
-        <div class="performance-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Installer</th>
-                        <th>Projects</th>
-                        <th>Completed</th>
-                        <th>On-Time %</th>
-                        <th>Total kVA</th>
-                        <th>Total kWh</th>
-                        <th>Total kWp</th>
-                        <th>Support Cases</th>
-                        <th>Cases/Project</th>
-                        <th>Avg. Resolution (days)</th>
-                        <th>Performance Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in performance_data %}
-                    <tr class="{% if data.performance_score >= 80 %}good{% elif data.performance_score >= 50 %}average{% else %}poor{% endif %}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ data.installer }}</td>
-                        <td>{{ data.total_projects }}</td>
-                        <td>{{ data.completed_projects }}</td>
-                        <td>{{ data.on_time_rate }}%</td>
-                        <td>{{ data.total_kVA }}</td>
-                        <td>{{ data.total_kWh }}</td>
-                        <td>{{ data.total_kWp }}</td>
-                        <td>{{ data.support_cases }}</td>
-                        <td>{{ data.cases_per_project }}</td>
-                        <td>{{ data.avg_resolution_days }}</td>
-                        <td class="performance-score">{{ data.performance_score }}%</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <button type="submit">Filter</button>
+        </form>
     </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Installer</th>
+                <th>Performance Score</th>
+                <th>Completion Rate</th>
+                <th>Avg. Install Time (days)</th>
+                <th>Avg. System Size (kVA/kWh/kWp)</th>
+                <th>Support Cases (Resolved/Total)</th>
+                <th>Documentation Complete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for installer in performance_data %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ installer.installer_name }}</td>
+                <td class="performance-score
+                    {% if float(installer.performance_score[:-1]) >= 80 %}good
+                    {% elif float(installer.performance_score[:-1]) >= 50 %}average
+                    {% else %}poor
+                    {% endif %}">
+                    {{ installer.performance_score }}
+                </td>
+                <td>{{ installer.completion_rate }}</td>
+                <td>{{ installer.avg_installation_days }}</td>
+                <td>
+                    {{ installer.avg_system_size.kVA }} /
+                    {{ installer.avg_system_size.kWh }} /
+                    {{ installer.avg_system_size.kWp }}
+                </td>
+                <td>
+                    {{ installer.support_cases.resolved }} /
+                    {{ installer.support_cases.total }}
+                    ({{ installer.support_cases.resolution_rate }})
+                </td>
+                <td>{{ installer.documentation_completeness }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
