@@ -5355,7 +5355,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             'total_kWh': safe_float(result.total_kWh),
             'total_kWp': safe_float(result.total_kWp),
             'total_projects': result.count,
-            'percentage_of_max': percentage
+            'percentage_of_max': safe_float(percentage)  # Ensure this is always a float
         }
 
     except Exception as e:
@@ -5367,7 +5367,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             'total_projects': 0,
             'percentage_of_max': 0.0
         }
-        
+
 def calculate_support_cases(installer_name, start_date=None, end_date=None):
     """Calculate support case metrics (treats both 'Resolved' and 'Closed' as resolved)"""
     try:
