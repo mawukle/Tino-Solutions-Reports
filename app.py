@@ -5337,17 +5337,29 @@ def calculate_documentation_completeness(installer_name, start_date=None, end_da
 def calculate_installer_performance(installer_name, start_date=None, end_date=None):
     try:
         # Calculate all metrics
-        completion_rate = calculate_completion_rate(installer_name, start_date, end_date) or 0
+        completion_rate = float(calculate_completion_rate(installer_name, start_date, end_date) or 0)
         avg_install_time = calculate_avg_installation_time(installer_name, start_date, end_date)
-        system_metrics = calculate_system_size_metrics(installer_name, start_date, end_date) or {
-            'avg_kVA': 0, 'avg_kWh': 0, 'avg_kWp': 0, 'total_projects': 0
-        }
-        support_metrics = calculate_support_cases(installer_name, start_date, end_date) or {
-            'total_cases': 0, 'resolved_cases': 0, 'resolution_rate': 100
-        }
-        documentation_score = calculate_documentation_completeness(installer_name, start_date, end_date) or 0
 
-        # Calculate weighted score (adjust weights as needed)
+        system_metrics = calculate_system_size_metrics(installer_name, start_date, end_date)
+        if not system_metrics:
+            system_metrics = {
+                'avg_kVA': 0.0,
+                'avg_kWh': 0.0,
+                'avg_kWp': 0.0,
+                'total_projects': 0
+            }
+
+        support_metrics = calculate_support_cases(installer_name, start_date, end_date)
+        if not support_metrics:
+            support_metrics = {
+                'total_cases': 0,
+                'resolved_cases': 0,
+                'resolution_rate': 100.0
+            }
+
+        documentation_score = float(calculate_documentation_completeness(installer_name, start_date, end_date) or 0)
+
+        # Calculate weighted score
         weights = {
             'completion_rate': 0.25,
             'efficiency': 0.25,
@@ -5357,17 +5369,20 @@ def calculate_installer_performance(installer_name, start_date=None, end_date=No
         }
 
         # Normalize efficiency (lower time is better)
-        efficiency_score = 0
-        if avg_install_time:
-            # Assuming 10 days is the benchmark (adjust as needed)
-            efficiency_score = max(0, 100 - (avg_install_time * 10))
+        efficiency_score = 0.0
+        if avg_install_time is not None:
+            efficiency_score = max(0.0, 100.0 - (float(avg_install_time) * 10.0))
 
         # Calculate overall score
+        system_size_score = (float(system_metrics['avg_kVA']) +
+                           float(system_metrics['avg_kWh']) +
+                           float(system_metrics['avg_kWp'])) / 3.0
+
         overall_score = (
             (completion_rate * weights['completion_rate']) +
             (efficiency_score * weights['efficiency']) +
-            ((system_metrics['avg_kVA'] + system_metrics['avg_kWh'] + system_metrics['avg_kWp']) / 3 * weights['system_size']) +
-            (support_metrics['resolution_rate'] * weights['support_cases']) +
+            (system_size_score * weights['system_size']) +
+            (float(support_metrics['resolution_rate']) * weights['support_cases']) +
             (documentation_score * weights['documentation'])
         )
 
@@ -5375,23 +5390,23 @@ def calculate_installer_performance(installer_name, start_date=None, end_date=No
             'installer_name': installer_name,
             'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
             'completion_rate': f"{round(completion_rate, 1)}%",
-            'avg_installation_days': round(avg_install_time, 1) if avg_install_time is not None else "N/A",
+            'avg_installation_days': round(float(avg_install_time), 1) if avg_install_time is not None else "N/A",
             'avg_system_size': {
-                'kVA': round(system_metrics['avg_kVA'], 1),
-                'kWh': round(system_metrics['avg_kWh'], 1),
-                'kWp': round(system_metrics['avg_kWp'], 1)
+                'kVA': round(float(system_metrics['avg_kVA']), 1),
+                'kWh': round(float(system_metrics['avg_kWh']), 1),
+                'kWp': round(float(system_metrics['avg_kWp']), 1)
             },
             'support_cases': {
-                'total': support_metrics['total_cases'],
-                'resolved': support_metrics['resolved_cases'],
-                'resolution_rate': f"{round(support_metrics['resolution_rate'], 1)}%"
+                'total': int(support_metrics['total_cases']),
+                'resolved': int(support_metrics['resolved_cases']),
+                'resolution_rate': f"{round(float(support_metrics['resolution_rate']), 1)}%"
             },
             'documentation_completeness': f"{round(documentation_score, 1)}%",
             'performance_score': f"{round(overall_score, 1)}%"
         }
 
     except Exception as e:
-        print(f"Error calculating performance for {installer_name}: {e}")
+        logging.error(f"Error calculating performance for {installer_name}: {str(e)}")
         return None
 
 @app.route('/installer_performance', methods=['GET'])
@@ -5435,10 +5450,15 @@ def installer_performance():
                     performance_data.append(performance)
 
         # Sort by performance score (highest first)
-        performance_data.sort(
-            key=lambda x: float(x['performance_score'][:-1]) if x['performance_score'] != 'N/A' else 0,
-            reverse=True
-        )
+        def get_score(x):
+            try:
+                if x['performance_score'] != 'N/A':
+                    return float(x['performance_score'].rstrip('%'))
+                return 0
+            except (ValueError, KeyError, AttributeError):
+                return 0
+
+        performance_data.sort(key=get_score, reverse=True)
 
         return render_template(
             'installer_performance.html',
@@ -5448,10 +5468,9 @@ def installer_performance():
         )
 
     except Exception as e:
-        print(f"Error in installer_performance route: {e}")
+        logging.error(f"Error in installer_performance route: {str(e)}")
         flash("An error occurred while generating the performance report.")
         return redirect(url_for('index'))
-
 
 if __name__ == '__main__':
 
