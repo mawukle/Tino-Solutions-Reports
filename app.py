@@ -5209,6 +5209,97 @@ def search_clients():
         logging.error(f"Error searching clients: {e}")
         return jsonify({'projects': [], 'clients': []})
 
+
+
+@app.route('/installer_performance')
+def installer_performance():
+    # Get date range from request (default to current year)
+    start_date = request.args.get('start_date', date.today().replace(month=1, day=1).isoformat())
+    end_date = request.args.get('end_date', date.today().isoformat())
+
+    # Get all installers
+    installers = set()
+    projects_data = projects.query.filter(
+        projects.start_date.between(start_date, end_date)
+    ).all()
+
+    for project in projects_data:
+        if project.lead_installer:
+            installers.add(project.lead_installer)
+
+    # Calculate performance for each installer
+    performance_data = []
+    for installer in installers:
+        # Get projects led by this installer
+        installer_projects = [p for p in projects_data if p.lead_installer == installer]
+
+        # Get support cases for these projects
+        project_ids = [p.project_id for p in installer_projects]
+        support_cases = support_cases.query.filter(
+            support_cases.project_id.in_(project_ids)
+        ).all()
+
+        # Calculate metrics
+        total_projects = len(installer_projects)
+        completed_projects = len([p for p in installer_projects if p.commissioning_date])
+
+        on_time_completed = len([
+            p for p in installer_projects
+            if p.commissioning_date and p.commissioning_date <= p.start_date + timedelta(days=14)  # Assuming 2-week standard duration
+        ])
+
+        total_kVA = sum(p.kVA or 0 for p in installer_projects)
+        total_kWh = sum(p.kWh or 0 for p in installer_projects)
+        total_kWp = sum(p.kWp or 0 for p in installer_projects)
+
+        support_case_count = len(support_cases)
+        resolved_cases = len([c for c in support_cases if c.status == 'Resolved' or c.status == 'Closed'])
+
+        avg_resolution_time = None
+        if resolved_cases > 0:
+            total_days = sum(
+                (c.resolved_date - c.reported_date).days
+                for c in support_cases
+                if c.resolved_date and c.reported_date
+            )
+            avg_resolution_time = total_days / resolved_cases
+
+        # Calculate performance score (customize weights as needed)
+        completion_rate = (on_time_completed / total_projects * 100) if total_projects > 0 else 0
+        support_frequency = (support_case_count / total_projects) if total_projects > 0 else 0
+
+        performance_score = (
+            (completion_rate * 0.4) +  # Completion rate weight: 40%
+            (min(total_kVA, 1000) / 10 * 0.2) +  # Capacity handled weight: 20% (capped at 1000kVA)
+            ((1 - min(support_frequency, 1)) * 0.3 +  # Low support frequency weight: 30%
+            ((1 - min(avg_resolution_time or 0, 14)/14) * 0.1 if avg_resolution_time else 0)  # Resolution time weight: 10%
+        ) * 100  # Convert to percentage
+
+        performance_data.append({
+            'installer': installer,
+            'total_projects': total_projects,
+            'completed_projects': completed_projects,
+            'completion_rate': round(completion_rate, 1),
+            'on_time_rate': round((on_time_completed / total_projects * 100) if total_projects > 0 else 0, 1),
+            'total_kVA': round(total_kVA, 2),
+            'total_kWh': round(total_kWh, 2),
+            'total_kWp': round(total_kWp, 2),
+            'support_cases': support_case_count,
+            'cases_per_project': round(support_frequency, 2),
+            'avg_resolution_days': round(avg_resolution_time, 1) if avg_resolution_time else 'N/A',
+            'performance_score': round(performance_score, 1)
+        })
+
+    # Sort by performance score (highest first)
+    performance_data.sort(key=lambda x: x['performance_score'], reverse=True)
+
+    return render_template('installer_performance.html',
+                         performance_data=performance_data,
+                         start_date=start_date,
+                         end_date=end_date)
+
+
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
