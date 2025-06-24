@@ -5518,7 +5518,7 @@ def installer_performance():
             'installer_performance.html',
             performance_data=performance_data,
             start_date=start_str or '',
-            end_date=end_str or ''
+            end_date=end_str or '',
             weights=weights  # Pass weights to template
         )
 
