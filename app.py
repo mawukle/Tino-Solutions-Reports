@@ -5378,27 +5378,41 @@ def calculate_documentation_completeness(installer_name, start_date=None, end_da
         return 0.0
 
 def calculate_performance_score(metrics):
-    """Calculate weighted performance score"""
+    """Calculate weighted performance score with volume adjustment"""
+    # Base weights
     weights = {
-        'completion_rate': 0.25,
-        'efficiency': 0.25,
-        'system_size': 0.20,
-        'support_cases': 0.20,
-        'documentation': 0.10
+        'completion_rate': 0.20,
+        'efficiency': 0.20,
+        'system_size': 0.15,
+        'support_cases': 0.15,
+        'documentation': 0.10,
+        'volume': 0.20  # New weight for installation volume
     }
 
+    # Calculate efficiency score (lower time is better)
     efficiency_score = max(0.0, 100.0 - (metrics['avg_install_time'] * 10.0)) if metrics['avg_install_time'] else 0.0
+
+    # Calculate system size score
     system_size_score = (metrics['system_metrics']['avg_kVA'] +
                         metrics['system_metrics']['avg_kWh'] +
                         metrics['system_metrics']['avg_kWp']) / 3.0
 
-    return (
+    # Calculate volume score (normalized to 0-100 scale)
+    project_count = metrics['system_metrics']['total_projects']
+    max_projects = max(1, project_count)  # Prevent division by zero
+    volume_score = min(100.0, (project_count / max_projects) * 100 * 2)  # Scale up to better reward volume
+
+    # Calculate overall score
+    overall_score = (
         (metrics['completion_rate'] * weights['completion_rate']) +
         (efficiency_score * weights['efficiency']) +
         (system_size_score * weights['system_size']) +
         (metrics['support_metrics']['resolution_rate'] * weights['support_cases']) +
-        (metrics['documentation_score'] * weights['documentation'])
+        (metrics['documentation_score'] * weights['documentation']) +
+        (volume_score * weights['volume'])
     )
+
+    return min(100.0, overall_score)  # Cap at 100%
 
 @app.route('/installer_performance', methods=['GET'])
 def installer_performance():
@@ -5450,7 +5464,7 @@ def installer_performance():
 
             score = calculate_performance_score(metrics)
 
-            # Pre-calculate all numeric values for the template
+            # Pre-calculate values for template
             performance_score = round(score, 1)
             performance_class = "good" if performance_score >= 80 else "average" if performance_score >= 50 else "poor"
 
@@ -5470,6 +5484,7 @@ def installer_performance():
                     'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
                 },
                 'documentation_completeness': f"{round(metrics['documentation_score'], 1)}%",
+                'total_installations': metrics['system_metrics']['total_projects'],  # Add installation count
                 'performance_score': f"{performance_score}%",
                 'performance_class': performance_class  # Pre-calculated CSS class
             })
