@@ -82,11 +82,7 @@
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ installer.installer_name }}</td>
-                <td class="performance-score
-                    {% if installer.performance_score != 'N/A' and float(installer.performance_score[:-1]) >= 80 %}good
-                    {% elif installer.performance_score != 'N/A' and float(installer.performance_score[:-1]) >= 50 %}average
-                    {% else %}poor
-                    {% endif %}">
+                <td class="performance-score {{ installer.performance_class }}">
                     {{ installer.performance_score }}
                 </td>
                 <td>{{ installer.completion_rate }}</td>

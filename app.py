@@ -5450,6 +5450,10 @@ def installer_performance():
 
             score = calculate_performance_score(metrics)
 
+            # Pre-calculate all numeric values for the template
+            performance_score = round(score, 1)
+            performance_class = "good" if performance_score >= 80 else "average" if performance_score >= 50 else "poor"
+
             performance_data.append({
                 'installer_name': name,
                 'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
@@ -5466,7 +5470,8 @@ def installer_performance():
                     'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
                 },
                 'documentation_completeness': f"{round(metrics['documentation_score'], 1)}%",
-                'performance_score': f"{round(score, 1)}%"
+                'performance_score': f"{performance_score}%",
+                'performance_class': performance_class  # Pre-calculated CSS class
             })
 
         # Sort by performance score
