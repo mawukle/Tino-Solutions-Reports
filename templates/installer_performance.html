@@ -92,6 +92,11 @@
             <input type="hidden" name="start_date" value="{{ start_date }}">
             <input type="hidden" name="end_date" value="{{ end_date }}">
 
+            <label>Number of Installations:
+                <input type="number" class="weight-input" name="volume_weight"
+                       value="{{ (weights.volume * 100)|round(1) }}" min="0" max="100" step="1">%
+            </label>
+
             <label>System Size:
                 <input type="number" class="weight-input" name="system_size_weight"
                        value="{{ (weights.system_size * 100)|round(1) }}" min="0" max="100" step="1">%
@@ -100,11 +105,6 @@
             <label>Support Cases:
                 <input type="number" class="weight-input" name="support_cases_weight"
                        value="{{ (weights.support_cases * 100)|round(1) }}" min="0" max="100" step="1">%
-            </label>
-
-            <label>Installation Volume:
-                <input type="number" class="weight-input" name="volume_weight"
-                       value="{{ (weights.volume * 100)|round(1) }}" min="0" max="100" step="1">%
             </label>
 
             <button type="submit">Update Weights</button>
