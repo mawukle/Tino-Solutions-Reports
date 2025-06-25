@@ -5546,7 +5546,7 @@ def installer_performance():
 
             overall_score = (
                 (system_size_score * weights['system_size']) +
-                (metrics['support_metrics']['resolution_rate'] * weights['support_cases']) +
+                (metrics['support_metrics']['percentage_without_cases'] * weights['support_cases']) +
                 (volume_score * weights['volume'])
             )
 
