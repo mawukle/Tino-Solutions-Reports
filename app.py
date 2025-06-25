@@ -5294,14 +5294,12 @@ def calculate_avg_installation_time(installer_name, start_date=None, end_date=No
         return None
 
 def get_max_system_totals(start_date=None, end_date=None):
-    """Get the maximum system totals across all installers within date range"""
+    """Get the maximum system totals across all installers"""
     try:
         query = db.session.query(
-            projects.lead_installer,
             func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
             func.coalesce(func.sum(projects.kWh), 0.0).label('total_kWh'),
-            func.coalesce(func.sum(projects.kWp), 0.0).label('total_kWp'),
-            func.count().label('project_count')
+            func.coalesce(func.sum(projects.kWp), 0.0).label('total_kWp')
         ).filter(
             projects.commissioning_date.isnot(None)
         )
@@ -5309,32 +5307,29 @@ def get_max_system_totals(start_date=None, end_date=None):
         if start_date and end_date:
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
-        # Group by installer
-        query = query.group_by(projects.lead_installer)
-
-        installer_totals = query.all()
+        # Group by installer and get the max sums
+        installer_totals = query.group_by(projects.lead_installer).all()
 
         if not installer_totals:
-            return (0.0, 0.0, 0.0, 0)  # Added project_count to return tuple
+            return (0.0, 0.0, 0.0)
 
         max_kVA = max(t.total_kVA for t in installer_totals)
         max_kWh = max(t.total_kWh for t in installer_totals)
         max_kWp = max(t.total_kWp for t in installer_totals)
-        max_projects = max(t.project_count for t in installer_totals)
 
-        return (max_kVA, max_kWh, max_kWp, max_projects)
+        return (max_kVA, max_kWh, max_kWp)
 
     except Exception as e:
         logger.error(f"Error getting max system totals: {str(e)}")
-        return (0.0, 0.0, 0.0, 0)
+        return (0.0, 0.0, 0.0)
 
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
-    """Calculate total system size metrics within date range"""
+    """Calculate total system size metrics"""
     try:
-        # First get the max totals across all installers within date range
-        max_kVA, max_kWh, max_kWp, max_projects = get_max_system_totals(start_date, end_date)
+        # First get the max totals across all installers
+        max_kVA, max_kWh, max_kWp = get_max_system_totals(start_date, end_date)
 
-        # Then calculate this installer's totals within date range
+        # Then calculate this installer's totals
         query = db.session.query(
             func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
             func.coalesce(func.sum(projects.kWh), 0.0).label('total_kWh'),
@@ -5353,19 +5348,15 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
         # Calculate the total sum and percentage
         total_installer = safe_float(result.total_kVA) + safe_float(result.total_kWh) + safe_float(result.total_kWp)
         total_max = max_kVA + max_kWh + max_kWp
-        size_percentage = (total_installer / total_max * 100) if total_max > 0 else 0.0
-
-        # Calculate project percentage
-        project_percentage = (result.count / max_projects * 100) if max_projects > 0 else 0.0
+        percentage = (total_installer / total_max * 100) if total_max > 0 else 0.0
 
         return {
             'total_kVA': safe_float(result.total_kVA),
             'total_kWh': safe_float(result.total_kWh),
             'total_kWp': safe_float(result.total_kWp),
             'total_projects': result.count,
-            'percentage_of_max': safe_float(size_percentage),
-            'percentage_of_max_projects': safe_float(project_percentage),
-            'total_sum': safe_float(total_installer)
+            'percentage_of_max': safe_float(percentage),
+            'total_sum': safe_float(total_installer)  # Add this line
         }
 
     except Exception as e:
@@ -5376,7 +5367,6 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             'total_kWp': 0.0,
             'total_projects': 0,
             'percentage_of_max': 0.0,
-            'percentage_of_max_projects': 0.0,
             'total_sum': 0.0
         }
 

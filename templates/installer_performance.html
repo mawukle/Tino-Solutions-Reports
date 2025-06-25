@@ -132,9 +132,9 @@
                 </td>
                 <td>
                     {{ installer.total_installations }}
-                    {% if installer.system_metrics.percentage_of_max_projects is defined %}
+                    {% if max_projects > 0 %}
                     <br>
-                    <span class="weight-label">{{ installer.system_metrics.percentage_of_max_projects|round(1) }}% of max</span>
+                    <span class="weight-label">{{ (installer.total_installations / max_projects * 100)|round(1) }}% of max</span>
                     {% endif %}
                 </td>
                 <td>
