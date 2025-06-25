@@ -5296,11 +5296,13 @@ def calculate_avg_installation_time(installer_name, start_date=None, end_date=No
 def get_max_system_totals(start_date=None, end_date=None):
     """Get the maximum system totals across all installers within date range"""
     try:
+        # Query to get combined system size (kVA + kWh + kWp) per installer
         query = db.session.query(
-            func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
-            func.coalesce(func.sum(projects.kWh), 0.0).label('total_kWh'),
-            func.coalesce(func.sum(projects.kWp), 0.0).label('total_kWp'),
-            func.count().label('total_projects')  # Add project count to same query
+            projects.lead_installer,
+            (func.coalesce(func.sum(projects.kVA), 0.0) +
+            (func.coalesce(func.sum(projects.kWh), 0.0) +
+            (func.coalesce(func.sum(projects.kWp), 0.0)).label('total_size'),
+            func.count().label('total_projects')
         ).filter(
             projects.commissioning_date.isnot(None)
         )
@@ -5308,30 +5310,29 @@ def get_max_system_totals(start_date=None, end_date=None):
         if start_date and end_date:
             query = query.filter(projects.commissioning_date.between(start_date, end_date))
 
-        # Group by installer and get all sums
+        # Group by installer
         installer_totals = query.group_by(projects.lead_installer).all()
 
         if not installer_totals:
-            return (0.0, 0.0, 0.0, 0)  # Added 0 for max_projects
+            return (0.0, 0)  # Return (max_total_size, max_projects)
 
-        max_kVA = max(t.total_kVA for t in installer_totals)
-        max_kWh = max(t.total_kWh for t in installer_totals)
-        max_kWp = max(t.total_kWp for t in installer_totals)
+        # Find maximum combined system size
+        max_total_size = max(t.total_size for t in installer_totals)
         max_projects = max(t.total_projects for t in installer_totals)
 
-        return (max_kVA, max_kWh, max_kWp, max_projects)  # Added max_projects
+        return (max_total_size, max_projects)
 
     except Exception as e:
         logger.error(f"Error getting max system totals: {str(e)}")
-        return (0.0, 0.0, 0.0, 0)  # Added 0 for max_projects
+        return (0.0, 0)
 
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
-    """Calculate total system size metrics"""
+    #Calculate total system size metrics
     try:
-        # First get the max totals across all installers
-        max_kVA, max_kWh, max_kWp, max_projects = get_max_system_totals(start_date, end_date)
+        # Get the max totals across all installers
+        max_total_size, max_projects = get_max_system_totals(start_date, end_date)
 
-        # Then calculate this installer's totals
+        # Calculate this installer's totals
         query = db.session.query(
             func.coalesce(func.sum(projects.kVA), 0.0).label('total_kVA'),
             func.coalesce(func.sum(projects.kWh), 0.0).label('total_kWh'),
@@ -5349,8 +5350,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
 
         # Calculate the total sum and percentage
         total_installer = safe_float(result.total_kVA) + safe_float(result.total_kWh) + safe_float(result.total_kWp)
-        total_max = max_kVA + max_kWh + max_kWp
-        percentage = (total_installer / total_max * 100) if total_max > 0 else 0.0
+        percentage = (total_installer / max_total_size * 100) if max_total_size > 0 else 0.0
 
         return {
             'total_kVA': safe_float(result.total_kVA),
@@ -5358,7 +5358,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
             'total_kWp': safe_float(result.total_kWp),
             'total_projects': result.count,
             'percentage_of_max': safe_float(percentage),
-            'total_sum': safe_float(total_installer)  # Add this line
+            'total_sum': safe_float(total_installer)
         }
 
     except Exception as e:
@@ -5424,7 +5424,7 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
         }
 
 def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
-    """Calculate documentation completeness percentage"""
+    #Calculate documentation completeness percentage
     try:
         query = db.session.query(projects).filter(
             projects.lead_installer == installer_name
@@ -5443,7 +5443,7 @@ def calculate_documentation_completeness(installer_name, start_date=None, end_da
         return 0.0
 
 def calculate_performance_score(metrics, weights):
-    """Calculate weighted performance score with adjustable weights"""
+    #Calculate weighted performance score with adjustable weights
     # Calculate efficiency score (lower time is better)
     efficiency_score = max(0.0, 100.0 - (metrics['avg_install_time'] * 10.0)) if metrics['avg_install_time'] else 0.0
 
@@ -5533,8 +5533,7 @@ def installer_performance():
 
         # First pass to get all metrics and find maximum project count
         all_metrics = []
-        max_values = get_max_system_totals(start_date, end_date)
-        max_kVA, max_kWh, max_kWp, max_projects = max_values
+        max_total_size, max_projects = get_max_system_totals(start_date, end_date)
 
         for inst in installers:
             if not inst.lead_installer:
