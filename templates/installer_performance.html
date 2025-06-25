@@ -78,11 +78,8 @@
             <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
 
             <!-- Include current weights as hidden fields -->
-            <input type="hidden" name="completion_rate_weight" value="{{ (weights.completion_rate * 100)|round(1) }}">
-            <input type="hidden" name="efficiency_weight" value="{{ (weights.efficiency * 100)|round(1) }}">
             <input type="hidden" name="system_size_weight" value="{{ (weights.system_size * 100)|round(1) }}">
             <input type="hidden" name="support_cases_weight" value="{{ (weights.support_cases * 100)|round(1) }}">
-            <input type="hidden" name="documentation_weight" value="{{ (weights.documentation * 100)|round(1) }}">
             <input type="hidden" name="volume_weight" value="{{ (weights.volume * 100)|round(1) }}">
 
             <button type="submit">Filter</button>
@@ -95,16 +92,6 @@
             <input type="hidden" name="start_date" value="{{ start_date }}">
             <input type="hidden" name="end_date" value="{{ end_date }}">
 
-            <label>Completion Rate:
-                <input type="number" class="weight-input" name="completion_rate_weight"
-                       value="{{ (weights.completion_rate * 100)|round(1) }}" min="0" max="100" step="1">%
-            </label>
-
-            <label>Efficiency (Install Time):
-                <input type="number" class="weight-input" name="efficiency_weight"
-                       value="{{ (weights.efficiency * 100)|round(1) }}" min="0" max="100" step="1">%
-            </label>
-
             <label>System Size:
                 <input type="number" class="weight-input" name="system_size_weight"
                        value="{{ (weights.system_size * 100)|round(1) }}" min="0" max="100" step="1">%
@@ -113,11 +100,6 @@
             <label>Support Cases:
                 <input type="number" class="weight-input" name="support_cases_weight"
                        value="{{ (weights.support_cases * 100)|round(1) }}" min="0" max="100" step="1">%
-            </label>
-
-            <label>Documentation:
-                <input type="number" class="weight-input" name="documentation_weight"
-                       value="{{ (weights.documentation * 100)|round(1) }}" min="0" max="100" step="1">%
             </label>
 
             <label>Installation Volume:
@@ -136,11 +118,8 @@
                 <th>Installer</th>
                 <th>Performance Score</th>
                 <th>Total Installations<br><span class="weight-label">Weight: {{ (weights.volume * 100)|round(1) }}%</span></th>
-                <th>Completion Rate<br><span class="weight-label">Weight: {{ (weights.completion_rate * 100)|round(1) }}%</span></th>
-                <th>Avg. Install Time (days)<br><span class="weight-label">Weight: {{ (weights.efficiency * 100)|round(1) }}%</span></th>
                 <th>Total System Size (kVA/kWh/kWp)<br><span class="weight-label">Weight: {{ (weights.system_size * 100)|round(1) }}%</span></th>
                 <th>Support Cases (Resolved/Total)<br><span class="weight-label">Weight: {{ (weights.support_cases * 100)|round(1) }}%</span></th>
-                <th>Documentation Complete<br><span class="weight-label">Weight: {{ (weights.documentation * 100)|round(1) }}%</span></th>
             </tr>
         </thead>
         <tbody>
@@ -152,8 +131,6 @@
                     {{ installer.performance_score }}
                 </td>
                 <td>{{ installer.total_installations }}</td>
-                <td>{{ installer.completion_rate }}</td>
-                <td>{{ installer.avg_installation_days }}</td>
                 <td>
                     {{ installer.system_metrics.total_kVA|round(1) }} /
                     {{ installer.system_metrics.total_kWh|round(1) }} /
@@ -168,7 +145,6 @@
                     {{ installer.support_cases.total }}
                     ({{ installer.support_cases.resolution_rate }})
                 </td>
-                <td>{{ installer.documentation_completeness }}</td>
             </tr>
             {% endfor %}
         </tbody>

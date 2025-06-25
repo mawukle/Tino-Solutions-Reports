@@ -5446,30 +5446,24 @@ def calculate_performance_score(metrics, weights):
     )
 
     return min(100.0, overall_score)  # Cap at 100%
-    
+
 @app.route('/installer_performance', methods=['GET', 'POST'])
 def installer_performance():
     """Main route for installer performance report"""
     try:
-        # Default weights
+        # Default weights (only keeping the ones we need)
         default_weights = {
-            'completion_rate': 0.20,
-            'efficiency': 0.05,
-            'system_size': 0.30,
-            'support_cases': 0.05,
-            'documentation': 0.10,
-            'volume': 0.30
+            'system_size': 0.40,
+            'support_cases': 0.20,
+            'volume': 0.40
         }
 
         # Get weights from form submission or use existing weights from GET params
         if request.method == 'POST':
             weights = {
-                'completion_rate': safe_float(request.form.get('completion_rate_weight', 0.20)),
-                'efficiency': safe_float(request.form.get('efficiency_weight', 0.05)),
-                'system_size': safe_float(request.form.get('system_size_weight', 0.30)),
-                'support_cases': safe_float(request.form.get('support_cases_weight', 0.05)),
-                'documentation': safe_float(request.form.get('documentation_weight', 0.10)),
-                'volume': safe_float(request.form.get('volume_weight', 0.30))
+                'system_size': safe_float(request.form.get('system_size_weight', 0.40)),
+                'support_cases': safe_float(request.form.get('support_cases_weight', 0.20)),
+                'volume': safe_float(request.form.get('volume_weight', 0.40))
             }
             # Get dates from form (POST request carries them as hidden fields)
             start_str = request.form.get('start_date')
@@ -5477,11 +5471,8 @@ def installer_performance():
         else:
             # For GET requests, try to get weights from query params first
             weights = {
-                'completion_rate': safe_float(request.args.get('completion_rate_weight', default_weights['completion_rate'])),
-                'efficiency': safe_float(request.args.get('efficiency_weight', default_weights['efficiency'])),
                 'system_size': safe_float(request.args.get('system_size_weight', default_weights['system_size'])),
                 'support_cases': safe_float(request.args.get('support_cases_weight', default_weights['support_cases'])),
-                'documentation': safe_float(request.args.get('documentation_weight', default_weights['documentation'])),
                 'volume': safe_float(request.args.get('volume_weight', default_weights['volume']))
             }
             # Get dates from query params
@@ -5493,12 +5484,8 @@ def installer_performance():
         if total > 0:
             weights = {k: v/total for k, v in weights.items()}
 
-
         # Date handling with validation
         start_date = end_date = None
-        start_str = request.args.get('start_date')
-        end_str = request.args.get('end_date')
-
         if start_str:
             try:
                 start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
@@ -5531,39 +5518,41 @@ def installer_performance():
 
             name = inst.lead_installer
             metrics = {
-                'completion_rate': calculate_completion_rate(name, start_date, end_date),
-                'avg_install_time': calculate_avg_installation_time(name, start_date, end_date),
                 'system_metrics': calculate_system_size_metrics(name, start_date, end_date),
-                'support_metrics': calculate_support_cases(name, start_date, end_date),
-                'documentation_score': calculate_documentation_completeness(name, start_date, end_date)
+                'support_metrics': calculate_support_cases(name, start_date, end_date)
             }
 
-            score = calculate_performance_score(metrics, weights)  # Pass weights to function
+            # Calculate performance score with simplified weights
+            system_size_score = metrics['system_metrics']['percentage_of_max']
+            volume_score = min(100.0, (metrics['system_metrics']['total_projects'] / max(1, metrics['system_metrics']['total_projects'])) * 100 * 2)
 
-            # Pre-calculate values for template
-            performance_score = round(score, 1)
+            overall_score = (
+                (system_size_score * weights['system_size']) +
+                (metrics['support_metrics']['resolution_rate'] * weights['support_cases']) +
+                (volume_score * weights['volume'])
+            )
+
+            performance_score = min(100.0, overall_score)
             performance_class = "good" if performance_score >= 80 else "average" if performance_score >= 50 else "poor"
 
             performance_data.append({
                 'installer_name': name,
-                'period': f"{start_date} to {end_date}" if start_date and end_date else "All time",
-                'completion_rate': f"{round(metrics['completion_rate'], 1)}%",
-                'avg_installation_days': round(metrics['avg_install_time'], 1) if metrics['avg_install_time'] else "N/A",
-                'system_metrics': {  # Changed from avg_system_size to just system_metrics
+                'system_metrics': {
                     'total_kVA': metrics['system_metrics']['total_kVA'],
                     'total_kWh': metrics['system_metrics']['total_kWh'],
-                    'total_kWp': metrics['system_metrics']['total_kWp']
+                    'total_kWp': metrics['system_metrics']['total_kWp'],
+                    'percentage_of_max': metrics['system_metrics']['percentage_of_max']
                 },
                 'support_cases': {
                     'total': metrics['support_metrics']['total_cases'],
                     'resolved': metrics['support_metrics']['resolved_cases'],
                     'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
                 },
-                'documentation_completeness': f"{round(metrics['documentation_score'], 1)}%",
                 'total_installations': metrics['system_metrics']['total_projects'],
-                'performance_score': f"{performance_score}%",
+                'performance_score': f"{round(performance_score, 1)}%",
                 'performance_class': performance_class
             })
+
         # Sort by performance score
         performance_data.sort(
             key=lambda x: safe_float(x['performance_score'].rstrip('%'), 0.0),
@@ -5575,14 +5564,14 @@ def installer_performance():
             performance_data=performance_data,
             start_date=start_str or '',
             end_date=end_str or '',
-            weights=weights  # Pass weights to template
+            weights=weights
         )
 
     except Exception as e:
         logger.error(f"Route error: {str(e)}", exc_info=True)
         flash("An error occurred while generating the report.")
         return redirect(url_for('index'))
-
+        
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
