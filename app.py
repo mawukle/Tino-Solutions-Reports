@@ -5376,7 +5376,7 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
         # First get total installations by this installer
         installations_query = db.session.query(projects).filter(
             projects.lead_installer == installer_name,
-            projects.commissioning_date.isnot(None)
+            projects.commissioning_date.isnot(None))
 
         if start_date and end_date:
             installations_query = installations_query.filter(
