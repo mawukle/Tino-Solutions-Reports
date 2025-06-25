@@ -5300,8 +5300,8 @@ def get_max_system_totals(start_date=None, end_date=None):
         query = db.session.query(
             projects.lead_installer,
             (func.coalesce(func.sum(projects.kVA), 0.0) +
-            (func.coalesce(func.sum(projects.kWh), 0.0) +
-            (func.coalesce(func.sum(projects.kWp), 0.0)).label('total_size'),
+            func.coalesce(func.sum(projects.kWh), 0.0) +
+            func.coalesce(func.sum(projects.kWp), 0.0).label('total_size'),
             func.count().label('total_projects')
         ).filter(
             projects.commissioning_date.isnot(None)
@@ -5316,7 +5316,7 @@ def get_max_system_totals(start_date=None, end_date=None):
         if not installer_totals:
             return (0.0, 0)  # Return (max_total_size, max_projects)
 
-        # Find maximum combined system size
+        # Find maximum combined system size and project count
         max_total_size = max(t.total_size for t in installer_totals)
         max_projects = max(t.total_projects for t in installer_totals)
 
@@ -5325,7 +5325,7 @@ def get_max_system_totals(start_date=None, end_date=None):
     except Exception as e:
         logger.error(f"Error getting max system totals: {str(e)}")
         return (0.0, 0)
-
+        
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
     #Calculate total system size metrics
     try:
