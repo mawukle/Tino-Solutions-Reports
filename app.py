@@ -5529,7 +5529,9 @@ def installer_performance():
             projects.lead_installer.isnot(None)
         ).distinct().all()
 
-        performance_data = []
+        # First pass to get all metrics and find maximum project count
+        all_metrics = []
+        max_projects = 0
         for inst in installers:
             if not inst.lead_installer:
                 continue
@@ -5537,13 +5539,25 @@ def installer_performance():
             name = inst.lead_installer
             metrics = {
                 'system_metrics': calculate_system_size_metrics(name, start_date, end_date),
-                'support_metrics': calculate_support_cases(name, start_date, end_date)
+                'support_metrics': calculate_support_cases(name, start_date, end_date),
+                'installer_name': name
             }
+            all_metrics.append(metrics)
+            max_projects = max(max_projects, metrics['system_metrics']['total_projects'])
 
-            # Calculate performance score with simplified weights
+        # Second pass to calculate scores now that we know max_projects
+        performance_data = []
+        for metrics in all_metrics:
+            name = metrics['installer_name']
+
+            # Calculate system size score (percentage of max)
             system_size_score = metrics['system_metrics']['percentage_of_max']
-            volume_score = min(100.0, (metrics['system_metrics']['total_projects'] / max(1, metrics['system_metrics']['total_projects'])) * 100 * 2)
 
+            # Calculate volume score (normalized to max projects)
+            project_count = metrics['system_metrics']['total_projects']
+            volume_score = (project_count / max_projects * 100) if max_projects > 0 else 0
+
+            # Calculate overall score
             overall_score = (
                 (system_size_score * weights['system_size']) +
                 (metrics['support_metrics']['percentage_without_cases'] * weights['support_cases']) +
@@ -5568,7 +5582,8 @@ def installer_performance():
                 },
                 'total_installations': metrics['system_metrics']['total_projects'],
                 'performance_score': f"{round(performance_score, 1)}%",
-                'performance_class': performance_class
+                'performance_class': performance_class,
+                'volume_score': round(volume_score, 1)  # For debugging/display if needed
             })
 
         # Sort by performance score
