@@ -5300,8 +5300,8 @@ def get_max_system_totals(start_date=None, end_date=None):
         query = db.session.query(
             projects.lead_installer,
             (func.coalesce(func.sum(projects.kVA), 0.0) +
-            func.coalesce(func.sum(projects.kWh), 0.0) +
-            func.coalesce(func.sum(projects.kWp), 0.0).label('total_size'),
+             func.coalesce(func.sum(projects.kWh), 0.0) +
+             func.coalesce(func.sum(projects.kWp), 0.0)).label('total_size'),
             func.count().label('total_projects')
         ).filter(
             projects.commissioning_date.isnot(None)
