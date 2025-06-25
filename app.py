@@ -5471,9 +5471,9 @@ def installer_performance():
     try:
         # Default weights (only keeping the ones we need)
         default_weights = {
-            'system_size': 0.40,
-            'support_cases': 0.20,
-            'volume': 0.40
+            'system_size': 0.33,
+            'support_cases': 0.34,
+            'volume': 0.33
         }
 
         # Get weights from form submission or use existing weights from GET params
