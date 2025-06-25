@@ -141,9 +141,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    {{ installer.support_cases.resolved }} /
-                    {{ installer.support_cases.total }}
-                    ({{ installer.support_cases.resolution_rate }})
+                    {{ installer.support_cases.total }} /
+                    {{ installer.support_cases.installations }}
+                    ({{ installer.support_cases.percentage_without }} without cases)
                 </td>
             </tr>
             {% endfor %}

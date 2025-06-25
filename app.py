@@ -5371,9 +5371,28 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
         }
 
 def calculate_support_cases(installer_name, start_date=None, end_date=None):
-    """Calculate support case metrics (treats both 'Resolved' and 'Closed' as resolved)"""
+    """Calculate support case metrics - percentage of installations without support cases"""
     try:
-        query = db.session.query(support_cases).join(
+        # First get total installations by this installer
+        installations_query = db.session.query(projects).filter(
+            projects.lead_installer == installer_name,
+            projects.commissioning_date.isnot(None)
+
+        if start_date and end_date:
+            installations_query = installations_query.filter(
+                projects.commissioning_date.between(start_date, end_date))
+
+        total_installations = installations_query.count()
+
+        if total_installations == 0:
+            return {
+                'total_cases': 0,
+                'installations_with_cases': 0,
+                'percentage_without_cases': 100.0  # Treat as perfect if no installations
+            }
+
+        # Get count of distinct installations that had support cases
+        cases_query = db.session.query(func.count(func.distinct(support_cases.project_id))).join(
             projects,
             support_cases.project_id == projects.project_id
         ).filter(
@@ -5381,26 +5400,25 @@ def calculate_support_cases(installer_name, start_date=None, end_date=None):
         )
 
         if start_date and end_date:
-            query = query.filter(support_cases.reported_date.between(start_date, end_date))
+            cases_query = cases_query.filter(support_cases.reported_date.between(start_date, end_date))
 
-        total = query.count()
-        resolved = query.filter(
-            (support_cases.status == 'Resolved') |
-            (support_cases.status == 'Closed')
-        ).count()
+        installations_with_cases = cases_query.scalar() or 0
+
+        # Calculate percentage of installations without cases
+        percentage_without = ((total_installations - installations_with_cases) / total_installations) * 100
 
         return {
-            'total_cases': total,
-            'resolved_cases': resolved,
-            'resolution_rate': safe_float(resolved / total * 100) if total > 0 else 100.0
+            'total_cases': installations_with_cases,  # This now represents installations with cases
+            'installations_with_cases': installations_with_cases,
+            'percentage_without_cases': safe_float(percentage_without)
         }
 
     except Exception as e:
         logger.error(f"Support cases error for {installer_name}: {str(e)}")
         return {
             'total_cases': 0,
-            'resolved_cases': 0,
-            'resolution_rate': 100.0
+            'installations_with_cases': 0,
+            'percentage_without_cases': 100.0
         }
 
 def calculate_documentation_completeness(installer_name, start_date=None, end_date=None):
@@ -5544,9 +5562,9 @@ def installer_performance():
                     'percentage_of_max': metrics['system_metrics']['percentage_of_max']
                 },
                 'support_cases': {
-                    'total': metrics['support_metrics']['total_cases'],
-                    'resolved': metrics['support_metrics']['resolved_cases'],
-                    'resolution_rate': f"{round(metrics['support_metrics']['resolution_rate'], 1)}%"
+                    'total': metrics['support_metrics']['installations_with_cases'],
+                    'installations': metrics['system_metrics']['total_projects'],
+                    'percentage_without': f"{round(metrics['support_metrics']['percentage_without_cases'], 1)}%"
                 },
                 'total_installations': metrics['system_metrics']['total_projects'],
                 'performance_score': f"{round(performance_score, 1)}%",
@@ -5571,7 +5589,7 @@ def installer_performance():
         logger.error(f"Route error: {str(e)}", exc_info=True)
         flash("An error occurred while generating the report.")
         return redirect(url_for('index'))
-        
+
 if __name__ == '__main__':
 
     # Ensure the upload folder exists
