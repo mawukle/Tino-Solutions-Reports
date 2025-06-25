@@ -130,7 +130,13 @@
                 <td class="performance-score {{ installer.performance_class }}">
                     {{ installer.performance_score }}
                 </td>
-                <td>{{ installer.total_installations }}</td>
+                <td>
+                    {{ installer.total_installations }}
+                    {% if max_projects > 0 %}
+                    <br>
+                    <span class="weight-label">{{ (installer.total_installations / max_projects * 100)|round(1) }}% of max</span>
+                    {% endif %}
+                </td>
                 <td>
                     {{ installer.system_metrics.total_kVA|round(1) }} /
                     {{ installer.system_metrics.total_kWh|round(1) }} /

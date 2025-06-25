@@ -5597,7 +5597,8 @@ def installer_performance():
             performance_data=performance_data,
             start_date=start_str or '',
             end_date=end_str or '',
-            weights=weights
+            weights=weights,
+            max_projects=max_projects  # Add this line to pass max_projects to template
         )
 
     except Exception as e:
