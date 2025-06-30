@@ -204,6 +204,14 @@
                 width: 100%;
             }
         }
+        .flash-highlight {
+            animation: flash 2s ease-out;
+        }
+
+        @keyframes flash {
+            0% { background-color: #ffff99; }  /* Light yellow start */
+            100% { background-color: transparent; }
+        }
 
     </style>
 </head>
@@ -622,7 +630,12 @@
                     </td>
                     <td contenteditable="true"></td>
                 `;
-                document.querySelector("tbody").appendChild(newRow);
+
+                const tbody = document.querySelector("tbody");
+                tbody.insertBefore(newRow, tbody.firstChild);  // Insert at the top
+
+                // Add the flash effect
+                newRow.classList.add('flash-highlight');
 
                 // Initialize client search for the new row
                 initClientSearch();
