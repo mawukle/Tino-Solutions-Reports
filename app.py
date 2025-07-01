@@ -5325,7 +5325,7 @@ def get_max_system_totals(start_date=None, end_date=None):
     except Exception as e:
         logger.error(f"Error getting max system totals: {str(e)}")
         return (0.0, 0)
-        
+
 def calculate_system_size_metrics(installer_name, start_date=None, end_date=None):
     #Calculate total system size metrics
     try:
@@ -5553,11 +5553,19 @@ def installer_performance():
         for metrics in all_metrics:
             name = metrics['installer_name']
 
+            # Calculate number of projects
+            project_count = metrics['system_metrics']['total_projects']
+
+            # ✅ Skip installers with zero installations
+            if project_count == 0:
+                continue
+
+
             # Calculate system size score (percentage of max)
             system_size_score = metrics['system_metrics']['percentage_of_max']
 
             # Calculate volume score (normalized to max projects)
-            project_count = metrics['system_metrics']['total_projects']
+            #project_count = metrics['system_metrics']['total_projects']
             volume_score = (project_count / max_projects * 100) if max_projects > 0 else 0
 
             # Calculate overall score
