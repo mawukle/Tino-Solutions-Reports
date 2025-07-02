@@ -4570,19 +4570,50 @@ def get_bdu():
             projects.expected_final_payment_date,
             projects.commissioning_date,
             projects.comment,
-            projects.start_date  # Add start_date to the query for sorting
+            projects.start_date,
+            case(
+                [
+                    (or_(
+                        projects.start_date == None,
+                        projects.start_date == '0000-00-00',
+                        cast(projects.start_date, String) == '0000-00-00'
+                    ), 0),
+                ],
+                else_=1
+            ).label('has_valid_date')
         )
 
         # Apply date filtering based on start_date
         if start_date and end_date:
             query = query.filter(
-                projects.start_date >= start_date,
-                projects.start_date <= end_date
+                or_(
+                    and_(
+                        projects.start_date >= start_date,
+                        projects.start_date <= end_date
+                    ),
+                    projects.start_date == None,
+                    projects.start_date == '0000-00-00',
+                    cast(projects.start_date, String) == '0000-00-00'
+                )
             )
         elif start_date:
-            query = query.filter(projects.start_date >= start_date)
+            query = query.filter(
+                or_(
+                    projects.start_date >= start_date,
+                    projects.start_date == None,
+                    projects.start_date == '0000-00-00',
+                    cast(projects.start_date, String) == '0000-00-00'
+                )
+            )
         elif end_date:
-            query = query.filter(projects.start_date <= end_date)
+            query = query.filter(
+                or_(
+                    projects.start_date <= end_date,
+                    projects.start_date == None,
+                    projects.start_date == '0000-00-00',
+                    cast(projects.start_date, String) == '0000-00-00'
+                )
+            )
 
         # Apply search filter if a query is provided
         if search_query:
@@ -4596,8 +4627,8 @@ def get_bdu():
                 (projects.comment.ilike(f"%{search_query}%"))
             )
 
-        # Order by start_date descending (most recent first)
-        query = query.order_by(projects.start_date.desc())
+        # Order by valid date flag (invalid dates first), then by start_date descending (most recent first)
+        query = query.order_by('has_valid_date', projects.start_date.desc())
 
         # Fetch filtered projects
         projects_list = query.all()
@@ -4614,16 +4645,16 @@ def get_bdu():
         for project in projects_list:
             invoice_amount = Decimal(project.invoice_amount or 0.00)
             amount_paid = Decimal(project.amount_paid or 0.00)
-            outstanding_balance = invoice_amount - amount_paid  # Dynamically calculate Outstanding Balance
+            outstanding_balance = invoice_amount - amount_paid
 
             # Handle commissioning_date format
             if isinstance(project.commissioning_date, str):
                 if project.commissioning_date == '0000-00-00':
-                    commissioning_date = None  # Treat as missing date
+                    commissioning_date = None
                 else:
                     commissioning_date = datetime.strptime(project.commissioning_date, '%Y-%m-%d').date()
             else:
-                commissioning_date = project.commissioning_date  # Already a datetime.date
+                commissioning_date = project.commissioning_date
 
             expected_payment_date = project.expected_final_payment_date.strftime('%Y-%m-%d') if project.expected_final_payment_date else ''
 
@@ -4641,7 +4672,8 @@ def get_bdu():
                 "outstanding_balance": outstanding_balance,
                 "expected_final_payment_date": expected_payment_date,
                 "comment": project.comment or '',
-                "start_date": project.start_date  # Include start_date for reference
+                "start_date": project.start_date,
+                "has_valid_date": project.has_valid_date
             }
 
             # Categorization logic
@@ -4652,6 +4684,11 @@ def get_bdu():
             elif commissioning_date <= today and outstanding_balance <= 0:
                 clients_in_good_standing.append(project_data)
 
+        # Sort each category by valid date flag and then by start_date descending
+        closed_deals.sort(key=lambda x: (x['has_valid_date'], x['start_date'] if x['start_date'] and x['start_date'] != '0000-00-00' else datetime.min), reverse=True)
+        clients_in_debt.sort(key=lambda x: (x['has_valid_date'], x['start_date'] if x['start_date'] and x['start_date'] != '0000-00-00' else datetime.min), reverse=True)
+        clients_in_good_standing.sort(key=lambda x: (x['has_valid_date'], x['start_date'] if x['start_date'] and x['start_date'] != '0000-00-00' else datetime.min), reverse=True)
+
         return render_template(
             'bdu.html',
             closed_deals=closed_deals,
@@ -4659,7 +4696,7 @@ def get_bdu():
             clients_in_good_standing=clients_in_good_standing,
             team_members=team_members,
             message=message,
-            search_query=search_query,  # Ensure search query is passed back
+            search_query=search_query,
             start_date_from=start_date_from,
             start_date_to=start_date_to
         )
@@ -4667,7 +4704,7 @@ def get_bdu():
     except Exception as e:
         logging.error(f"Error fetching BDU data: {e}")
         return render_template('bdu.html', message='Database query failed', closed_deals=[], clients_in_debt=[], clients_in_good_standing=[], team_members=[])
-
+        
 @app.route('/update_bdu', methods=['POST'])
 def update_bdu():
     try:
