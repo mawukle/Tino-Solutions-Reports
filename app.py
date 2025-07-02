@@ -4550,7 +4550,6 @@ def get_bdu():
     start_date_to = request.args.get('start_date_to')
     search_query = request.args.get('search_query', '').strip().lower()
 
-
     try:
         # Convert date inputs to proper format
         start_date = datetime.strptime(start_date_from, '%Y-%m-%d').date() if start_date_from else None
@@ -4570,7 +4569,8 @@ def get_bdu():
             projects.amount_paid,
             projects.expected_final_payment_date,
             projects.commissioning_date,
-            projects.comment
+            projects.comment,
+            projects.start_date  # Add start_date to the query for sorting
         )
 
         # Apply date filtering based on start_date
@@ -4595,6 +4595,9 @@ def get_bdu():
                 (projects.currency.ilike(f"%{search_query}%")) |
                 (projects.comment.ilike(f"%{search_query}%"))
             )
+
+        # Order by start_date descending (most recent first)
+        query = query.order_by(projects.start_date.desc())
 
         # Fetch filtered projects
         projects_list = query.all()
@@ -4637,7 +4640,8 @@ def get_bdu():
                 "amount_paid": amount_paid,
                 "outstanding_balance": outstanding_balance,
                 "expected_final_payment_date": expected_payment_date,
-                "comment": project.comment or ''
+                "comment": project.comment or '',
+                "start_date": project.start_date  # Include start_date for reference
             }
 
             # Categorization logic
@@ -4663,7 +4667,6 @@ def get_bdu():
     except Exception as e:
         logging.error(f"Error fetching BDU data: {e}")
         return render_template('bdu.html', message='Database query failed', closed_deals=[], clients_in_debt=[], clients_in_good_standing=[], team_members=[])
-
 
 @app.route('/update_bdu', methods=['POST'])
 def update_bdu():
