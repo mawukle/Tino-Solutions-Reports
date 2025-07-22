@@ -4148,7 +4148,7 @@ def send_project_email_notification(project):
         {invoice_link}
         {google_drive_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
-        <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+        <p>Kind regards,<br>Augustine Beyuo</p>
         """
         #<hr>
         #<p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
@@ -4158,7 +4158,7 @@ def send_project_email_notification(project):
             #recipients=["emmanuel@tinosolutions.com"],
             recipients=[sales_person_email],
             #cc=["emmanuel@tinosolutions.com"],
-            cc=["augustine@tinosolutions.com"],
+            #cc=["augustine@tinosolutions.com"],
             bcc=["ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
             html=body
         )
@@ -4209,7 +4209,7 @@ def send_completed_project_email_notification(project):
         {google_drive_link}
         <p>You can check the status of other projects by clicking <a href="https://tino-solutions-reports-49ba7768c4e2.herokuapp.com/projects" target="_blank">here</a>.</p>
         <p>Thank you for your efforts in ensuring the successful completion of this project.</p>
-        <p>Kind regards,<br>Emmanuel Kwesi Padi</p>
+        <p>Kind regards,<br>Augustine Beyuo</p>
         """
         #<hr>
         #<p style="font-size: 12px; color: gray;">This email was automatically generated from the Tino Solutions System Database.</p>
