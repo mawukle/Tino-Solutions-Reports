@@ -153,7 +153,7 @@ def send_payment_reminders():
                 to a later date on the same page.</p>
                 """
 
-                email_body += "<p>Kind regards,<br>Emmanuel Kwesi Padi</p>"
+                email_body += "<p>Kind regards,<br>Augustine Beyuo</p>"
 
                 msg = Message(
                     subject=f"Payment Reminder: {project.client_name}",
@@ -161,7 +161,7 @@ def send_payment_reminders():
                     #recipients=["emmanuel@tinosolutions.com"],
                     cc=["finance@tinosolutions.com", "accounts@tinosolutions.com"],
                     #cc=["padiemmanuelkwesi@gmail.com", "padiemmanuelkwesi@yahoo.com"],
-                    bcc=["emmanuel@tinosolutions.com"],
+                    bcc=["emmanuel@tinosolutions.com","augustine@tinosolutions.com"],
                     html=email_body
                 )
 
