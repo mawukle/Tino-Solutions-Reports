@@ -458,7 +458,7 @@
                     saveButton.disabled = false;
                 });
             });
-            
+
             // Add new row
             document.getElementById("add-row").addEventListener("click", () => {
                 const tempId = "new_" + Date.now(); // Create a temporary unique ID
@@ -536,7 +536,7 @@
                                 </a>
                             `;
                         }
-                        alert("File uploaded successfully!");
+                        alert("File uploaded successfully! Ensure that all relevant entries in the row have been entered and click Save Changes at the bottom of the page");
                     } else {
                         alert(data.message || "Upload completed but no file URL returned");
                     }
