@@ -3987,7 +3987,7 @@ def update_projects():
             project_id = project.get('project_id')
 
             # Handle both None and "new_" prefixed IDs as new projects
-            is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_")
+            is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_"))
 
             if not is_new_project:  # Updating an existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
@@ -4117,7 +4117,7 @@ def update_projects():
             "message": f"Error updating projects: {str(e)}",
             "error": str(e)
         }), 500
-        
+
 def format_date_with_suffix(date_obj):
     if not date_obj:
         return "N/A"
