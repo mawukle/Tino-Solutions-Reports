@@ -3972,11 +3972,15 @@ def update_projects():
         ongoing_projects = []  # Track projects that just moved to "Ongoing"
         completed_projects = []  # Track projects that just moved to "Completed"
         folder_rename_tasks = []  # Track folder rename tasks
+        new_project_ids = []  # Track IDs of newly created projects
 
         for project in data:
             project_id = project.get('project_id')
 
-            if project_id:  # Updating an existing project
+            # Handle both None and "new_" prefixed IDs as new projects
+            is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_")
+
+            if not is_new_project:  # Updating an existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
                 if existing_project:
                     # Track fields that affect folder name before changes
@@ -3991,20 +3995,19 @@ def update_projects():
                         'client_name': project.get('client_name', existing_project.client_name),
                         'town': project.get('town', existing_project.town),
                         'phone_number': project.get('phone_number', existing_project.phone_number),
-                        'sales_person': project.get('sales_person') if 'sales_person' in project else existing_project.sales_person,
-                        'lead_installer': project.get('lead_installer') if 'lead_installer' in project else existing_project.lead_installer,
+                        'sales_person': project.get('sales_person', existing_project.sales_person),
+                        'lead_installer': project.get('lead_installer', existing_project.lead_installer),
                         'start_date': project.get('start_date', existing_project.start_date),
                         'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date),
-                        'kVA': float(project.get('kVA', existing_project.kVA if project_id else 0)),
-                        'kWh': float(project.get('kWh', existing_project.kWh if project_id else 0)),
-                        'kWp': float(project.get('kWp', existing_project.kWp if project_id else 0)),
-
+                        'kVA': float(project.get('kVA', existing_project.kVA)),
+                        'kWh': float(project.get('kWh', existing_project.kWh)),
+                        'kWp': float(project.get('kWp', existing_project.kWp)),
                         'invoice_image_url': project.get('invoice_image_url', existing_project.invoice_image_url),
                         'google_coordinates': project.get('google_coordinates', existing_project.google_coordinates),
                         'currency': project.get('currency', existing_project.currency),
-                        'invoice_amount': project.get('invoice_amount', existing_project.invoice_amount),
-                        'amount_paid': project.get('amount_paid', existing_project.amount_paid),
-                        'outstanding_balance': project.get('outstanding_balance', existing_project.outstanding_balance),
+                        'invoice_amount': float(project.get('invoice_amount', existing_project.invoice_amount)),
+                        'amount_paid': float(project.get('amount_paid', existing_project.amount_paid)),
+                        'outstanding_balance': float(project.get('outstanding_balance', existing_project.outstanding_balance)),
                         'expected_final_payment_date': project.get('expected_final_payment_date', existing_project.expected_final_payment_date),
                         'comment': project.get('comment', existing_project.comment),
                     }
@@ -4055,19 +4058,23 @@ def update_projects():
                     lead_installer=project.get('lead_installer', ''),
                     start_date=project.get('start_date', None),
                     commissioning_date=project.get('commissioning_date', None),
+                    kVA=float(project.get('kVA', 0)),
+                    kWh=float(project.get('kWh', 0)),
+                    kWp=float(project.get('kWp', 0)),
                     invoice_image_url=project.get('invoice_image_url', ''),
                     google_coordinates=project.get('google_coordinates', ''),
                     currency=project.get('currency', ''),
-                    invoice_amount=project.get('invoice_amount', 0.00),
-                    amount_paid=project.get('amount_paid', 0.00),
-                    outstanding_balance=project.get('outstanding_balance', 0.00),
+                    invoice_amount=float(project.get('invoice_amount', 0.00)),
+                    amount_paid=float(project.get('amount_paid', 0.00)),
+                    outstanding_balance=float(project.get('outstanding_balance', 0.00)),
                     expected_final_payment_date=project.get('expected_final_payment_date', None),
                     comment=project.get('comment', '')
                 )
                 db.session.add(new_project)
-                db.session.flush()  # Ensure we get a project_id
+                db.session.flush()  # This generates the ID
+                new_project_ids.append(new_project.project_id)
 
-                # Trigger folder creation
+                # Create folder for new project
                 try:
                     create_folder_if_needed.delay(
                         new_project.project_id,
@@ -4078,6 +4085,7 @@ def update_projects():
                 except Exception as e:
                     logging.error(f"Failed to queue folder creation: {e}")
 
+                # Check if new project should be marked as ongoing or completed
                 if new_project.lead_installer and new_project.start_date:
                     ongoing_projects.append(new_project)
 
@@ -4095,14 +4103,18 @@ def update_projects():
 
         return jsonify({
             "message": "Projects updated successfully",
-            "folder_rename_tasks": len(folder_rename_tasks)
+            "folder_rename_tasks": len(folder_rename_tasks),
+            "new_project_ids": new_project_ids
         })
 
     except Exception as e:
-        logging.error(f"Error updating projects: {e}")
+        logging.error(f"Error updating projects: {str(e)}")
         db.session.rollback()
-        return jsonify({"message": "Error updating projects"}), 500
-
+        return jsonify({
+            "message": f"Error updating projects: {str(e)}",
+            "error": str(e)
+        }), 500
+        
 def format_date_with_suffix(date_obj):
     if not date_obj:
         return "N/A"

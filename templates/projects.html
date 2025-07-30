@@ -399,7 +399,7 @@
             // Save changes event
             document.getElementById("save-changes").addEventListener("click", () => {
                 let saveButton = document.getElementById("save-changes");
-                saveButton.disabled = true; // Prevent duplicate requests
+                saveButton.disabled = true;
 
                 let updatedProjects = [];
 
@@ -413,8 +413,11 @@
                         ? row.querySelector(".google-coordinates a").getAttribute("href").split('=')[1]
                         : row.querySelector(".google-coordinates span")?.innerText.trim() || "";
 
+                    // Get the invoice image URL from either the img tag or the form's hidden field
+                    let invoiceImageUrl = row.querySelector("img") ? row.querySelector("img").src : "";
+
                     let projectData = {
-                        project_id: projectID,
+                        project_id: projectID && projectID.startsWith("new_") ? null : projectID, // Send null for new rows
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
                         google_coordinates: googleCoordinates,
@@ -426,8 +429,7 @@
                         kVA: cells[3]?.innerText.trim() || "0",
                         kWh: cells[4]?.innerText.trim() || "0",
                         kWp: cells[5]?.innerText.trim() || "0",
-
-                        invoice_image_url: row.querySelector("img") ? row.querySelector("img").src : "",
+                        invoice_image_url: invoiceImageUrl,
                         comment: cells[6]?.innerText.trim() || ""
                     };
 
@@ -445,7 +447,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.message === "Projects updated successfully") {
-                        location.reload();
+                        location.reload(); // Force refresh to get new IDs
                     }
                 })
                 .catch(error => {
@@ -453,10 +455,10 @@
                     alert("An error occurred while saving.");
                 })
                 .finally(() => {
-                    saveButton.disabled = false; // Re-enable button
+                    saveButton.disabled = false;
                 });
             });
-
+            
             // Add new row
             document.getElementById("add-row").addEventListener("click", () => {
                 const tempId = "new_" + Date.now(); // Create a temporary unique ID
