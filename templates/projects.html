@@ -459,11 +459,13 @@
 
             // Add new row
             document.getElementById("add-row").addEventListener("click", () => {
+                const tempId = "new_" + Date.now(); // Create a temporary unique ID
                 const newRow = document.createElement("tr");
+                newRow.setAttribute("data-id", tempId); // Set the temporary ID
                 newRow.innerHTML = `
                     <td>
                         <form action="/upload_invoice" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="project_id" value="">
+                            <input type="hidden" name="project_id" value="${tempId}">
                             <input type="file" name="invoice_image" accept="image/*">
                             <button type="submit">Upload</button>
                         </form>
@@ -517,21 +519,19 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert(data.message);
                         if (data.file_url) {
-                            if (projectID.startsWith("new_")) {
-                                // For new rows, update the UI without refreshing
-                                const row = document.querySelector(`tr[data-id="${projectID}"]`);
-                                if (row) {
-                                    row.querySelector("td").innerHTML = `
-                                        <a href="${data.file_url}" target="_blank">
-                                            <img src="${data.file_url}" alt="Invoice" width="100">
-                                        </a>
-                                    `;
-                                }
-                            } else if (data.refresh) {
-                                location.reload(); // Refresh page if upload was successful for existing project
+                            // Update the UI without refreshing
+                            const formContainer = this.closest('td');
+                            if (formContainer) {
+                                formContainer.innerHTML = `
+                                    <a href="${data.file_url}" target="_blank">
+                                        <img src="${data.file_url}" alt="Invoice" width="100">
+                                    </a>
+                                `;
                             }
+                            alert("File uploaded successfully!");
+                        } else {
+                            alert(data.message || "Upload failed");
                         }
                     })
                     .catch(error => {
@@ -540,7 +540,7 @@
                     });
                 });
             });
-
+            
             // Image modal display
             const modal = document.getElementById("imageModal");
             const modalImg = document.getElementById("fullImage");

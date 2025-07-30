@@ -4233,10 +4233,7 @@ def send_completed_project_email_notification(project):
 
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
-    project_id = request.form.get("project_id")  # Get project_id from form data
-
-    if not project_id:
-        return jsonify({"message": "Project ID is required. Please enter the other parameters on the row"}), 400
+    project_id = request.form.get("project_id", "")  # Get project_id from form data, default to empty string
 
     if "invoice_image" not in request.files:
         return jsonify({"message": "No file uploaded"}), 400
@@ -4256,33 +4253,18 @@ def upload_invoice():
         # Remove the temporary file
         os.remove(file_path)
 
-        # Check if this is a new project (starts with "new_")
-        if project_id.startswith("new_"):
-            # For new projects, just return the URL - it will be saved when the row is saved
-            return jsonify({
-                "message": "Upload successful",
-                "file_url": file_url,
-                "refresh": False,
-                "temp_id": project_id  # Return the temporary ID
-            })
-        else:
-            # Update the project in the database with the invoice URL
-            project = db.session.query(projects).filter_by(project_id=project_id).first()
-            if project:
-                project.invoice_image_url = file_url
-                db.session.commit()
-                return jsonify({
-                    "message": "Upload successful",
-                    "file_url": file_url,
-                    "refresh": True
-                })
-            else:
-                return jsonify({"message": "Project not found"}), 404
+        # For all projects (new or existing), return the URL
+        return jsonify({
+            "message": "Upload successful",
+            "file_url": file_url,
+            "refresh": False,
+            "temp_id": project_id  # Return the project ID (could be empty for new rows)
+        })
 
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
         return jsonify({"message": "Error uploading file"}), 500
-        
+                
 import os
 import json
 import base64
