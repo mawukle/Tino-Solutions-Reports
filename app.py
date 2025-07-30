@@ -3974,11 +3974,20 @@ def update_projects():
         folder_rename_tasks = []  # Track folder rename tasks
         new_project_ids = []  # Track IDs of newly created projects
 
+        def safe_float(value, default=0.0):
+            """Safely convert value to float, returning default if conversion fails"""
+            try:
+                if value is None or value == '':
+                    return default
+                return float(value)
+            except (ValueError, TypeError):
+                return default
+
         for project in data:
             project_id = project.get('project_id')
 
             # Handle both None and "new_" prefixed IDs as new projects
-            is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_"))
+            is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_")
 
             if not is_new_project:  # Updating an existing project
                 existing_project = db.session.query(projects).filter_by(project_id=project_id).first()
@@ -3990,35 +3999,29 @@ def update_projects():
                         'sales_person': existing_project.sales_person
                     }
 
-                    # Preserve existing values if not provided in the request
-                    project_fields = {
-                        'client_name': project.get('client_name', existing_project.client_name),
-                        'town': project.get('town', existing_project.town),
-                        'phone_number': project.get('phone_number', existing_project.phone_number),
-                        'sales_person': project.get('sales_person', existing_project.sales_person),
-                        'lead_installer': project.get('lead_installer', existing_project.lead_installer),
-                        'start_date': project.get('start_date', existing_project.start_date),
-                        'commissioning_date': project.get('commissioning_date', existing_project.commissioning_date),
-                        'kVA': float(project.get('kVA', existing_project.kVA)),
-                        'kWh': float(project.get('kWh', existing_project.kWh)),
-                        'kWp': float(project.get('kWp', existing_project.kWp)),
-                        'invoice_image_url': project.get('invoice_image_url', existing_project.invoice_image_url),
-                        'google_coordinates': project.get('google_coordinates', existing_project.google_coordinates),
-                        'currency': project.get('currency', existing_project.currency),
-                        'invoice_amount': float(project.get('invoice_amount', existing_project.invoice_amount)),
-                        'amount_paid': float(project.get('amount_paid', existing_project.amount_paid)),
-                        'outstanding_balance': float(project.get('outstanding_balance', existing_project.outstanding_balance)),
-                        'expected_final_payment_date': project.get('expected_final_payment_date', existing_project.expected_final_payment_date),
-                        'comment': project.get('comment', existing_project.comment),
-                    }
+                    # Apply updates with safe float conversion
+                    existing_project.client_name = project.get('client_name', existing_project.client_name)
+                    existing_project.town = project.get('town', existing_project.town)
+                    existing_project.phone_number = project.get('phone_number', existing_project.phone_number)
+                    existing_project.sales_person = project.get('sales_person', existing_project.sales_person)
+                    existing_project.lead_installer = project.get('lead_installer', existing_project.lead_installer)
+                    existing_project.start_date = project.get('start_date', existing_project.start_date)
+                    existing_project.commissioning_date = project.get('commissioning_date', existing_project.commissioning_date)
+                    existing_project.kVA = safe_float(project.get('kVA'), existing_project.kVA)
+                    existing_project.kWh = safe_float(project.get('kWh'), existing_project.kWh)
+                    existing_project.kWp = safe_float(project.get('kWp'), existing_project.kWp)
+                    existing_project.invoice_image_url = project.get('invoice_image_url', existing_project.invoice_image_url)
+                    existing_project.google_coordinates = project.get('google_coordinates', existing_project.google_coordinates)
+                    existing_project.currency = project.get('currency', existing_project.currency)
+                    existing_project.invoice_amount = safe_float(project.get('invoice_amount'), existing_project.invoice_amount)
+                    existing_project.amount_paid = safe_float(project.get('amount_paid'), existing_project.amount_paid)
+                    existing_project.outstanding_balance = safe_float(project.get('outstanding_balance'), existing_project.outstanding_balance)
+                    existing_project.expected_final_payment_date = project.get('expected_final_payment_date', existing_project.expected_final_payment_date)
+                    existing_project.comment = project.get('comment', existing_project.comment)
 
                     # Track previous statuses before changes
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
                     previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
-
-                    # Apply updates to the existing project
-                    for key, value in project_fields.items():
-                        setattr(existing_project, key, value)
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
@@ -4027,16 +4030,16 @@ def update_projects():
                          project.get('sales_person') is not None)):
 
                         # Check if any folder-related fields actually changed
-                        if (project_fields['client_name'] != old_fields['client_name'] or
-                            project_fields['town'] != old_fields['town'] or
-                            project_fields['sales_person'] != old_fields['sales_person']):
+                        if (existing_project.client_name != old_fields['client_name'] or
+                            existing_project.town != old_fields['town'] or
+                            existing_project.sales_person != old_fields['sales_person']):
 
                             # Queue async folder rename task
                             task = rename_project_folder_task.delay(
                                 project_id=project_id,
-                                client_name=project_fields['client_name'],
-                                town=project_fields['town'],
-                                sales_person=project_fields['sales_person']
+                                client_name=existing_project.client_name,
+                                town=existing_project.town,
+                                sales_person=existing_project.sales_person
                             )
                             folder_rename_tasks.append(task)
                             logging.info(f"Queued folder rename for project {project_id}")
@@ -4056,18 +4059,18 @@ def update_projects():
                     phone_number=project.get('phone_number', ''),
                     sales_person=project.get('sales_person', ''),
                     lead_installer=project.get('lead_installer', ''),
-                    start_date=project.get('start_date', None),
-                    commissioning_date=project.get('commissioning_date', None),
-                    kVA=float(project.get('kVA', 0)),
-                    kWh=float(project.get('kWh', 0)),
-                    kWp=float(project.get('kWp', 0)),
+                    start_date=project.get('start_date'),
+                    commissioning_date=project.get('commissioning_date'),
+                    kVA=safe_float(project.get('kVA')),
+                    kWh=safe_float(project.get('kWh')),
+                    kWp=safe_float(project.get('kWp')),
                     invoice_image_url=project.get('invoice_image_url', ''),
                     google_coordinates=project.get('google_coordinates', ''),
                     currency=project.get('currency', ''),
-                    invoice_amount=float(project.get('invoice_amount', 0.00)),
-                    amount_paid=float(project.get('amount_paid', 0.00)),
-                    outstanding_balance=float(project.get('outstanding_balance', 0.00)),
-                    expected_final_payment_date=project.get('expected_final_payment_date', None),
+                    invoice_amount=safe_float(project.get('invoice_amount')),
+                    amount_paid=safe_float(project.get('amount_paid')),
+                    outstanding_balance=safe_float(project.get('outstanding_balance')),
+                    expected_final_payment_date=project.get('expected_final_payment_date'),
                     comment=project.get('comment', '')
                 )
                 db.session.add(new_project)
@@ -4114,7 +4117,7 @@ def update_projects():
             "message": f"Error updating projects: {str(e)}",
             "error": str(e)
         }), 500
-
+        
 def format_date_with_suffix(date_obj):
     if not date_obj:
         return "N/A"
