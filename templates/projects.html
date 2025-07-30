@@ -518,8 +518,20 @@
                     .then(response => response.json())
                     .then(data => {
                         alert(data.message);
-                        if (data.refresh) {
-                            location.reload(); // Refresh page if upload was successful
+                        if (data.file_url) {
+                            if (projectID.startsWith("new_")) {
+                                // For new rows, update the UI without refreshing
+                                const row = document.querySelector(`tr[data-id="${projectID}"]`);
+                                if (row) {
+                                    row.querySelector("td").innerHTML = `
+                                        <a href="${data.file_url}" target="_blank">
+                                            <img src="${data.file_url}" alt="Invoice" width="100">
+                                        </a>
+                                    `;
+                                }
+                            } else if (data.refresh) {
+                                location.reload(); // Refresh page if upload was successful for existing project
+                            }
                         }
                     })
                     .catch(error => {

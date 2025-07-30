@@ -4256,22 +4256,33 @@ def upload_invoice():
         # Remove the temporary file
         os.remove(file_path)
 
-        # Update the project in the database with the invoice URL
-        project = db.session.query(projects).filter_by(project_id=project_id).first()
-        if project:
-            project.invoice_image_url = file_url
-            db.session.commit()
-
-            # Return a success message to the frontend
-            return jsonify({"message": "Upload successful", "file_url": file_url, "refresh": True})
-
+        # Check if this is a new project (starts with "new_")
+        if project_id.startswith("new_"):
+            # For new projects, just return the URL - it will be saved when the row is saved
+            return jsonify({
+                "message": "Upload successful",
+                "file_url": file_url,
+                "refresh": False,
+                "temp_id": project_id  # Return the temporary ID
+            })
         else:
-            return jsonify({"message": "Project not found"}), 404
+            # Update the project in the database with the invoice URL
+            project = db.session.query(projects).filter_by(project_id=project_id).first()
+            if project:
+                project.invoice_image_url = file_url
+                db.session.commit()
+                return jsonify({
+                    "message": "Upload successful",
+                    "file_url": file_url,
+                    "refresh": True
+                })
+            else:
+                return jsonify({"message": "Project not found"}), 404
 
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
         return jsonify({"message": "Error uploading file"}), 500
-
+        
 import os
 import json
 import base64
