@@ -131,7 +131,7 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100">
                                 </a>
                             {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                <form class="invoice-upload-form" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="project_id" value="{{ project.project_id }}">
                                     <input type="file" name="invoice_image" accept="image/*">
                                     <button type="submit">Upload</button>
@@ -227,7 +227,7 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
                                 </a>
                             {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                <form class="invoice-upload-form" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="project_id" value="{{ project.project_id }}">
                                     <input type="file" name="invoice_image" accept="image/*">
                                     <button type="submit">Upload</button>
@@ -322,7 +322,7 @@
                                     <img src="{{ project.invoice_image_url }}" alt="Invoice" width="100" class="invoice-image" style="cursor:pointer;">
                                 </a>
                             {% else %}
-                                <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                                <form class="invoice-upload-form" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="project_id" value="{{ project.project_id }}">
                                     <input type="file" name="invoice_image" accept="image/*">
                                     <button type="submit">Upload</button>
@@ -464,7 +464,7 @@
                 newRow.setAttribute("data-id", tempId); // Set the temporary ID
                 newRow.innerHTML = `
                     <td>
-                        <form action="/upload_invoice" method="post" enctype="multipart/form-data">
+                        <form class="invoice-upload-form" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="project_id" value="${tempId}">
                             <input type="file" name="invoice_image" accept="image/*">
                             <button type="submit">Upload</button>
@@ -504,43 +504,57 @@
                     <td contenteditable="true"></td>  <!-- Comment -->
                 `;
                 document.querySelector("tbody").appendChild(newRow);
+
+                // Add event listener to the new form
+                newRow.querySelector('.invoice-upload-form').addEventListener('submit', handleInvoiceUpload);
             });
+
+            function handleInvoiceUpload(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+
+                fetch("/upload_invoice", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.file_url) {
+                        const formContainer = form.closest('td');
+                        if (formContainer) {
+                            formContainer.innerHTML = `
+                                <a href="${data.file_url}" target="_blank">
+                                    <img src="${data.file_url}" alt="Invoice" width="100">
+                                </a>
+                            `;
+                        }
+                        alert("File uploaded successfully!");
+                    } else {
+                        alert(data.message || "Upload completed but no file URL returned");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error uploading file:", error);
+                    alert("Error uploading file. Please try again.");
+                });
+            }
 
             // Handle image upload
             document.querySelectorAll("form[action='/upload_invoice']").forEach(form => {
-                form.addEventListener("submit", function(event) {
-                    event.preventDefault();
-                    let formData = new FormData(this);
-                    let projectID = this.querySelector("input[name='project_id']").value;
-
-                    fetch("/upload_invoice", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.file_url) {
-                            // Update the UI without refreshing
-                            const formContainer = this.closest('td');
-                            if (formContainer) {
-                                formContainer.innerHTML = `
-                                    <a href="${data.file_url}" target="_blank">
-                                        <img src="${data.file_url}" alt="Invoice" width="100">
-                                    </a>
-                                `;
-                            }
-                            alert("File uploaded successfully!");
-                        } else {
-                            alert(data.message || "Upload failed");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error uploading file:", error);
-                        alert("Error uploading file.");
-                    });
-                });
+              form.addEventListener("submit", handleInvoiceUpload);
             });
-            
+
+            // Also update any existing forms to use the class instead of action
+            document.querySelectorAll('.invoice-upload-form').forEach(form => {
+                form.addEventListener('submit', handleInvoiceUpload);
+            });
+
             // Image modal display
             const modal = document.getElementById("imageModal");
             const modalImg = document.getElementById("fullImage");

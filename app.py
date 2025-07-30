@@ -4264,7 +4264,7 @@ def upload_invoice():
     except Exception as e:
         logging.error(f"Error uploading file: {e}")
         return jsonify({"message": "Error uploading file"}), 500
-                
+
 import os
 import json
 import base64
