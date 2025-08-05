@@ -9,6 +9,7 @@
     <script>
         var teamMembers = {{ team_members | tojson }};
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         .table-container {
             overflow-x: auto;
@@ -65,6 +66,38 @@
             font-size: 30px;
             color: white;
             cursor: pointer;
+        }
+        /* Add this to your existing style section */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .container_1, .container_1 * {
+                visibility: visible;
+            }
+            .container_1 {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .buttons {
+                display: none !important;
+            }
+            /* Ensure tables break properly across pages */
+            table {
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tfoot {
+                display: table-footer-group;
+            }
         }
     </style>
 </head>
@@ -387,6 +420,7 @@
         <!-- Save Changes button remains at its current position -->
         <div class="buttons" style="margin-top: 10px;">
             <button id="save-changes">Save Changes</button>
+            <button id="save-pdf">Save as PDF</button>
         </div>
     </div>
     <!-- Image Modal -->
@@ -457,6 +491,46 @@
                 .finally(() => {
                     saveButton.disabled = false;
                 });
+            });
+
+            document.getElementById('save-pdf').addEventListener('click', function() {
+                // Create a new div to hold all content
+                const pdfContent = document.createElement('div');
+                pdfContent.style.padding = '20px';
+
+                // Clone each section
+                const newProjectsSection = document.querySelector('h2:first-of-type').parentNode.cloneNode(true);
+                const ongoingProjectsSection = document.querySelector('h2:nth-of-type(2)').parentNode.cloneNode(true);
+                const completedProjectsSection = document.querySelector('h2:last-of-type').parentNode.cloneNode(true);
+
+                // Remove buttons and other non-content elements
+                [newProjectsSection, ongoingProjectsSection, completedProjectsSection].forEach(section => {
+                    const buttons = section.querySelectorAll('.buttons');
+                    buttons.forEach(button => button.remove());
+                });
+
+                // Add to our PDF container
+                pdfContent.appendChild(newProjectsSection);
+                pdfContent.appendChild(document.createElement('hr'));
+                pdfContent.appendChild(ongoingProjectsSection);
+                pdfContent.appendChild(document.createElement('hr'));
+                pdfContent.appendChild(completedProjectsSection);
+
+                // Options for the PDF
+                const opt = {
+                    margin: 10,
+                    filename: 'projects_report.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 1,
+                        logging: true,
+                        useCORS: true
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Generate PDF
+                html2pdf().set(opt).from(pdfContent).save();
             });
 
             // Add new row
