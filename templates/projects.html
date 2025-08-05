@@ -68,33 +68,32 @@
             cursor: pointer;
         }
         /* Add this to your existing style section */
+        /* Add to your existing styles */
         @media print {
-            body, html {
+            body {
                 width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .container_1 {
                 width: 100% !important;
-                max-width: 100% !important;
-                position: relative !important;
-                left: 0 !important;
-                top: 0 !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 10px !important;
             }
             table {
                 width: 100% !important;
-                font-size: 8pt !important;
-                page-break-inside: auto !important;
+                max-width: none !important;
+                table-layout: auto !important;
             }
-            tr {
-                page-break-inside: avoid !important;
-                page-break-after: auto !important;
+            th, td {
+                white-space: nowrap !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
             }
-            td, th {
-                padding: 3px !important;
-            }
-            .buttons, .back-link {
-                display: none !important;
+            img {
+                max-width: 100px !important;
+                height: auto !important;
             }
         }
     </style>
@@ -492,7 +491,6 @@
             });
 
             document.getElementById('save-pdf').addEventListener('click', async function() {
-                // Disable the button during generation to prevent multiple clicks
                 const pdfButton = document.getElementById('save-pdf');
                 pdfButton.disabled = true;
                 pdfButton.textContent = 'Generating PDF...';
@@ -501,69 +499,119 @@
                     // Create a container for our PDF content
                     const pdfContent = document.createElement('div');
                     pdfContent.style.padding = '20px';
-                    pdfContent.style.width = '100%';
+                    pdfContent.style.width = 'fit-content'; // Changed to fit-content
+                    pdfContent.style.minWidth = '100%';
 
-                    // Clone each section
-                    const headerSection = document.querySelector('.container_1 > h1').cloneNode(true);
-                    const filterSection = document.querySelector('.container_1 > form').cloneNode(true);
-                    const newProjectsSection = document.querySelector('h2:first-of-type').parentNode.cloneNode(true);
-                    const ongoingProjectsSection = document.querySelector('h2:nth-of-type(2)').parentNode.cloneNode(true);
-                    const completedProjectsSection = document.querySelector('h2:last-of-type').parentNode.cloneNode(true);
+                    // Clone the entire container
+                    const container = document.querySelector('.container_1').cloneNode(true);
 
                     // Remove buttons and other non-content elements
-                    [newProjectsSection, ongoingProjectsSection, completedProjectsSection].forEach(section => {
-                        const buttons = section.querySelectorAll('.buttons');
-                        buttons.forEach(button => button.remove());
+                    const buttons = container.querySelectorAll('.buttons, .back-link');
+                    buttons.forEach(button => button.remove());
 
-                        // Make tables full width for PDF
-                        const tables = section.querySelectorAll('table');
-                        tables.forEach(table => {
-                            table.style.width = '100%';
-                            table.style.fontSize = '8pt'; // Smaller font for better fit
+                    // Remove the filter form (optional)
+                    const filterForm = container.querySelector('form[method="GET"]');
+                    if (filterForm) filterForm.remove();
+
+                    // Remove the message if exists
+                    const message = container.querySelector('.message');
+                    if (message) message.remove();
+
+                    // Adjust tables for PDF
+                    const tables = container.querySelectorAll('table');
+                    tables.forEach(table => {
+                        table.style.width = '100%';
+                        table.style.fontSize = '7pt'; // Smaller font
+                        table.style.borderCollapse = 'collapse';
+
+                        // Make all cells visible
+                        const cells = table.querySelectorAll('td, th');
+                        cells.forEach(cell => {
+                            cell.style.padding = '3px';
+                            cell.style.border = '1px solid #ddd';
                         });
                     });
 
-                    // Add header and filter info
-                    pdfContent.appendChild(headerSection);
-                    pdfContent.appendChild(filterSection);
-                    pdfContent.appendChild(document.createElement('hr'));
+                    // Remove contenteditable attributes for PDF
+                    const editableCells = container.querySelectorAll('[contenteditable="true"]');
+                    editableCells.forEach(cell => {
+                        cell.removeAttribute('contenteditable');
+                    });
 
-                    // Add sections to our PDF container
-                    pdfContent.appendChild(newProjectsSection);
-                    pdfContent.appendChild(document.createElement('hr'));
-                    pdfContent.appendChild(ongoingProjectsSection);
-                    pdfContent.appendChild(document.createElement('hr'));
-                    pdfContent.appendChild(completedProjectsSection);
+                    // Remove forms and buttons from tables
+                    const forms = container.querySelectorAll('form');
+                    forms.forEach(form => form.remove());
 
-                    // Options for the PDF - landscape with better scaling
+                    // Replace select elements with their displayed values
+                    const selects = container.querySelectorAll('select');
+                    selects.forEach(select => {
+                        const displayValue = select.options[select.selectedIndex]?.text || '';
+                        const span = document.createElement('span');
+                        span.textContent = displayValue;
+                        select.parentNode.replaceChild(span, select);
+                    });
+
+                    // Replace date inputs with their values
+                    const dateInputs = container.querySelectorAll('input[type="date"]');
+                    dateInputs.forEach(input => {
+                        const span = document.createElement('span');
+                        span.textContent = input.value;
+                        input.parentNode.replaceChild(span, input);
+                    });
+
+                    // Add to our PDF container
+                    pdfContent.appendChild(container);
+
+                    // Calculate required width for the content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.left = '-9999px';
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.appendChild(pdfContent.cloneNode(true));
+                    document.body.appendChild(tempDiv);
+
+                    const requiredWidth = tempDiv.offsetWidth;
+                    document.body.removeChild(tempDiv);
+
+                    // Calculate scale based on required width (A4 landscape is about 297mm)
+                    const a4LandscapeWidth = 297; // mm
+                    const mmToPx = 3.78; // approximate conversion
+                    const maxPxWidth = a4LandscapeWidth * mmToPx;
+                    const scale = Math.min(0.7, maxPxWidth / requiredWidth); // Cap at 0.7 scale
+
+                    // Options for the PDF
                     const opt = {
-                        margin: 5,
+                        margin: [5, 5, 5, 5], // small margin all around
                         filename: 'projects_report.pdf',
-                        image: { type: 'jpeg', quality: 0.98 },
+                        image: {
+                            type: 'jpeg',
+                            quality: 0.95
+                        },
                         html2canvas: {
-                            scale: 0.8, // Slightly reduced scale to fit more content
+                            scale: scale,
                             logging: true,
                             useCORS: true,
                             scrollY: 0,
                             windowHeight: document.documentElement.scrollHeight,
-                            allowTaint: true
+                            allowTaint: true,
+                            letterRendering: true
                         },
                         jsPDF: {
                             unit: 'mm',
                             format: 'a4',
-                            orientation: 'landscape', // Changed to landscape
-                            compress: true
+                            orientation: 'landscape',
+                            compress: true,
+                            hotfixes: ["px_scaling"] // helps with pixel scaling issues
                         }
                     };
 
-                    // Generate PDF with loading indicator
+                    // Generate PDF
                     await html2pdf().set(opt).from(pdfContent).save();
 
                 } catch (error) {
                     console.error("PDF generation error:", error);
                     alert("Error generating PDF. Please try again.");
                 } finally {
-                    // Re-enable the button
                     pdfButton.disabled = false;
                     pdfButton.textContent = 'Save as PDF';
                 }
