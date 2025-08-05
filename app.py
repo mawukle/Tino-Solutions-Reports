@@ -214,6 +214,10 @@ def delete_empty_rows():
             connection.close()
 
 
+# Define this near the top of your app.py
+EXCLUDED_TEAM_MEMBERS = ["Abigail", "Gorden", "Gabriel", "Caleb", "Clinton", "Alex", "Elisha", "Fataw", "Emmanuel"]
+
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('index.html')
@@ -2262,6 +2266,7 @@ def autocomplete_member():
         suggestions = (
             db.session.query(Team_Members.Team_Member_Name)
             .filter(Team_Members.Team_Member_Name.like(f"%{search}%"))
+            .filter(Team_Members.Team_Member_Name.notin_(EXCLUDED_TEAM_MEMBERS))
             .all()
         )
 
@@ -2454,7 +2459,11 @@ def assign_job():
             return redirect(url_for('assign_job'))
 
         # Fetch team members for GET request
-        team_members = db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name).all()
+        team_members = (
+            db.session.query(Team_Members.Team_Member_ID, Team_Members.Team_Member_Name)
+            .filter(Team_Members.Team_Member_Name.notin_(EXCLUDED_TEAM_MEMBERS))
+            .all()
+        )
 
         return render_template('assign_job.html', team_members=team_members)
 

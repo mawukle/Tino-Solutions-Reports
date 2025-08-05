@@ -55,23 +55,18 @@
             <textarea id="any_issues" name="any_issues" rows="2" cols="50" required></textarea>
 
             <!-- Define the names to exclude -->
-            {% set excluded_names = ["Abigail", "Gorden", "Gabriel", "Caleb", "Clinton", "Alex", "Elisha", "Fataw", "Emmanuel"] %}
+            <!--{% set excluded_names = ["Abigail", "Gorden", "Gabriel", "Caleb", "Clinton", "Alex", "Elisha", "Fataw", "Emmanuel"] %}-->
 
             <!-- Select Team Members (Click to select) -->
+            <!-- In assign_job.html, replace the team members section with: -->
             <label for="team_members">Team Members:</label>
             <div id="team_members">
                 {% for member in team_members %}
-                    <!-- Skip if the member's name is in the excluded list -->
-                    {% if member[1] not in excluded_names %}
-                        <!-- Hidden checkbox that will hold the team member's value when selected -->
-                        <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
-
-                        <!-- Clickable team member -->
-                        <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
-                    {% endif %}
+                    <input type="checkbox" name="team_members" id="team_member_{{ member[0] }}" value="{{ member[0] }}" style="display:none;">
+                    <span class="team-member" data-member-id="{{ member[0] }}">{{ member[1] }}</span>
                 {% endfor %}
             </div>
-
+            
             <h1>QUALITY CONTROL CHECKLIST</h1>
 
             <!-- Section Selection with Buttons -->
