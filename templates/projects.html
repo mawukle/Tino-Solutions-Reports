@@ -69,41 +69,26 @@
         }
         /* Add this to your existing style section */
         @media print {
-            body {
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .container_1 {
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
             table {
-                width: 100% !important;
-                max-width: none !important;
-                table-layout: fixed !important;
-                border-collapse: collapse !important;
+                page-break-inside: auto !important;
             }
-            th, td {
-                white-space: nowrap !important;
-                overflow: visible !important;
-                padding: 2px !important;
-                border: 1px solid #ddd !important;
-                text-overflow: clip !important;
+            tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
             }
-            th {
-                background-color: #85BB65 !important;
+            thead {
+                display: table-header-group !important;
             }
-            img {
-                max-width: 60px !important;
-                height: auto !important;
+            tfoot {
+                display: table-footer-group !important;
             }
-            .buttons, .back-link, form {
-                display: none !important;
+            /* Force table headers to repeat on each page */
+            table thead {
+                display: table-header-group;
+            }
+            /* Ensure table rows don't break across pages */
+            table tr {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -559,7 +544,7 @@
                         table.style.borderCollapse = 'collapse';
 
                         // Force table to use maximum available width
-                        table.style.tableLayout = 'fixed';
+                        table.style.tableLayout = 'auto'; // Changed from 'fixed' to 'auto'
 
                         const cells = table.querySelectorAll('td, th');
                         cells.forEach(cell => {
@@ -581,10 +566,7 @@
                     // Add to our PDF container
                     pdfContent.appendChild(container);
 
-                    // Calculate optimal scale - we'll use a fixed scale for wide tables
-                    const scale = 0.6; // Reduced scale to fit more content
-
-                    // PDF generation options
+                    // Calculate optimal scale - we'll split into multiple pages if needed
                     const opt = {
                         margin: [5, 5, 5, 5], // Equal small margins on all sides
                         filename: 'projects_report.pdf',
@@ -593,7 +575,7 @@
                             quality: 1 // Maximum quality
                         },
                         html2canvas: {
-                            scale: scale,
+                            scale: 0.6, // Fixed scale for consistency
                             logging: true,
                             useCORS: true,
                             scrollY: 0,
@@ -601,7 +583,6 @@
                             allowTaint: true,
                             letterRendering: true,
                             dpi: 300, // Higher DPI for better quality
-                            scale: 3, // Internal scaling for better quality
                             ignoreElements: (element) => {
                                 return element.classList.contains('modal') ||
                                        element.classList.contains('close');
@@ -614,10 +595,12 @@
                             compress: false, // Disable compression for better quality
                             hotfixes: ["px_scaling"],
                             putOnlyUsedFonts: true
-                        }
+                        },
+                        // Enable page break for tables
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                     };
 
-                    // Generate PDF
+                    // Generate PDF with automatic page breaks
                     await html2pdf().set(opt).from(pdfContent).save();
 
                 } catch (error) {
