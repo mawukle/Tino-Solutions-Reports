@@ -80,25 +80,26 @@
                 width: 100% !important;
                 max-width: none !important;
                 margin: 0 !important;
-                padding: 5px !important;
+                padding: 0 !important;
             }
             table {
                 width: 100% !important;
                 max-width: none !important;
-                table-layout: auto !important;
+                table-layout: fixed !important;
                 border-collapse: collapse !important;
             }
             th, td {
                 white-space: nowrap !important;
                 overflow: visible !important;
-                padding: 3px !important;
+                padding: 2px !important;
                 border: 1px solid #ddd !important;
+                text-overflow: clip !important;
             }
             th {
                 background-color: #85BB65 !important;
             }
             img {
-                max-width: 80px !important;
+                max-width: 60px !important;
                 height: auto !important;
             }
             .buttons, .back-link, form {
@@ -507,7 +508,7 @@
                 try {
                     // Create a container for our PDF content
                     const pdfContent = document.createElement('div');
-                    pdfContent.style.padding = '5px 5px'; // Reduced padding
+                    pdfContent.style.padding = '5px';
                     pdfContent.style.width = 'fit-content';
                     pdfContent.style.minWidth = '100%';
 
@@ -554,33 +555,34 @@
                     const tables = container.querySelectorAll('table');
                     tables.forEach(table => {
                         table.style.width = '100%';
-                        table.style.fontSize = '8pt';
+                        table.style.fontSize = '7pt';
                         table.style.borderCollapse = 'collapse';
+
+                        // Force table to use maximum available width
+                        table.style.tableLayout = 'fixed';
 
                         const cells = table.querySelectorAll('td, th');
                         cells.forEach(cell => {
-                            cell.style.padding = '3px';
+                            cell.style.padding = '2px';
                             cell.style.border = '1px solid #ddd';
                             cell.style.whiteSpace = 'nowrap';
+                            cell.style.overflow = 'visible';
+                            cell.style.textOverflow = 'clip';
                         });
+                    });
+
+                    // Reduce image sizes for PDF
+                    const images = container.querySelectorAll('img');
+                    images.forEach(img => {
+                        img.style.maxWidth = '60px';
+                        img.style.height = 'auto';
                     });
 
                     // Add to our PDF container
                     pdfContent.appendChild(container);
 
-                    // Calculate optimal scale
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.left = '-9999px';
-                    tempDiv.appendChild(pdfContent.cloneNode(true));
-                    document.body.appendChild(tempDiv);
-
-                    const contentWidth = tempDiv.offsetWidth;
-                    document.body.removeChild(tempDiv);
-
-                    // A4 landscape dimensions in pixels (at 96dpi)
-                    const a4LandscapeWidthPx = 1123; // 297mm in pixels
-                    const scale = Math.min(1, a4LandscapeWidthPx / contentWidth) * 0.95; // 5% margin
+                    // Calculate optimal scale - we'll use a fixed scale for wide tables
+                    const scale = 0.6; // Reduced scale to fit more content
 
                     // PDF generation options
                     const opt = {
@@ -598,10 +600,9 @@
                             windowHeight: document.documentElement.scrollHeight,
                             allowTaint: true,
                             letterRendering: true,
-                            dpi: 192, // Higher DPI for better quality
-                            scale: 2, // Internal scaling for better quality
+                            dpi: 300, // Higher DPI for better quality
+                            scale: 3, // Internal scaling for better quality
                             ignoreElements: (element) => {
-                                // Ignore elements that might cause issues
                                 return element.classList.contains('modal') ||
                                        element.classList.contains('close');
                             }
@@ -611,7 +612,8 @@
                             format: 'a4',
                             orientation: 'landscape',
                             compress: false, // Disable compression for better quality
-                            hotfixes: ["px_scaling"]
+                            hotfixes: ["px_scaling"],
+                            putOnlyUsedFonts: true
                         }
                     };
 
