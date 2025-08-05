@@ -68,32 +68,41 @@
             cursor: pointer;
         }
         /* Add this to your existing style section */
-        /* Add to your existing styles */
         @media print {
             body {
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .container_1 {
                 width: 100% !important;
                 max-width: none !important;
                 margin: 0 !important;
-                padding: 10px !important;
+                padding: 5px !important;
             }
             table {
                 width: 100% !important;
                 max-width: none !important;
                 table-layout: auto !important;
+                border-collapse: collapse !important;
             }
             th, td {
                 white-space: nowrap !important;
                 overflow: visible !important;
-                text-overflow: clip !important;
+                padding: 3px !important;
+                border: 1px solid #ddd !important;
+            }
+            th {
+                background-color: #85BB65 !important;
             }
             img {
-                max-width: 100px !important;
+                max-width: 80px !important;
                 height: auto !important;
+            }
+            .buttons, .back-link, form {
+                display: none !important;
             }
         }
     </style>
@@ -498,60 +507,36 @@
                 try {
                     // Create a container for our PDF content
                     const pdfContent = document.createElement('div');
-                    pdfContent.style.padding = '20px';
-                    pdfContent.style.width = 'fit-content'; // Changed to fit-content
+                    pdfContent.style.padding = '10px 5px'; // Reduced padding
+                    pdfContent.style.width = 'fit-content';
                     pdfContent.style.minWidth = '100%';
 
                     // Clone the entire container
                     const container = document.querySelector('.container_1').cloneNode(true);
 
-                    // Remove buttons and other non-content elements
-                    const buttons = container.querySelectorAll('.buttons, .back-link');
-                    buttons.forEach(button => button.remove());
+                    // Clean up the content for PDF
+                    const elementsToRemove = [
+                        '.buttons',
+                        '.back-link',
+                        'form[method="GET"]',
+                        '.message',
+                        'form.invoice-upload-form',
+                        'form[action="/upload_file_to_folder"]'
+                    ];
 
-                    // Remove the filter form (optional)
-                    const filterForm = container.querySelector('form[method="GET"]');
-                    if (filterForm) filterForm.remove();
-
-                    // Remove the message if exists
-                    const message = container.querySelector('.message');
-                    if (message) message.remove();
-
-                    // Adjust tables for PDF
-                    const tables = container.querySelectorAll('table');
-                    tables.forEach(table => {
-                        table.style.width = '100%';
-                        table.style.fontSize = '7pt'; // Smaller font
-                        table.style.borderCollapse = 'collapse';
-
-                        // Make all cells visible
-                        const cells = table.querySelectorAll('td, th');
-                        cells.forEach(cell => {
-                            cell.style.padding = '3px';
-                            cell.style.border = '1px solid #ddd';
-                        });
+                    elementsToRemove.forEach(selector => {
+                        const elements = container.querySelectorAll(selector);
+                        elements.forEach(el => el.remove());
                     });
 
-                    // Remove contenteditable attributes for PDF
-                    const editableCells = container.querySelectorAll('[contenteditable="true"]');
-                    editableCells.forEach(cell => {
-                        cell.removeAttribute('contenteditable');
-                    });
-
-                    // Remove forms and buttons from tables
-                    const forms = container.querySelectorAll('form');
-                    forms.forEach(form => form.remove());
-
-                    // Replace select elements with their displayed values
+                    // Replace interactive elements with their values
                     const selects = container.querySelectorAll('select');
                     selects.forEach(select => {
-                        const displayValue = select.options[select.selectedIndex]?.text || '';
                         const span = document.createElement('span');
-                        span.textContent = displayValue;
+                        span.textContent = select.options[select.selectedIndex]?.text || '';
                         select.parentNode.replaceChild(span, select);
                     });
 
-                    // Replace date inputs with their values
                     const dateInputs = container.querySelectorAll('input[type="date"]');
                     dateInputs.forEach(input => {
                         const span = document.createElement('span');
@@ -559,33 +544,51 @@
                         input.parentNode.replaceChild(span, input);
                     });
 
+                    // Remove contenteditable attributes
+                    const editableCells = container.querySelectorAll('[contenteditable="true"]');
+                    editableCells.forEach(cell => {
+                        cell.removeAttribute('contenteditable');
+                    });
+
+                    // Adjust tables for better PDF rendering
+                    const tables = container.querySelectorAll('table');
+                    tables.forEach(table => {
+                        table.style.width = '100%';
+                        table.style.fontSize = '8pt';
+                        table.style.borderCollapse = 'collapse';
+
+                        const cells = table.querySelectorAll('td, th');
+                        cells.forEach(cell => {
+                            cell.style.padding = '3px';
+                            cell.style.border = '1px solid #ddd';
+                            cell.style.whiteSpace = 'nowrap';
+                        });
+                    });
+
                     // Add to our PDF container
                     pdfContent.appendChild(container);
 
-                    // Calculate required width for the content
+                    // Calculate optimal scale
                     const tempDiv = document.createElement('div');
                     tempDiv.style.position = 'absolute';
                     tempDiv.style.left = '-9999px';
-                    tempDiv.style.visibility = 'hidden';
                     tempDiv.appendChild(pdfContent.cloneNode(true));
                     document.body.appendChild(tempDiv);
 
-                    const requiredWidth = tempDiv.offsetWidth;
+                    const contentWidth = tempDiv.offsetWidth;
                     document.body.removeChild(tempDiv);
 
-                    // Calculate scale based on required width (A4 landscape is about 297mm)
-                    const a4LandscapeWidth = 297; // mm
-                    const mmToPx = 3.78; // approximate conversion
-                    const maxPxWidth = a4LandscapeWidth * mmToPx;
-                    const scale = Math.min(0.7, maxPxWidth / requiredWidth); // Cap at 0.7 scale
+                    // A4 landscape dimensions in pixels (at 96dpi)
+                    const a4LandscapeWidthPx = 1123; // 297mm in pixels
+                    const scale = Math.min(1, a4LandscapeWidthPx / contentWidth) * 0.95; // 5% margin
 
-                    // Options for the PDF
+                    // PDF generation options
                     const opt = {
-                        margin: [5, 5, 5, 5], // small margin all around
+                        margin: [5, 5, 5, 5], // Equal small margins on all sides
                         filename: 'projects_report.pdf',
                         image: {
                             type: 'jpeg',
-                            quality: 0.95
+                            quality: 1 // Maximum quality
                         },
                         html2canvas: {
                             scale: scale,
@@ -594,14 +597,21 @@
                             scrollY: 0,
                             windowHeight: document.documentElement.scrollHeight,
                             allowTaint: true,
-                            letterRendering: true
+                            letterRendering: true,
+                            dpi: 192, // Higher DPI for better quality
+                            scale: 2, // Internal scaling for better quality
+                            ignoreElements: (element) => {
+                                // Ignore elements that might cause issues
+                                return element.classList.contains('modal') ||
+                                       element.classList.contains('close');
+                            }
                         },
                         jsPDF: {
                             unit: 'mm',
                             format: 'a4',
                             orientation: 'landscape',
-                            compress: true,
-                            hotfixes: ["px_scaling"] // helps with pixel scaling issues
+                            compress: false, // Disable compression for better quality
+                            hotfixes: ["px_scaling"]
                         }
                     };
 
