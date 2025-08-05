@@ -69,9 +69,75 @@
         }
         /* Add this to your existing style section */
         @media print {
+
             table {
                 page-break-inside: auto !important;
             }
+            body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .container_1 {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                box-sizing: border-box !important;
+            }
+            table {
+                width: 100% !important;
+                max-width: none !important;
+                table-layout: auto !important;
+                border-collapse: collapse !important;
+                font-size: 8pt !important;
+            }
+            th, td {
+                white-space: nowrap !important;
+                overflow: visible !important;
+                padding: 4px !important;
+                border: 1px solid #ddd !important;
+                text-overflow: clip !important;
+                min-width: auto !important;
+            }
+            th {
+                background-color: #85BB65 !important;
+            }
+            img {
+                max-width: 80px !important;
+                height: auto !important;
+                display: block !important;
+                margin: 0 auto !important;
+            }
+            .table-container {
+                page-break-inside: auto !important;
+                margin-bottom: 20px !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+            }
+            thead {
+                display: table-header-group !important;
+            }
+            tfoot {
+                display: table-footer-group !important;
+            }
+            /* Force table headers to repeat on each page */
+            table thead {
+                display: table-header-group;
+            }
+            /* Ensure table rows don't break across pages */
+            table tr {
+                page-break-inside: avoid;
+            }
+            /* Remove all interactive elements */
+            .buttons, .back-link, form, .modal {
+                display: none !important;
+            }
+            
             tr {
                 page-break-inside: avoid !important;
                 page-break-after: auto !important;
@@ -493,9 +559,9 @@
                 try {
                     // Create a container for our PDF content
                     const pdfContent = document.createElement('div');
-                    pdfContent.style.padding = '5px';
-                    pdfContent.style.width = 'fit-content';
-                    pdfContent.style.minWidth = '100%';
+                    pdfContent.style.padding = '10px';
+                    pdfContent.style.width = '100%';
+                    pdfContent.style.boxSizing = 'border-box';
 
                     // Clone the entire container
                     const container = document.querySelector('.container_1').cloneNode(true);
@@ -520,6 +586,8 @@
                     selects.forEach(select => {
                         const span = document.createElement('span');
                         span.textContent = select.options[select.selectedIndex]?.text || '';
+                        span.style.display = 'inline-block';
+                        span.style.minWidth = '100px';
                         select.parentNode.replaceChild(span, select);
                     });
 
@@ -527,6 +595,8 @@
                     dateInputs.forEach(input => {
                         const span = document.createElement('span');
                         span.textContent = input.value;
+                        span.style.display = 'inline-block';
+                        span.style.minWidth = '80px';
                         input.parentNode.replaceChild(span, input);
                     });
 
@@ -534,73 +604,71 @@
                     const editableCells = container.querySelectorAll('[contenteditable="true"]');
                     editableCells.forEach(cell => {
                         cell.removeAttribute('contenteditable');
+                        cell.style.minWidth = cell.offsetWidth + 'px';
                     });
 
                     // Adjust tables for better PDF rendering
                     const tables = container.querySelectorAll('table');
                     tables.forEach(table => {
                         table.style.width = '100%';
-                        table.style.fontSize = '7pt';
+                        table.style.fontSize = '8pt';
                         table.style.borderCollapse = 'collapse';
+                        table.style.tableLayout = 'auto';
 
-                        // Force table to use maximum available width
-                        table.style.tableLayout = 'auto'; // Changed from 'fixed' to 'auto'
-
-                        const cells = table.querySelectorAll('td, th');
-                        cells.forEach(cell => {
-                            cell.style.padding = '2px';
-                            cell.style.border = '1px solid #ddd';
-                            cell.style.whiteSpace = 'nowrap';
-                            cell.style.overflow = 'visible';
-                            cell.style.textOverflow = 'clip';
+                        // Calculate column widths based on content
+                        const cols = table.querySelectorAll('th, td');
+                        cols.forEach(col => {
+                            col.style.minWidth = col.offsetWidth + 'px';
+                            col.style.whiteSpace = 'nowrap';
+                            col.style.overflow = 'visible';
+                            col.style.textOverflow = 'clip';
                         });
                     });
 
-                    // Reduce image sizes for PDF
+                    // Optimize images for PDF
                     const images = container.querySelectorAll('img');
                     images.forEach(img => {
-                        img.style.maxWidth = '60px';
+                        img.style.maxWidth = '80px';
                         img.style.height = 'auto';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
                     });
 
                     // Add to our PDF container
                     pdfContent.appendChild(container);
 
-                    // Calculate optimal scale - we'll split into multiple pages if needed
+                    // PDF generation options
                     const opt = {
-                        margin: [5, 5, 5, 5], // Equal small margins on all sides
+                        margin: [10, 10, 10, 10],
                         filename: 'projects_report.pdf',
                         image: {
                             type: 'jpeg',
-                            quality: 1 // Maximum quality
+                            quality: 0.98
                         },
                         html2canvas: {
-                            scale: 0.6, // Fixed scale for consistency
+                            scale: 1, // No scaling - we'll handle width through CSS
                             logging: true,
                             useCORS: true,
                             scrollY: 0,
                             windowHeight: document.documentElement.scrollHeight,
                             allowTaint: true,
                             letterRendering: true,
-                            dpi: 300, // Higher DPI for better quality
-                            ignoreElements: (element) => {
-                                return element.classList.contains('modal') ||
-                                       element.classList.contains('close');
-                            }
+                            dpi: 192
                         },
                         jsPDF: {
                             unit: 'mm',
                             format: 'a4',
                             orientation: 'landscape',
-                            compress: false, // Disable compression for better quality
-                            hotfixes: ["px_scaling"],
-                            putOnlyUsedFonts: true
+                            compress: true,
+                            hotfixes: ["px_scaling"]
                         },
-                        // Enable page break for tables
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                        pagebreak: {
+                            mode: ['css', 'avoid-all'],
+                            before: '.table-container'
+                        }
                     };
 
-                    // Generate PDF with automatic page breaks
+                    // Generate PDF
                     await html2pdf().set(opt).from(pdfContent).save();
 
                 } catch (error) {
