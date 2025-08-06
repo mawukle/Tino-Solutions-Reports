@@ -4263,54 +4263,51 @@ from flask import make_response
 @app.route('/generate_projects_pdf')
 def generate_projects_pdf():
     try:
-        # 1. First get the data quickly
+        # Get project data
         projects_data = get_projects_data()
 
-        # 2. Simplify the HTML template (remove heavy elements)
+        # Custom URL fetcher to handle missing resources
+        def safe_url_fetcher(url):
+            try:
+                return weasyprint.default_url_fetcher(url)
+            except:
+                # Return empty response for failed fetches
+                return {'mime_type': 'image/png', 'string': b''}
+
+        # Generate HTML
         html = render_template(
             'projects_pdf_template.html',
             new_projects=projects_data['new_projects'],
             ongoing_projects=projects_data['ongoing_projects'],
             completed_projects=projects_data['completed_projects'],
             team_members=projects_data['team_members'],
-            # Add this to template to prevent external fetches:
-            now=datetime.now().strftime('%Y-%m-%d')
+            now=datetime.now().strftime('%Y-%m-%d')  # Add current date to template
         )
 
-        # 3. Configure WeasyPrint for faster processing
+        # Configure fonts
         font_config = FontConfiguration()
 
-        # Custom URL fetcher to handle missing images
-        def safe_url_fetcher(url):
-            try:
-                return weasyprint.default_url_fetcher(url)
-            except:
-                return {'mime_type': 'image/png', 'string': b''}  # Empty response
-
-        # 4. Generate PDF with optimizations
+        # Create PDF with optimizations
         pdf = HTML(
             string=html,
-            base_url=request.host_url,  # Helps with relative URLs
-            url_fetcher=safe_url_fetcher
+            base_url=request.host_url,  # Important for relative URLs
+            url_fetcher=safe_url_fetcher  # Use our safe fetcher
         ).write_pdf(
             font_config=font_config,
             optimize_size=('fonts', 'images'),  # Reduce PDF size
-            presentational_hints=True,  # Faster rendering
-            timeout=20  # Fail fast if taking too long
+            presentational_hints=True  # Faster rendering
         )
 
-        # 5. Stream the response
+        # Stream the response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = (
-            'inline; filename=projects_report.pdf'
-        )
+        response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
         return response
 
     except Exception as e:
         logging.error(f"PDF generation failed: {str(e)}", exc_info=True)
         abort(500, description="PDF generation failed. Please try again with fewer records.")
-        
+                
 def get_projects_data():
     """Reusable function to get projects data"""
     # This should contain the same logic as your current get_projects() function
