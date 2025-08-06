@@ -4358,12 +4358,72 @@ def get_projects_data():
         ongoing_projects = []
         completed_projects = []
 
-    return {
-        'new_projects': new_projects,
-        'ongoing_projects': ongoing_projects,
-        'completed_projects': completed_projects,
-        'team_members': team_members
-    }
+        for project in projects_list:
+            def format_date(date_value):
+                if date_value in [None, "0000-00-00"]:
+                    return ""
+                if isinstance(date_value, (datetime, date)):
+                    return date_value.strftime('%Y-%m-%d')
+                return date_value
+
+            start_date = format_date(project.start_date)
+            commissioning_date = format_date(project.commissioning_date)
+            expected_payment_date = format_date(project.expected_final_payment_date)
+
+            folder_name = f"{project.client_name}_{project.town}_{project.sales_person}_{project.project_id}"
+            folder_id = project.google_folder_id
+
+            # Only trigger Celery task if folder hasn't been checked yet
+            should_check_folder = folder_id and (project.folder_has_files is None or project.folder_has_files == 0)
+            if should_check_folder:
+                update_folder_has_files.delay(project.project_id, folder_id)
+
+            # Only show link if folder_has_files is True
+            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if project.folder_has_files else ""
+
+            project_data = {
+                "project_id": project.project_id,
+                "client_name": project.client_name or '',
+                "town": project.town or '',
+                "phone_number": project.phone_number or '',
+                "sales_person": project.sales_person or '',
+                "lead_installer": project.lead_installer or '',
+                "start_date": start_date,
+                "commissioning_date": commissioning_date,
+                "kVA": project.kVA or 0,
+                "kWh": project.kWh or 0,
+                "kWp": project.kWp or 0,
+
+                "invoice_image_url": project.invoice_image_url or '',
+                "folder_id": folder_id,
+                "folder_link": folder_link,
+                "google_coordinates": project.google_coordinates or '',
+                "currency": project.currency or '',
+                "invoice_amount": project.invoice_amount or 0.00,
+                "amount_paid": project.amount_paid or 0.00,
+                "outstanding_balance": project.outstanding_balance or 0.00,
+                "expected_final_payment_date": expected_payment_date,
+                "comment": project.comment or ''
+            }
+
+            # Categorize projects
+            if project_data["client_name"] and project_data["town"] and project_data["sales_person"] and not project_data["lead_installer"] and not project_data["start_date"] and not project_data["commissioning_date"]:
+                new_projects.append(project_data)
+            elif project_data["commissioning_date"] and project_data["start_date"]:
+                completed_projects.append(project_data)
+            elif project_data["lead_installer"] and project_data["start_date"]:
+                ongoing_projects.append(project_data)
+
+        # Sort projects
+        ongoing_projects.sort(key=lambda x: x["start_date"], reverse=True)
+        completed_projects.sort(key=lambda x: x["commissioning_date"], reverse=True)
+
+        return {
+            'new_projects': new_projects,
+            'ongoing_projects': ongoing_projects,
+            'completed_projects': completed_projects,
+            'team_members': team_members
+        }
     except Exception as e:
         # Handle the error (log it, return a default value, etc.)
         print(f"Error fetching projects: {e}")
