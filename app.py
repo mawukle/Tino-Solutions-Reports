@@ -4266,14 +4266,6 @@ def generate_projects_pdf():
         # Get project data
         projects_data = get_projects_data()
 
-        # Custom URL fetcher to handle missing resources
-        def safe_url_fetcher(url):
-            try:
-                return weasyprint.default_url_fetcher(url)
-            except:
-                # Return empty response for failed fetches
-                return {'mime_type': 'image/png', 'string': b''}
-
         # Generate HTML
         html = render_template(
             'projects_pdf_template.html',
@@ -4281,24 +4273,13 @@ def generate_projects_pdf():
             ongoing_projects=projects_data['ongoing_projects'],
             completed_projects=projects_data['completed_projects'],
             team_members=projects_data['team_members'],
-            now=datetime.now().strftime('%Y-%m-%d')  # Add current date to template
+            now=datetime.now().strftime('%Y-%m-%d')
         )
 
-        # Configure fonts
-        font_config = FontConfiguration()
+        # Create PDF with basic configuration
+        pdf = HTML(string=html).write_pdf()
 
-        # Create PDF with optimizations
-        pdf = HTML(
-            string=html,
-            base_url=request.host_url,  # Important for relative URLs
-            url_fetcher=safe_url_fetcher  # Use our safe fetcher
-        ).write_pdf(
-            font_config=font_config,
-            optimize_size=('fonts', 'images'),  # Reduce PDF size
-            presentational_hints=True  # Faster rendering
-        )
-
-        # Stream the response
+        # Create response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
@@ -4306,8 +4287,8 @@ def generate_projects_pdf():
 
     except Exception as e:
         logging.error(f"PDF generation failed: {str(e)}", exc_info=True)
-        abort(500, description="PDF generation failed. Please try again with fewer records.")
-                
+        abort(500, description="PDF generation failed. Please try again.")
+                        
 def get_projects_data():
     """Reusable function to get projects data"""
     # This should contain the same logic as your current get_projects() function
