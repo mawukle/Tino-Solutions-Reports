@@ -504,67 +504,126 @@
                 pdfButton.textContent = 'Generating PDF...';
 
                 try {
-                    const element = document.querySelector('.container_1');
+                    // Create a container for our PDF content
+                    const pdfContent = document.createElement('div');
+                    pdfContent.style.padding = '10px';
+                    pdfContent.style.width = '100%';
+                    pdfContent.style.boxSizing = 'border-box';
+
+                    // Clone the entire container
+                    const container = document.querySelector('.container_1').cloneNode(true);
+
+                    // Clean up the content for PDF
+                    const elementsToRemove = [
+                        '.buttons',
+                        '.back-link',
+                        'form[method="GET"]',
+                        '.message',
+                        'form.invoice-upload-form',
+                        'form[action="/upload_file_to_folder"]'
+                    ];
+
+                    elementsToRemove.forEach(selector => {
+                        const elements = container.querySelectorAll(selector);
+                        elements.forEach(el => el.remove());
+                    });
+
+                    // Replace interactive elements with their values
+                    const selects = container.querySelectorAll('select');
+                    selects.forEach(select => {
+                        const span = document.createElement('span');
+                        span.textContent = select.options[select.selectedIndex]?.text || '';
+                        span.style.display = 'inline-block';
+                        span.style.minWidth = '100px';
+                        select.parentNode.replaceChild(span, select);
+                    });
+
+                    const dateInputs = container.querySelectorAll('input[type="date"]');
+                    dateInputs.forEach(input => {
+                        const span = document.createElement('span');
+                        span.textContent = input.value;
+                        span.style.display = 'inline-block';
+                        span.style.minWidth = '80px';
+                        input.parentNode.replaceChild(span, input);
+                    });
+
+                    // Remove contenteditable attributes
+                    const editableCells = container.querySelectorAll('[contenteditable="true"]');
+                    editableCells.forEach(cell => {
+                        cell.removeAttribute('contenteditable');
+                        cell.style.minWidth = cell.offsetWidth + 'px';
+                    });
+
+                    // Adjust tables for better PDF rendering
+                    const tables = container.querySelectorAll('table');
+                    tables.forEach(table => {
+                        table.style.width = '100%';
+                        table.style.fontSize = '8pt';
+                        table.style.borderCollapse = 'collapse';
+                        table.style.tableLayout = 'auto';
+                        table.style.pageBreakInside = 'avoid';
+
+                        // Calculate column widths based on content
+                        const cols = table.querySelectorAll('th, td');
+                        cols.forEach(col => {
+                            col.style.minWidth = col.offsetWidth + 'px';
+                            col.style.whiteSpace = 'normal'; // Changed from nowrap to allow wrapping
+                            col.style.overflow = 'visible';
+                            col.style.textOverflow = 'clip';
+                            col.style.wordWrap = 'break-word';
+                            col.style.maxWidth = 'none';
+                        });
+                    });
+
+                    // Optimize images for PDF
+                    const images = container.querySelectorAll('img');
+                    images.forEach(img => {
+                        img.style.maxWidth = '80px';
+                        img.style.height = 'auto';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
+                    });
+
+                    // Add to our PDF container
+                    pdfContent.appendChild(container);
+
+                    // PDF generation options
                     const opt = {
                         margin: [5, 5, 5, 5],
                         filename: 'projects_report.pdf',
-                        image: { type: 'jpeg', quality: 0.98 },
+                        image: {
+                            type: 'jpeg',
+                            quality: 0.98
+                        },
                         html2canvas: {
                             scale: 1,
-                            windowHeight: element.scrollHeight,
+                            windowHeight: pdfContent.scrollHeight,
                             scrollY: 0,
                             logging: true,
                             useCORS: true,
                             allowTaint: true,
                             letterRendering: true,
-                            dpi: 192
+                            dpi: 192,
+                            height: pdfContent.scrollHeight
                         },
                         jsPDF: {
                             unit: 'mm',
                             format: 'a4',
                             orientation: 'landscape',
-                            compress: true
+                            compress: true,
+                            hotfixes: ["px_scaling"]
                         },
                         pagebreak: {
                             mode: ['avoid-all', 'css'],
-                            before: '.table-container'
+                            before: '.table-container',
+                            after: '.table-container',
+                            avoid: ['tr']
                         }
                     };
 
-                    // Clone and clean the element
-                    const clone = element.cloneNode(true);
+                    // Generate PDF
+                    await html2pdf().set(opt).from(pdfContent).save();
 
-                    // Remove interactive elements
-                    const toRemove = clone.querySelectorAll('.buttons, .back-link, form, .message');
-                    toRemove.forEach(el => el.remove());
-
-                    // Replace selects with their values
-                    clone.querySelectorAll('select').forEach(select => {
-                        const span = document.createElement('span');
-                        span.textContent = select.options[select.selectedIndex]?.text || '';
-                        select.parentNode.replaceChild(span, select);
-                    });
-
-                    // Replace date inputs with their values
-                    clone.querySelectorAll('input[type="date"]').forEach(input => {
-                        const span = document.createElement('span');
-                        span.textContent = input.value;
-                        input.parentNode.replaceChild(span, input);
-                    });
-
-                    // Remove contenteditable attributes
-                    clone.querySelectorAll('[contenteditable="true"]').forEach(el => {
-                        el.removeAttribute('contenteditable');
-                    });
-
-                    // Adjust tables
-                    clone.querySelectorAll('table').forEach(table => {
-                        table.style.width = '100%';
-                        table.style.tableLayout = 'auto';
-                        table.style.pageBreakInside = 'auto';
-                    });
-
-                    await html2pdf().set(opt).from(clone).save();
                 } catch (error) {
                     console.error("PDF generation error:", error);
                     alert("Error generating PDF. Please try again.");
@@ -573,7 +632,7 @@
                     pdfButton.textContent = 'Save as PDF';
                 }
             });
-
+            
             // Add new row
             document.getElementById("add-row").addEventListener("click", () => {
                 const tempId = "new_" + Date.now(); // Create a temporary unique ID
