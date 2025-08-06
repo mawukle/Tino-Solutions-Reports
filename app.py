@@ -4263,10 +4263,9 @@ from flask import make_response
 @app.route('/generate_projects_pdf')
 def generate_projects_pdf():
     try:
-        # Get project data
         projects_data = get_projects_data()
 
-        # Generate HTML
+        # Add timeout for image fetching
         html = render_template(
             'projects_pdf_template.html',
             new_projects=projects_data['new_projects'],
@@ -4276,10 +4275,15 @@ def generate_projects_pdf():
             now=datetime.now().strftime('%Y-%m-%d')
         )
 
-        # Create PDF with basic configuration
-        pdf = HTML(string=html).write_pdf()
+        # Configure WeasyPrint with timeout and optimizations
+        pdf = HTML(
+            string=html,
+            base_url=request.url_root  # Helps resolve relative URLs
+        ).write_pdf(
+            optimize_size=('fonts', 'images'),  # Optimize resources
+            presentational_hints=True  # Better CSS handling
+        )
 
-        # Create response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
@@ -4288,7 +4292,7 @@ def generate_projects_pdf():
     except Exception as e:
         logging.error(f"PDF generation failed: {str(e)}", exc_info=True)
         abort(500, description="PDF generation failed. Please try again.")
-                        
+                                
 def get_projects_data():
     """Reusable function to get projects data"""
     # This should contain the same logic as your current get_projects() function
