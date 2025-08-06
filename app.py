@@ -4255,6 +4255,52 @@ def send_completed_project_email_notification(project):
             print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
 
+from weasyprint import HTML
+from weasyprint.text.fonts import FontConfiguration
+from io import BytesIO
+from flask import make_response
+
+@app.route('/generate_projects_pdf')
+def generate_projects_pdf():
+    try:
+        # Reuse your existing projects query logic
+        projects_data = get_projects_data()  # This should return the same data structure as your get_projects()
+
+        # Render HTML template specifically for PDF
+        html = render_template(
+            'projects_pdf_template.html',
+            new_projects=projects_data['new_projects'],
+            ongoing_projects=projects_data['ongoing_projects'],
+            completed_projects=projects_data['completed_projects'],
+            team_members=projects_data['team_members']
+        )
+
+        # Create PDF
+        font_config = FontConfiguration()
+        pdf = HTML(string=html).write_pdf(font_config=font_config)
+
+        # Create response
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
+        return response
+
+    except Exception as e:
+        logging.error(f"PDF generation error: {e}")
+        return "Error generating PDF", 500
+
+def get_projects_data():
+    """Reusable function to get projects data"""
+    # This should contain the same logic as your current get_projects() function
+    # up to the point where you have new_projects, ongoing_projects, completed_projects
+    # Return them in a dictionary:
+    return {
+        'new_projects': new_projects,
+        'ongoing_projects': ongoing_projects,
+        'completed_projects': completed_projects,
+        'team_members': team_members
+    }
+
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
     project_id = request.form.get("project_id", "")  # Get project_id from form data, default to empty string
