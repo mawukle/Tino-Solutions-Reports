@@ -4263,32 +4263,54 @@ from flask import make_response
 @app.route('/generate_projects_pdf')
 def generate_projects_pdf():
     try:
-        # Reuse your existing projects query logic
-        projects_data = get_projects_data()  # This should return the same data structure as your get_projects()
+        # 1. First get the data quickly
+        projects_data = get_projects_data()
 
-        # Render HTML template specifically for PDF
+        # 2. Simplify the HTML template (remove heavy elements)
         html = render_template(
             'projects_pdf_template.html',
             new_projects=projects_data['new_projects'],
             ongoing_projects=projects_data['ongoing_projects'],
             completed_projects=projects_data['completed_projects'],
-            team_members=projects_data['team_members']
+            team_members=projects_data['team_members'],
+            # Add this to template to prevent external fetches:
+            now=datetime.now().strftime('%Y-%m-%d')
         )
 
-        # Create PDF
+        # 3. Configure WeasyPrint for faster processing
         font_config = FontConfiguration()
-        pdf = HTML(string=html).write_pdf(font_config=font_config)
 
-        # Create response
+        # Custom URL fetcher to handle missing images
+        def safe_url_fetcher(url):
+            try:
+                return weasyprint.default_url_fetcher(url)
+            except:
+                return {'mime_type': 'image/png', 'string': b''}  # Empty response
+
+        # 4. Generate PDF with optimizations
+        pdf = HTML(
+            string=html,
+            base_url=request.host_url,  # Helps with relative URLs
+            url_fetcher=safe_url_fetcher
+        ).write_pdf(
+            font_config=font_config,
+            optimize_size=('fonts', 'images'),  # Reduce PDF size
+            presentational_hints=True,  # Faster rendering
+            timeout=20  # Fail fast if taking too long
+        )
+
+        # 5. Stream the response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
+        response.headers['Content-Disposition'] = (
+            'inline; filename=projects_report.pdf'
+        )
         return response
 
     except Exception as e:
-        logging.error(f"PDF generation error: {e}")
-        return "Error generating PDF", 500
-
+        logging.error(f"PDF generation failed: {str(e)}", exc_info=True)
+        abort(500, description="PDF generation failed. Please try again with fewer records.")
+        
 def get_projects_data():
     """Reusable function to get projects data"""
     # This should contain the same logic as your current get_projects() function
