@@ -69,41 +69,39 @@
         }
         /* Add this to your existing style section */
         @media print {
-            body {
+            body, html {
                 width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .container_1 {
-                width: 100% !important;
-                max-width: none !important;
+                height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
+
+            .table-container {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: visible !important;
+            }
+
             table {
                 width: 100% !important;
+                table-layout: auto !important; /* Changed from fixed */
+                page-break-inside: auto !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+            }
+
+            td, th {
+                white-space: normal !important; /* Changed from nowrap */
+                word-wrap: break-word !important;
                 max-width: none !important;
-                table-layout: fixed !important;
-                border-collapse: collapse !important;
             }
-            th, td {
-                white-space: nowrap !important;
-                overflow: visible !important;
-                padding: 2px !important;
-                border: 1px solid #ddd !important;
-                text-overflow: clip !important;
-            }
-            th {
-                background-color: #85BB65 !important;
-            }
-            img {
-                max-width: 60px !important;
-                height: auto !important;
-            }
-            .buttons, .back-link, form {
-                display: none !important;
+
+            /* Force headers to repeat on each page */
+            thead {
+                display: table-header-group !important;
             }
         }
     </style>
@@ -506,120 +504,67 @@
                 pdfButton.textContent = 'Generating PDF...';
 
                 try {
-                    // Create a container for our PDF content
-                    const pdfContent = document.createElement('div');
-                    pdfContent.style.padding = '5px';
-                    pdfContent.style.width = 'fit-content';
-                    pdfContent.style.minWidth = '100%';
+                    const element = document.querySelector('.container_1');
+                    const opt = {
+                        margin: [5, 5, 5, 5],
+                        filename: 'projects_report.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 1,
+                            windowHeight: element.scrollHeight,
+                            scrollY: 0,
+                            logging: true,
+                            useCORS: true,
+                            allowTaint: true,
+                            letterRendering: true,
+                            dpi: 192
+                        },
+                        jsPDF: {
+                            unit: 'mm',
+                            format: 'a4',
+                            orientation: 'landscape',
+                            compress: true
+                        },
+                        pagebreak: {
+                            mode: ['avoid-all', 'css'],
+                            before: '.table-container'
+                        }
+                    };
 
-                    // Clone the entire container
-                    const container = document.querySelector('.container_1').cloneNode(true);
+                    // Clone and clean the element
+                    const clone = element.cloneNode(true);
 
-                    // Clean up the content for PDF
-                    const elementsToRemove = [
-                        '.buttons',
-                        '.back-link',
-                        'form[method="GET"]',
-                        '.message',
-                        'form.invoice-upload-form',
-                        'form[action="/upload_file_to_folder"]'
-                    ];
+                    // Remove interactive elements
+                    const toRemove = clone.querySelectorAll('.buttons, .back-link, form, .message');
+                    toRemove.forEach(el => el.remove());
 
-                    elementsToRemove.forEach(selector => {
-                        const elements = container.querySelectorAll(selector);
-                        elements.forEach(el => el.remove());
-                    });
-
-                    // Replace interactive elements with their values
-                    const selects = container.querySelectorAll('select');
-                    selects.forEach(select => {
+                    // Replace selects with their values
+                    clone.querySelectorAll('select').forEach(select => {
                         const span = document.createElement('span');
                         span.textContent = select.options[select.selectedIndex]?.text || '';
                         select.parentNode.replaceChild(span, select);
                     });
 
-                    const dateInputs = container.querySelectorAll('input[type="date"]');
-                    dateInputs.forEach(input => {
+                    // Replace date inputs with their values
+                    clone.querySelectorAll('input[type="date"]').forEach(input => {
                         const span = document.createElement('span');
                         span.textContent = input.value;
                         input.parentNode.replaceChild(span, input);
                     });
 
                     // Remove contenteditable attributes
-                    const editableCells = container.querySelectorAll('[contenteditable="true"]');
-                    editableCells.forEach(cell => {
-                        cell.removeAttribute('contenteditable');
+                    clone.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                        el.removeAttribute('contenteditable');
                     });
 
-                    // Adjust tables for better PDF rendering
-                    const tables = container.querySelectorAll('table');
-                    tables.forEach(table => {
+                    // Adjust tables
+                    clone.querySelectorAll('table').forEach(table => {
                         table.style.width = '100%';
-                        table.style.fontSize = '7pt';
-                        table.style.borderCollapse = 'collapse';
-
-                        // Force table to use maximum available width
-                        table.style.tableLayout = 'fixed';
-
-                        const cells = table.querySelectorAll('td, th');
-                        cells.forEach(cell => {
-                            cell.style.padding = '2px';
-                            cell.style.border = '1px solid #ddd';
-                            cell.style.whiteSpace = 'nowrap';
-                            cell.style.overflow = 'visible';
-                            cell.style.textOverflow = 'clip';
-                        });
+                        table.style.tableLayout = 'auto';
+                        table.style.pageBreakInside = 'auto';
                     });
 
-                    // Reduce image sizes for PDF
-                    const images = container.querySelectorAll('img');
-                    images.forEach(img => {
-                        img.style.maxWidth = '60px';
-                        img.style.height = 'auto';
-                    });
-
-                    // Add to our PDF container
-                    pdfContent.appendChild(container);
-
-                    // Calculate optimal scale - we'll use a fixed scale for wide tables
-                    const scale = 0.6; // Reduced scale to fit more content
-
-                    // PDF generation options
-                    const opt = {
-                        margin: [5, 5, 5, 5], // Equal small margins on all sides
-                        filename: 'projects_report.pdf',
-                        image: {
-                            type: 'jpeg',
-                            quality: 1 // Maximum quality
-                        },
-                        html2canvas: {
-                            scale: scale,
-                            logging: true,
-                            useCORS: true,
-                            scrollY: 0,
-                            windowHeight: document.documentElement.scrollHeight,
-                            allowTaint: true,
-                            letterRendering: true,
-                            dpi: 300, // Higher DPI for better quality
-                            scale: 3, // Internal scaling for better quality
-                            ignoreElements: (element) => {
-                                return element.classList.contains('modal') ||
-                                       element.classList.contains('close');
-                            }
-                        },
-                        jsPDF: {
-                            unit: 'mm',
-                            format: 'a4',
-                            orientation: 'landscape',
-                            compress: false, // Disable compression for better quality
-                            hotfixes: ["px_scaling"],
-                            putOnlyUsedFonts: true
-                        }
-                    };
-
-                    // Generate PDF
-                    await html2pdf().set(opt).from(pdfContent).save();
-
+                    await html2pdf().set(opt).from(clone).save();
                 } catch (error) {
                     console.error("PDF generation error:", error);
                     alert("Error generating PDF. Please try again.");
