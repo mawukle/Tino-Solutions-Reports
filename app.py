@@ -4263,36 +4263,70 @@ from flask import make_response
 @app.route('/generate_projects_pdf')
 def generate_projects_pdf():
     try:
-        projects_data = get_projects_data()
+        # Start the async task
+        task = generate_projects_pdf_task.apply_async()
 
-        # Add timeout for image fetching
-        html = render_template(
-            'projects_pdf_template.html',
-            new_projects=projects_data['new_projects'],
-            ongoing_projects=projects_data['ongoing_projects'],
-            completed_projects=projects_data['completed_projects'],
-            team_members=projects_data['team_members'],
-            now=datetime.now().strftime('%Y-%m-%d')
-        )
+        # Return immediately with task ID
+        return jsonify({
+            'task_id': task.id,
+            'status': 'processing',
+            'message': 'PDF generation started. Please check back with the task ID.'
+        }), 202
 
-        # Configure WeasyPrint with timeout and optimizations
-        pdf = HTML(
-            string=html,
-            base_url=request.url_root  # Helps resolve relative URLs
-        ).write_pdf(
-            optimize_size=('fonts', 'images'),  # Optimize resources
-            presentational_hints=True  # Better CSS handling
-        )
+    except Exception as e:
+        logging.error(f"Failed to start PDF generation task: {str(e)}", exc_info=True)
+        abort(500, description="Failed to start PDF generation process.")
 
-        response = make_response(pdf)
+@app.route('/check_pdf_status/<task_id>')
+def check_pdf_status(task_id):
+    try:
+        task = generate_projects_pdf_task.AsyncResult(task_id)
+
+        if task.state == 'PENDING':
+            response = {
+                'state': task.state,
+                'status': 'Pending...'
+            }
+        elif task.state != 'FAILURE':
+            response = {
+                'state': task.state,
+                'status': task.info.get('status', '')
+            }
+            if task.successful():
+                response['result'] = 'ready'
+                # Optionally return the PDF directly here if small enough
+        else:
+            # something went wrong in the background job
+            response = {
+                'state': task.state,
+                'status': str(task.info),  # this is the exception raised
+            }
+
+        return jsonify(response)
+
+    except Exception as e:
+        logging.error(f"Failed to check task status: {str(e)}", exc_info=True)
+        abort(500, description="Failed to check task status.")
+
+@app.route('/download_pdf/<task_id>')
+def download_pdf(task_id):
+    try:
+        task = generate_projects_pdf_task.AsyncResult(task_id)
+
+        if not task.successful():
+            abort(400, description="PDF is not ready yet or generation failed.")
+
+        pdf_data = task.result
+
+        response = make_response(pdf_data)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = 'inline; filename=projects_report.pdf'
         return response
 
     except Exception as e:
-        logging.error(f"PDF generation failed: {str(e)}", exc_info=True)
-        abort(500, description="PDF generation failed. Please try again.")
-                                
+        logging.error(f"PDF download failed: {str(e)}", exc_info=True)
+        abort(500, description="PDF download failed.")
+
 def get_projects_data():
     """Reusable function to get projects data"""
     # This should contain the same logic as your current get_projects() function
