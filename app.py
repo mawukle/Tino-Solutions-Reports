@@ -4294,6 +4294,70 @@ def get_projects_data():
     # This should contain the same logic as your current get_projects() function
     # up to the point where you have new_projects, ongoing_projects, completed_projects
     # Return them in a dictionary:
+    message = request.args.get('message', '')
+    is_installer_view = request.path == '/install_projects'  # Check which endpoint was called
+
+    # Retrieve filter values from request arguments
+    start_date_from = request.args.get('start_date_from', '')
+    start_date_to = request.args.get('start_date_to', '')
+    search_query = request.args.get('search_query', '').strip().lower()
+
+    try:
+        # Base query (same as your existing code)
+        query = db.session.query(
+            projects.project_id,
+            projects.client_name,
+            projects.town,
+            projects.phone_number,
+            projects.sales_person,
+            projects.lead_installer,
+            projects.start_date,
+            projects.commissioning_date,
+            projects.invoice_image_url,
+            projects.google_coordinates,
+            projects.currency,
+            projects.invoice_amount,
+            projects.amount_paid,
+            projects.outstanding_balance,
+            projects.expected_final_payment_date,
+            projects.comment,
+            projects.folder_has_files,
+            projects.google_folder_id,
+            projects.kVA,
+            projects.kWh,
+            projects.kWp
+
+        ).distinct()
+
+        # Apply filters (same as your existing code)
+        if start_date_from:
+            start_date_from = datetime.strptime(start_date_from, '%Y-%m-%d')
+            query = query.filter(projects.start_date >= start_date_from)
+
+        if start_date_to:
+            start_date_to = datetime.strptime(start_date_to, '%Y-%m-%d')
+            query = query.filter(projects.start_date <= start_date_to)
+
+        if search_query:
+            query = query.filter(
+                (projects.client_name.ilike(f"%{search_query}%")) |
+                (projects.town.ilike(f"%{search_query}%")) |
+                (projects.phone_number.ilike(f"%{search_query}%")) |
+                (projects.sales_person.ilike(f"%{search_query}%")) |
+                (projects.lead_installer.ilike(f"%{search_query}%"))
+            )
+
+        # Execute the filtered query
+        projects_list = query.all()
+
+        # Fetch team members
+        team_members = db.session.query(Team_Members.Team_Member_Name).all()
+        team_members = [member.Team_Member_Name for member in team_members]
+
+        new_projects = []
+        ongoing_projects = []
+        completed_projects = []
+
     return {
         'new_projects': new_projects,
         'ongoing_projects': ongoing_projects,
