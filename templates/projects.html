@@ -427,7 +427,7 @@
         <!-- Save Changes button remains at its current position -->
         <div class="buttons" style="margin-top: 10px;">
             <button id="save-changes">Save Changes</button>
-            <button id="save-pdf">Save as PDF</button>
+            <!--<button id="save-pdf">Save as PDF</button>-->
         </div>
     </div>
     <!-- Image Modal -->
@@ -500,29 +500,6 @@
                 });
             });
 
-            document.getElementById('save-pdf').addEventListener('click', function() {
-                const pdfButton = document.getElementById('save-pdf');
-                pdfButton.disabled = true;
-                pdfButton.textContent = 'Generating PDF...';
-
-                // Get current filter values
-                const start_date_from = document.getElementById('start_date_from').value;
-                const start_date_to = document.getElementById('start_date_to').value;
-                const search_query = document.getElementById('search-box').value;
-
-                // Build URL with parameters
-                let url = '/generate_projects_pdf?';
-                if (start_date_from) url += `start_date_from=${start_date_from}&`;
-                if (start_date_to) url += `start_date_to=${start_date_to}&`;
-                if (search_query) url += `search_query=${encodeURIComponent(search_query)}&`;
-
-                // Open in new tab (or you could use fetch and handle the blob)
-                window.open(url, '_blank');
-
-                pdfButton.disabled = false;
-                pdfButton.textContent = 'Save as PDF';
-            });
-            
             // Add new row
             document.getElementById("add-row").addEventListener("click", () => {
                 const tempId = "new_" + Date.now(); // Create a temporary unique ID
