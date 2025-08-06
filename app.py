@@ -4364,6 +4364,15 @@ def get_projects_data():
         'completed_projects': completed_projects,
         'team_members': team_members
     }
+    except Exception as e:
+        # Handle the error (log it, return a default value, etc.)
+        print(f"Error fetching projects: {e}")
+        return {
+            'new_projects': [],
+            'ongoing_projects': [],
+            'completed_projects': [],
+            'team_members': []
+        }
 
 @app.route("/upload_invoice", methods=["POST"])
 def upload_invoice():
