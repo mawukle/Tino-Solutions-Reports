@@ -90,15 +90,9 @@ button:hover {
 }
 
 .table-container {
-/*    max-height: none; /* Ensure there is no height limit */
-    overflow: auto; /* Allow horizontal scrolling if necessary */
-/*    display: flex;
-    justify-content: left;*/
-    max-height: 500px; /* Set a maximum height to enable vertical scrolling */
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Only allow horizontal scrolling if needed */
     border: 1px solid #ddd;
     width: 100%;
-/*    box-sizing: border-box;*/
 }
 
 .table-container table {
