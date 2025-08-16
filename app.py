@@ -252,13 +252,13 @@ app.config['EXCEL_FOLDER'] = EXCEL_FOLDER
 
 @app.route('/invoice_generation', methods=['GET'])
 def invoice_generation():
-    """Render the invoice generation page."""
+    #Render the invoice generation page.
     return render_template('invoice_generation.html')
 
 
 @app.route('/download_excel', methods=['GET'])
 def download_excel():
-    """Provide the sample Excel file for download with a dynamic filename."""
+    #Provide the sample Excel file for download with a dynamic filename.
     try:
         filepath = os.path.join(app.config['EXCEL_FOLDER'], 'sample.xlsx')
         if not os.path.exists(filepath):
@@ -3494,7 +3494,7 @@ def submit_component():
 
 @app.route('/stock_disbursement', methods=['GET'])
 def stock_disbursement():
-    """Render the stock disbursement page."""
+    #Render the stock disbursement page.
     return render_template('stock_disbursement.html')
 
 @app.route('/update_stock', methods=['POST'])
@@ -4029,8 +4029,22 @@ def update_projects():
                     existing_project.comment = project.get('comment', existing_project.comment)
 
                     # Track previous statuses before changes
+                    #previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
+                    #previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
+
+                    # For ongoing projects
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
-                    previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
+                    now_ongoing = bool(project.get('lead_installer') and bool(project.get('start_date'))
+                    if not previously_ongoing and now_ongoing:
+                        ongoing_projects.append(existing_project)
+                        print(f"Project {project_id} moved to Ongoing status")  # Debug log
+
+                    # For completed projects
+                    previously_completed = bool(existing_project.commissioning_date)
+                    now_completed = bool(project.get('commissioning_date'))
+                    if not previously_completed and now_completed:
+                        completed_projects.append(existing_project)
+                        print(f"Project {project_id} moved to Completed status")  # Debug log
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
@@ -4135,7 +4149,7 @@ def format_date_with_suffix(date_obj):
 
 
 def send_project_email_notification(project):
-    """Sends an email notification to the sales person when their project becomes ongoing."""
+    #Sends an email notification to the sales person when their project becomes ongoing.
     with app.app_context():
         sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
             Team_Members.Team_Member_Name == project.sales_person
@@ -4194,7 +4208,7 @@ def send_project_email_notification(project):
             print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
 
 def send_completed_project_email_notification(project):
-    """Sends an email notification when a project moves to Completed status."""
+    #Sends an email notification when a project moves to Completed status.
     with app.app_context():
         sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
             Team_Members.Team_Member_Name == project.sales_person
@@ -4257,7 +4271,7 @@ def send_completed_project_email_notification(project):
 
 
 def get_projects_data():
-    """Reusable function to get projects data"""
+    #Reusable function to get projects data
     # This should contain the same logic as your current get_projects() function
     # up to the point where you have new_projects, ongoing_projects, completed_projects
     # Return them in a dictionary:
@@ -4475,7 +4489,7 @@ def list_files_in_folder(service, folder_id):
 # list_files_in_folder(service, FOLDER_ID)
 
 def get_or_create_folder(service, parent_folder_id, project_id, client_name, town, sales_person):
-    """Ensure a single folder per project_id and rename it if necessary."""
+    #Ensure a single folder per project_id and rename it if necessary.
     # Query MySQL for existing folder ID
     project = db.session.query(projects).filter_by(project_id=project_id).first()
     existing_folder_id = project.google_folder_id if project else None
@@ -4533,6 +4547,7 @@ def get_or_create_folder(service, parent_folder_id, project_id, client_name, tow
 
 
 
+"""
 """
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
@@ -4667,7 +4682,7 @@ def upload_file_to_folder():
     #return jsonify({"message": "Upload processing started"}), 202
 
 def folder_has_files(folder_id):
-    """Check if the given Google Drive folder contains any files."""
+    #Check if the given Google Drive folder contains any files.
     try:
         results = service.files().list(
             q=f"'{folder_id}' in parents and trashed=false",
@@ -4683,7 +4698,7 @@ def folder_has_files(folder_id):
 
 @app.route('/create_missing_folders', methods=['GET', 'POST'])
 def trigger_create_missing_folders():
-    """Endpoint to create missing Google Drive folders for projects"""
+    #Endpoint to create missing Google Drive folders for projects
     try:
         # Start the background task
         task = create_missing_folders.delay()
@@ -5431,7 +5446,7 @@ logger = logging.getLogger(__name__)
 
 # Global helper function
 def safe_float(value, default=0.0):
-    """Safely convert a value to float with extensive error handling"""
+    #Safely convert a value to float with extensive error handling
     if value is None:
         return default
     try:
@@ -5441,7 +5456,7 @@ def safe_float(value, default=0.0):
         return default
 
 def calculate_completion_rate(installer_name, start_date=None, end_date=None):
-    """Calculate project completion rate for an installer"""
+    #Calculate project completion rate for an installer
     try:
         query = db.session.query(projects).filter(
             projects.lead_installer == installer_name
@@ -5460,7 +5475,7 @@ def calculate_completion_rate(installer_name, start_date=None, end_date=None):
         return 0.0
 
 def calculate_avg_installation_time(installer_name, start_date=None, end_date=None):
-    """Calculate average installation time in days"""
+    #Calculate average installation time in days
     try:
         query = db.session.query(
             projects.start_date,
@@ -5498,7 +5513,7 @@ def calculate_avg_installation_time(installer_name, start_date=None, end_date=No
         return None
 
 def get_max_system_totals(start_date=None, end_date=None):
-    """Get the maximum system totals across all installers within date range"""
+    #Get the maximum system totals across all installers within date range
     try:
         # Query to get combined system size (kVA + kWh + kWp) per installer
         query = db.session.query(
@@ -5577,7 +5592,7 @@ def calculate_system_size_metrics(installer_name, start_date=None, end_date=None
         }
 
 def calculate_support_cases(installer_name, start_date=None, end_date=None):
-    """Calculate support case metrics - percentage of installations without support cases"""
+    #Calculate support case metrics - percentage of installations without support cases
     try:
         # First get total installations by this installer
         installations_query = db.session.query(projects).filter(
@@ -5673,7 +5688,7 @@ def calculate_performance_score(metrics, weights):
 
 @app.route('/installer_performance', methods=['GET', 'POST'])
 def installer_performance():
-    """Main route for installer performance report"""
+    #Main route for installer performance report
     try:
         # Default weights (only keeping the ones we need)
         default_weights = {
