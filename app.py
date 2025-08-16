@@ -4197,7 +4197,8 @@ def send_project_email_notification(project):
             recipients=[sales_person_email],
             #cc=["emmanuel@tinosolutions.com"],
             #cc=["augustine@tinosolutions.com"],
-            bcc=["ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com","augustine@tinosolutions.com"],  # Add BCC recipients
+            #bcc=["ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com","augustine@tinosolutions.com"],  # Add BCC recipients
+            bcc=["emmanuel@tinosolutions.com"],  # Keep the above row and delete this one
             html=body
         )
 
@@ -4257,8 +4258,10 @@ def send_completed_project_email_notification(project):
             #recipients=["emmanuel@tinosolutions.com"],
             recipients=[sales_person_email],
             #cc=["emmanuel@tinosolutions.com"],
-            cc=["hippolite@tinosolutions.com", "support@tinosolutions.com"],
-            bcc=["augustine@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
+            #cc=["hippolite@tinosolutions.com", "support@tinosolutions.com"],
+            cc=["emmanuel@tinosolutions.com"],  # Keep the above row and delete this row
+            #bcc=["augustine@tinosolutions.com", "emmanuel@tinosolutions.com"],  # Add BCC recipients
+            bcc=["emmanuel@tinosolutions.com"],  # Keep the above row and delete this row
             html=body
         )
 
