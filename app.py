@@ -4549,7 +4549,7 @@ def get_or_create_folder(service, parent_folder_id, project_id, client_name, tow
 
 
 
-"""
+
 """
 @app.route("/upload_file_to_folder", methods=["POST"])
 def upload_file_to_folder():
