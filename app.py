@@ -4034,17 +4034,17 @@ def update_projects():
 
                     # For ongoing projects
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
-                    now_ongoing = bool(project.get('lead_installer') and bool(project.get('start_date'))
+                    now_ongoing = bool(project.get('lead_installer')) and bool(project.get('start_date'))
                     if not previously_ongoing and now_ongoing:
                         ongoing_projects.append(existing_project)
-                        print(f"Project {project_id} moved to Ongoing status")  # Debug log
+                        logging.info(f"Project {project_id} moved to Ongoing status")  # Changed print to logging
 
                     # For completed projects
                     previously_completed = bool(existing_project.commissioning_date)
                     now_completed = bool(project.get('commissioning_date'))
                     if not previously_completed and now_completed:
                         completed_projects.append(existing_project)
-                        print(f"Project {project_id} moved to Completed status")  # Debug log
+                        logging.info(f"Project {project_id} moved to Completed status")  # Changed print to logging
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
