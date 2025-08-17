@@ -4247,9 +4247,9 @@ def send_project_email_notification(project):
             html=body
         )
 
-            mail.send(msg)
-            logging.info(f"Successfully sent email to {sales_person_email}")
-            return True
+        mail.send(msg)
+        logging.info(f"Successfully sent email to {sales_person_email}")
+        return True
 
     except Exception as e:
         logging.error(f"Email sending failed for project {project.project_id}: {str(e)}")
