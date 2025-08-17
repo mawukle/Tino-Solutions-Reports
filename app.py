@@ -4131,47 +4131,107 @@ def update_projects():
             'ongoing_success': 0,
             'ongoing_failed': 0,
             'completed_success': 0,
-            'completed_failed': 0
+            'completed_failed': 0,
+            'details': []
         }
+
+        logging.info(f"Starting email notifications - {len(ongoing_projects)} ongoing, {len(completed_projects)} completed")
 
         with app.app_context():
             # Send ongoing notifications
             for project in ongoing_projects:
-                fresh_project = db.session.query(projects).get(project.project_id)
-                if fresh_project:
-                    logging.info(f"Attempting to send ongoing notification for project {fresh_project.project_id}")
-                    try:
-                        result = send_project_email_notification(fresh_project)
-                        if result:
-                            email_results['ongoing_success'] += 1
-                            logging.info(f"Successfully sent ongoing notification for project {fresh_project.project_id}")
-                        else:
-                            email_results['ongoing_failed'] += 1
-                    except Exception as e:
-                        logging.error(f"Failed to send ongoing notification for project {fresh_project.project_id}: {str(e)}")
+                try:
+                    fresh_project = db.session.query(projects).get(project.project_id)
+                    if not fresh_project:
+                        logging.error(f"Project {project.project_id} not found in DB")
                         email_results['ongoing_failed'] += 1
+                        email_results['details'].append({
+                            'project_id': project.project_id,
+                            'status': 'ongoing',
+                            'success': False,
+                            'error': 'Project not found in database'
+                        })
+                        continue
+
+                    logging.info(f"Attempting ongoing email for project {fresh_project.project_id} to {fresh_project.sales_person}")
+                    result = send_project_email_notification(fresh_project)
+
+                    if result:
+                        email_results['ongoing_success'] += 1
+                        email_results['details'].append({
+                            'project_id': fresh_project.project_id,
+                            'status': 'ongoing',
+                            'success': True
+                        })
+                    else:
+                        email_results['ongoing_failed'] += 1
+                        email_results['details'].append({
+                            'project_id': fresh_project.project_id,
+                            'status': 'ongoing',
+                            'success': False,
+                            'error': 'Email function returned False'
+                        })
+
+                except Exception as e:
+                    logging.error(f"Error sending ongoing email for {project.project_id}: {str(e)}")
+                    email_results['ongoing_failed'] += 1
+                    email_results['details'].append({
+                        'project_id': project.project_id,
+                        'status': 'ongoing',
+                        'success': False,
+                        'error': str(e)
+                    })
 
             # Send completed notifications
             for project in completed_projects:
-                fresh_project = db.session.query(projects).get(project.project_id)
-                if fresh_project:
-                    logging.info(f"Attempting to send completion notification for project {fresh_project.project_id}")
-                    try:
-                        result = send_completed_project_email_notification(fresh_project)
-                        if result:
-                            email_results['completed_success'] += 1
-                            logging.info(f"Successfully sent completion notification for project {fresh_project.project_id}")
-                        else:
-                            email_results['completed_failed'] += 1
-                    except Exception as e:
-                        logging.error(f"Failed to send completion notification for project {fresh_project.project_id}: {str(e)}")
+                try:
+                    fresh_project = db.session.query(projects).get(project.project_id)
+                    if not fresh_project:
+                        logging.error(f"Project {project.project_id} not found in DB")
                         email_results['completed_failed'] += 1
+                        email_results['details'].append({
+                            'project_id': project.project_id,
+                            'status': 'completed',
+                            'success': False,
+                            'error': 'Project not found in database'
+                        })
+                        continue
 
+                    logging.info(f"Attempting completed email for project {fresh_project.project_id} to {fresh_project.sales_person}")
+                    result = send_completed_project_email_notification(fresh_project)
+
+                    if result:
+                        email_results['completed_success'] += 1
+                        email_results['details'].append({
+                            'project_id': fresh_project.project_id,
+                            'status': 'completed',
+                            'success': True
+                        })
+                    else:
+                        email_results['completed_failed'] += 1
+                        email_results['details'].append({
+                            'project_id': fresh_project.project_id,
+                            'status': 'completed',
+                            'success': False,
+                            'error': 'Email function returned False'
+                        })
+
+                except Exception as e:
+                    logging.error(f"Error sending completed email for {project.project_id}: {str(e)}")
+                    email_results['completed_failed'] += 1
+                    email_results['details'].append({
+                        'project_id': project.project_id,
+                        'status': 'completed',
+                        'success': False,
+                        'error': str(e)
+                    })
+
+        logging.info(f"Email results: {email_results}")
         return jsonify({
             "message": "Projects updated successfully",
             "folder_rename_tasks": len(folder_rename_tasks),
             "new_project_ids": new_project_ids,
-            "email_results": email_results  # Include email results in response
+            "email_results": email_results
         })
 
     except Exception as e:
