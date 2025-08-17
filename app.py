@@ -4032,19 +4032,25 @@ def update_projects():
                     #previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
                     #previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
 
+
                     # For ongoing projects
                     previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
-                    now_ongoing = bool(project.get('lead_installer')) and bool(project.get('start_date'))
+                    new_lead_installer = project.get('lead_installer', existing_project.lead_installer)
+                    new_start_date = project.get('start_date', existing_project.start_date)
+                    now_ongoing = bool(new_lead_installer) and bool(new_start_date)
+
                     if not previously_ongoing and now_ongoing:
                         ongoing_projects.append(existing_project)
-                        logging.info(f"Project {project_id} moved to Ongoing status")  # Changed print to logging
+                        logging.info(f"Project {project_id} moved to Ongoing status: {existing_project.client_name}")
 
                     # For completed projects
                     previously_completed = bool(existing_project.commissioning_date)
-                    now_completed = bool(project.get('commissioning_date'))
+                    new_commissioning_date = project.get('commissioning_date', existing_project.commissioning_date)
+                    now_completed = bool(new_commissioning_date)
+
                     if not previously_completed and now_completed:
                         completed_projects.append(existing_project)
-                        logging.info(f"Project {project_id} moved to Completed status")  # Changed print to logging
+                        logging.info(f"Project {project_id} moved to Completed status: {existing_project.client_name}")
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
