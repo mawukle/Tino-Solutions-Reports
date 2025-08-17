@@ -3992,8 +3992,10 @@ def update_projects():
             except (ValueError, TypeError):
                 return default
 
+        logging.info(f"Received update for {len(data)} projects")
         for project in data:
             project_id = project.get('project_id')
+            logging.info(f"Project {project_id} update includes: {list(project.keys())}")
 
             # Handle both None and "new_" prefixed IDs as new projects
             is_new_project = project_id is None or (isinstance(project_id, str) and project_id.startswith("new_"))
@@ -4034,7 +4036,7 @@ def update_projects():
 
 
                     # For ongoing projects
-                    previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
+                    previously_ongoing = bool(existing_project.lead_installer) or bool(existing_project.start_date)
                     new_lead_installer = project.get('lead_installer', existing_project.lead_installer)
                     new_start_date = project.get('start_date', existing_project.start_date)
                     now_ongoing = bool(new_lead_installer) and bool(new_start_date)
@@ -4042,6 +4044,8 @@ def update_projects():
                     if not previously_ongoing and now_ongoing:
                         ongoing_projects.append(existing_project)
                         logging.info(f"Project {project_id} moved to Ongoing status: {existing_project.client_name}")
+                        logging.info(f"Previous state - lead_installer: {existing_project.lead_installer}, start_date: {existing_project.start_date}")
+                        logging.info(f"New state - lead_installer: {new_lead_installer}, start_date: {new_start_date}")
 
                     # For completed projects
                     previously_completed = bool(existing_project.commissioning_date)
@@ -4251,6 +4255,10 @@ def format_date_with_suffix(date_obj):
 
 def send_project_email_notification(project):
     """Returns True if email sent successfully, False otherwise"""
+    # Add this check at the start of send_project_email_notification:
+    logging.info(f"Mail server config: {current_app.config.get('MAIL_SERVER')}")
+    logging.info(f"Mail port: {current_app.config.get('MAIL_PORT')}")
+    logging.info(f"Mail username: {current_app.config.get('MAIL_USERNAME')}")
     try:
         with app.app_context():
             logging.info(f"Looking up email for sales person: {project.sales_person}")
