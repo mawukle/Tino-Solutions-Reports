@@ -4083,16 +4083,38 @@ def update_projects():
                     # For completed projects
                     # Replace the current completion detection with this enhanced version:
                     # For completed projects - more robust detection
-                    had_valid_completion = bool(old_fields['commissioning_date']) and isinstance(old_fields['commissioning_date'], (date, datetime))
-                    got_new_completion = (bool(new_commissioning_date) and
-                                         isinstance(new_commissioning_date, (date, datetime)) and
-                                         (not had_valid_completion or new_commissioning_date != old_fields['commissioning_date']))
+                    # Replace the current completion detection with this enhanced version:
+
+                    # For completed projects - more robust detection
+                    def is_valid_date(date_value):
+                        """Check if a value is a valid date/datetime or a properly formatted date string"""
+                        if isinstance(date_value, (date, datetime)):
+                            return True
+                        if isinstance(date_value, str):
+                            try:
+                                parse(date_value)
+                                return True
+                            except (ValueError, TypeError):
+                                return False
+                        return False
+
+                    # Enhanced completion detection
+                    previous_completion = old_fields['commissioning_date']
+                    new_completion = new_commissioning_date
+
+                    had_valid_completion = is_valid_date(previous_completion)
+                    got_new_completion = is_valid_date(new_completion) and (
+                        not had_valid_completion or
+                        str(new_completion) != str(previous_completion)
+                    )
 
                     if got_new_completion:
                         completed_projects.append(existing_project)
                         logging.info(f"PROJECT MOVED TO COMPLETED: {project_id} - {existing_project.client_name}")
-                        logging.info(f"New commissioning date: {new_commissioning_date}")
-                        logging.info(f"Previous commissioning date: {old_fields['commissioning_date']}")
+                        logging.info(f"New commissioning date: {new_completion}")
+                        logging.info(f"Previous commissioning date: {previous_completion}")
+                        logging.info(f"Type of new date: {type(new_completion)}")
+                        logging.info(f"Type of old date: {type(previous_completion)}")
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
