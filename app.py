@@ -4068,12 +4068,12 @@ def update_projects():
                             logging.info(f"Queued folder rename for project {project_id}")
 
                     # Check if project just moved to "Ongoing"
-                    if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
-                        ongoing_projects.append(existing_project)
+                    #if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
+                        #ongoing_projects.append(existing_project)
 
                     # Check if project just moved to "Completed"
-                    if not previously_completed and existing_project.commissioning_date:
-                        completed_projects.append(existing_project)
+                    #if not previously_completed and existing_project.commissioning_date:
+                        #completed_projects.append(existing_project)
 
             else:  # Adding a new project
                 new_project = projects(
