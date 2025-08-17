@@ -4081,13 +4081,18 @@ def update_projects():
                         logging.info(f"New start date: {new_start_date}")
 
                     # For completed projects
-                    had_completion = bool(old_fields['commissioning_date'])
-                    got_completion = bool(new_commissioning_date) and not had_completion
+                    # Replace the current completion detection with this enhanced version:
+                    # For completed projects - more robust detection
+                    had_valid_completion = bool(old_fields['commissioning_date']) and isinstance(old_fields['commissioning_date'], (date, datetime))
+                    got_new_completion = (bool(new_commissioning_date) and
+                                         isinstance(new_commissioning_date, (date, datetime)) and
+                                         (not had_valid_completion or new_commissioning_date != old_fields['commissioning_date']))
 
-                    if got_completion:
+                    if got_new_completion:
                         completed_projects.append(existing_project)
                         logging.info(f"PROJECT MOVED TO COMPLETED: {project_id} - {existing_project.client_name}")
                         logging.info(f"New commissioning date: {new_commissioning_date}")
+                        logging.info(f"Previous commissioning date: {old_fields['commissioning_date']}")
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
