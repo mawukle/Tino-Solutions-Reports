@@ -4007,17 +4007,34 @@ def update_projects():
                     old_fields = {
                         'client_name': existing_project.client_name,
                         'town': existing_project.town,
-                        'sales_person': existing_project.sales_person
+                        'sales_person': existing_project.sales_person,
+                        'lead_installer': existing_project.lead_installer,
+                        'start_date': existing_project.start_date,
+                        'commissioning_date': existing_project.commissioning_date
                     }
+
+                    # Enhanced logging of current state before updates
+                    logging.info(f"Project {project_id} current state:")
+                    logging.info(f"Client: {existing_project.client_name}")
+                    logging.info(f"Lead Installer: {existing_project.lead_installer}")
+                    logging.info(f"Start Date: {existing_project.start_date}")
+                    logging.info(f"Commissioning Date: {existing_project.commissioning_date}")
 
                     # Apply updates with safe float conversion
                     existing_project.client_name = project.get('client_name', existing_project.client_name)
                     existing_project.town = project.get('town', existing_project.town)
                     existing_project.phone_number = project.get('phone_number', existing_project.phone_number)
                     existing_project.sales_person = project.get('sales_person', existing_project.sales_person)
-                    existing_project.lead_installer = project.get('lead_installer', existing_project.lead_installer)
-                    existing_project.start_date = project.get('start_date', existing_project.start_date)
-                    existing_project.commissioning_date = project.get('commissioning_date', existing_project.commissioning_date)
+
+                    # Get new values before assigning to detect changes
+                    new_lead_installer = project.get('lead_installer', existing_project.lead_installer)
+                    new_start_date = project.get('start_date', existing_project.start_date)
+                    new_commissioning_date = project.get('commissioning_date', existing_project.commissioning_date)
+
+                    existing_project.lead_installer = new_lead_installer
+                    existing_project.start_date = new_start_date
+                    existing_project.commissioning_date = new_commissioning_date
+
                     existing_project.kVA = safe_float(project.get('kVA'), existing_project.kVA)
                     existing_project.kWh = safe_float(project.get('kWh'), existing_project.kWh)
                     existing_project.kWp = safe_float(project.get('kWp'), existing_project.kWp)
@@ -4030,31 +4047,47 @@ def update_projects():
                     existing_project.expected_final_payment_date = project.get('expected_final_payment_date', existing_project.expected_final_payment_date)
                     existing_project.comment = project.get('comment', existing_project.comment)
 
-                    # Track previous statuses before changes
-                    #previously_ongoing = bool(existing_project.lead_installer and existing_project.start_date)
-                    #previously_completed = existing_project.commissioning_date not in [None, "0000-00-00"]
+                    # Enhanced status transition detection with detailed logging
+                    logging.info(f"Checking status transitions for project {project_id}")
 
+                    # For ongoing projects - more flexible detection
+                    had_lead_installer = bool(old_fields['lead_installer'])
+                    had_start_date = bool(old_fields['start_date'])
+                    got_new_lead = bool(new_lead_installer) and not had_lead_installer
+                    got_new_start = bool(new_start_date) and not had_start_date
 
-                    # For ongoing projects
-                    previously_ongoing = bool(existing_project.lead_installer) or bool(existing_project.start_date)
-                    new_lead_installer = project.get('lead_installer', existing_project.lead_installer)
-                    new_start_date = project.get('start_date', existing_project.start_date)
-                    now_ongoing = bool(new_lead_installer) and bool(new_start_date)
+                    now_has_lead = bool(new_lead_installer)
+                    now_has_start = bool(new_start_date)
 
-                    if not previously_ongoing and now_ongoing:
+                    # Project becomes ongoing if:
+                    # 1. It gets both lead installer and start date in this update, OR
+                    # 2. It gets one while already having the other
+                    became_ongoing = (
+                        (got_new_lead and now_has_start) or
+                        (got_new_start and now_has_lead) or
+                        (got_new_lead and got_new_start)
+                    )
+
+                    logging.info(f"Ongoing transition check:")
+                    logging.info(f"Previous state - lead: {had_lead_installer}, start: {had_start_date}")
+                    logging.info(f"New state - lead: {now_has_lead}, start: {now_has_start}")
+                    logging.info(f"Got new lead: {got_new_lead}, got new start: {got_new_start}")
+                    logging.info(f"Became ongoing: {became_ongoing}")
+
+                    if became_ongoing:
                         ongoing_projects.append(existing_project)
-                        logging.info(f"Project {project_id} moved to Ongoing status: {existing_project.client_name}")
-                        logging.info(f"Previous state - lead_installer: {existing_project.lead_installer}, start_date: {existing_project.start_date}")
-                        logging.info(f"New state - lead_installer: {new_lead_installer}, start_date: {new_start_date}")
+                        logging.info(f"PROJECT MOVED TO ONGOING: {project_id} - {existing_project.client_name}")
+                        logging.info(f"New lead installer: {new_lead_installer}")
+                        logging.info(f"New start date: {new_start_date}")
 
                     # For completed projects
-                    previously_completed = bool(existing_project.commissioning_date)
-                    new_commissioning_date = project.get('commissioning_date', existing_project.commissioning_date)
-                    now_completed = bool(new_commissioning_date)
+                    had_completion = bool(old_fields['commissioning_date'])
+                    got_completion = bool(new_commissioning_date) and not had_completion
 
-                    if not previously_completed and now_completed:
+                    if got_completion:
                         completed_projects.append(existing_project)
-                        logging.info(f"Project {project_id} moved to Completed status: {existing_project.client_name}")
+                        logging.info(f"PROJECT MOVED TO COMPLETED: {project_id} - {existing_project.client_name}")
+                        logging.info(f"New commissioning date: {new_commissioning_date}")
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
@@ -4076,14 +4109,6 @@ def update_projects():
                             )
                             folder_rename_tasks.append(task)
                             logging.info(f"Queued folder rename for project {project_id}")
-
-                    # Check if project just moved to "Ongoing"
-                    #if not previously_ongoing and existing_project.lead_installer and existing_project.start_date:
-                        #ongoing_projects.append(existing_project)
-
-                    # Check if project just moved to "Completed"
-                    #if not previously_completed and existing_project.commissioning_date:
-                        #completed_projects.append(existing_project)
 
             else:  # Adding a new project
                 new_project = projects(
@@ -4124,9 +4149,11 @@ def update_projects():
                 # Check if new project should be marked as ongoing or completed
                 if new_project.lead_installer and new_project.start_date:
                     ongoing_projects.append(new_project)
+                    logging.info(f"NEW PROJECT MARKED AS ONGOING: {new_project.project_id}")
 
                 if new_project.commissioning_date:
                     completed_projects.append(new_project)
+                    logging.info(f"NEW PROJECT MARKED AS COMPLETED: {new_project.project_id}")
 
         db.session.commit()
 
@@ -4140,6 +4167,8 @@ def update_projects():
         }
 
         logging.info(f"Starting email notifications - {len(ongoing_projects)} ongoing, {len(completed_projects)} completed")
+        logging.info(f"Ongoing projects to notify: {[p.project_id for p in ongoing_projects]}")
+        logging.info(f"Completed projects to notify: {[p.project_id for p in completed_projects]}")
 
         with app.app_context():
             # Send ongoing notifications
@@ -4158,6 +4187,11 @@ def update_projects():
                         continue
 
                     logging.info(f"Attempting ongoing email for project {fresh_project.project_id} to {fresh_project.sales_person}")
+                    # Log email configuration before sending
+                    logging.info(f"Mail server config: {current_app.config.get('MAIL_SERVER')}")
+                    logging.info(f"Mail port: {current_app.config.get('MAIL_PORT')}")
+                    logging.info(f"Mail username: {current_app.config.get('MAIL_USERNAME')}")
+
                     result = send_project_email_notification(fresh_project)
 
                     if result:
@@ -4177,7 +4211,7 @@ def update_projects():
                         })
 
                 except Exception as e:
-                    logging.error(f"Error sending ongoing email for {project.project_id}: {str(e)}")
+                    logging.error(f"Error sending ongoing email for {project.project_id}: {str(e)}", exc_info=True)
                     email_results['ongoing_failed'] += 1
                     email_results['details'].append({
                         'project_id': project.project_id,
@@ -4221,7 +4255,7 @@ def update_projects():
                         })
 
                 except Exception as e:
-                    logging.error(f"Error sending completed email for {project.project_id}: {str(e)}")
+                    logging.error(f"Error sending completed email for {project.project_id}: {str(e)}", exc_info=True)
                     email_results['completed_failed'] += 1
                     email_results['details'].append({
                         'project_id': project.project_id,
@@ -4239,7 +4273,7 @@ def update_projects():
         })
 
     except Exception as e:
-        logging.error(f"Error updating projects: {str(e)}")
+        logging.error(f"Error updating projects: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({
             "message": f"Error updating projects: {str(e)}",
