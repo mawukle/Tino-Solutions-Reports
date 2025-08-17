@@ -4127,11 +4127,17 @@ def update_projects():
         db.session.commit()
 
         # Send email notifications only for projects that changed status
+        # In your update_projects route, modify the email sending section:
         for project in ongoing_projects:
-            send_project_email_notification(project)
+            # Refresh project data from database
+            fresh_project = db.session.query(projects).get(project.project_id)
+            if fresh_project:
+                send_project_email_notification(fresh_project)
 
         for project in completed_projects:
-            send_completed_project_email_notification(project)
+            fresh_project = db.session.query(projects).get(project.project_id)
+            if fresh_project:
+                send_completed_project_email_notification(fresh_project)
 
         return jsonify({
             "message": "Projects updated successfully",
