@@ -3993,6 +3993,23 @@ def update_projects():
             except (ValueError, TypeError):
                 return default
 
+        def is_valid_date(date_value):
+            """Check if a value is a valid date/datetime or a properly formatted date string"""
+            if date_value is None:
+                return False
+            if isinstance(date_value, (date, datetime)):
+                return True
+            if isinstance(date_value, str):
+                try:
+                    if date_value.strip() in ['', '0000-00-00']:
+                        return False
+                    parse(date_value)
+                    return True
+                except (ValueError, TypeError):
+                    return False
+            return False
+
+
         logging.info(f"Received update for {len(data)} projects")
         for project in data:
             project_id = project.get('project_id')
@@ -4114,8 +4131,6 @@ def update_projects():
                         logging.info(f"PROJECT MOVED TO COMPLETED: {project_id} - {existing_project.client_name}")
                         logging.info(f"New commissioning date: {new_completion}")
                         logging.info(f"Previous commissioning date: {previous_completion}")
-                        logging.info(f"Type of new date: {type(new_completion)}")
-                        logging.info(f"Type of old date: {type(previous_completion)}")
 
                     # Check if folder needs renaming
                     if (existing_project.google_folder_id and
@@ -4291,6 +4306,21 @@ def update_projects():
                         'success': False,
                         'error': str(e)
                     })
+
+        for new_id in new_project_ids:
+            try:
+                # Get fresh project data after commit
+                new_project = db.session.query(projects).get(new_id)
+                if new_project:
+                    create_folder_if_needed.delay(
+                        new_project.project_id,
+                        new_project.client_name,
+                        new_project.town,
+                        new_project.sales_person
+                    )
+            except Exception as e:
+                logging.error(f"Failed to queue folder creation: {e}")
+
 
         logging.info(f"Email results: {email_results}")
         return jsonify({

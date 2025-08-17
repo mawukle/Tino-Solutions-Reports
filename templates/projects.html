@@ -67,6 +67,18 @@
             color: white;
             cursor: pointer;
         }
+
+        tr.invalid-row {
+            background-color: #ffeeee;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { background-color: #ffeeee; }
+            50% { background-color: #ffdddd; }
+            100% { background-color: #ffeeee; }
+        }
+
         /* Add this to your existing style section */
         @media print {
             body {
@@ -443,14 +455,32 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
+            function validateProjectBeforeSave(projectData) {
+                // Check if either lead installer or start date is entered (but not both)
+                const hasLeadInstaller = projectData.lead_installer && projectData.lead_installer.trim() !== "";
+                const hasStartDate = projectData.start_date && projectData.start_date.trim() !== "";
+
+                if (hasLeadInstaller || hasStartDate) {
+                    if (!hasLeadInstaller) {
+                        return { valid: false, message: "Please enter a Lead Installer for the project" };
+                    }
+                    if (!hasStartDate) {
+                        return { valid: false, message: "Please enter a Start Date for the project" };
+                    }
+                }
+                return { valid: true };
+            }
+
             // Save changes event
             document.getElementById("save-changes").addEventListener("click", () => {
                 let saveButton = document.getElementById("save-changes");
                 saveButton.disabled = true;
 
                 let updatedProjects = [];
+                let validationErrors = [];
 
-                document.querySelectorAll("tbody tr").forEach(row => {
+                document.querySelectorAll("tbody tr").forEach((row, index) => {
                     const projectID = row.getAttribute("data-id") || null;
                     const cells = row.querySelectorAll("td[contenteditable='true']");
                     const inputs = row.querySelectorAll("input.date-input");
@@ -460,11 +490,10 @@
                         ? row.querySelector(".google-coordinates a").getAttribute("href").split('=')[1]
                         : row.querySelector(".google-coordinates span")?.innerText.trim() || "";
 
-                    // Get the invoice image URL from either the img tag or the form's hidden field
                     let invoiceImageUrl = row.querySelector("img") ? row.querySelector("img").src : "";
 
                     let projectData = {
-                        project_id: projectID && projectID.startsWith("new_") ? null : projectID, // Send null for new rows
+                        project_id: projectID && projectID.startsWith("new_") ? null : projectID,
                         client_name: cells[0]?.innerText.trim() || "",
                         town: cells[1]?.innerText.trim() || "",
                         google_coordinates: googleCoordinates,
@@ -480,8 +509,23 @@
                         comment: cells[6]?.innerText.trim() || ""
                     };
 
+                    // Validate the project
+                    const validation = validateProjectBeforeSave(projectData);
+                    if (!validation.valid) {
+                        validationErrors.push(`Row ${index + 1}: ${validation.message}`);
+                        row.classList.add("invalid-row");
+                    } else {
+                        row.classList.remove("invalid-row");
+                    }
+
                     updatedProjects.push(projectData);
                 });
+
+                if (validationErrors.length > 0) {
+                    alert("Please fix these issues before saving:\n\n" + validationErrors.join("\n"));
+                    saveButton.disabled = false;
+                    return;
+                }
 
                 console.log("Updated Projects Data:", updatedProjects);
 
@@ -494,7 +538,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.message === "Projects updated successfully") {
-                        location.reload(); // Force refresh to get new IDs
+                        location.reload();
                     }
                 })
                 .catch(error => {
