@@ -4126,23 +4126,52 @@ def update_projects():
 
         db.session.commit()
 
-        # Send email notifications only for projects that changed status
-        # In your update_projects route, modify the email sending section:
-        for project in ongoing_projects:
-            # Refresh project data from database
-            fresh_project = db.session.query(projects).get(project.project_id)
-            if fresh_project:
-                send_project_email_notification(fresh_project)
+        # Enhanced email sending with detailed logging
+        email_results = {
+            'ongoing_success': 0,
+            'ongoing_failed': 0,
+            'completed_success': 0,
+            'completed_failed': 0
+        }
 
-        for project in completed_projects:
-            fresh_project = db.session.query(projects).get(project.project_id)
-            if fresh_project:
-                send_completed_project_email_notification(fresh_project)
+        with app.app_context():
+            # Send ongoing notifications
+            for project in ongoing_projects:
+                fresh_project = db.session.query(projects).get(project.project_id)
+                if fresh_project:
+                    logging.info(f"Attempting to send ongoing notification for project {fresh_project.project_id}")
+                    try:
+                        result = send_project_email_notification(fresh_project)
+                        if result:
+                            email_results['ongoing_success'] += 1
+                            logging.info(f"Successfully sent ongoing notification for project {fresh_project.project_id}")
+                        else:
+                            email_results['ongoing_failed'] += 1
+                    except Exception as e:
+                        logging.error(f"Failed to send ongoing notification for project {fresh_project.project_id}: {str(e)}")
+                        email_results['ongoing_failed'] += 1
+
+            # Send completed notifications
+            for project in completed_projects:
+                fresh_project = db.session.query(projects).get(project.project_id)
+                if fresh_project:
+                    logging.info(f"Attempting to send completion notification for project {fresh_project.project_id}")
+                    try:
+                        result = send_completed_project_email_notification(fresh_project)
+                        if result:
+                            email_results['completed_success'] += 1
+                            logging.info(f"Successfully sent completion notification for project {fresh_project.project_id}")
+                        else:
+                            email_results['completed_failed'] += 1
+                    except Exception as e:
+                        logging.error(f"Failed to send completion notification for project {fresh_project.project_id}: {str(e)}")
+                        email_results['completed_failed'] += 1
 
         return jsonify({
             "message": "Projects updated successfully",
             "folder_rename_tasks": len(folder_rename_tasks),
-            "new_project_ids": new_project_ids
+            "new_project_ids": new_project_ids,
+            "email_results": email_results  # Include email results in response
         })
 
     except Exception as e:
@@ -4161,15 +4190,19 @@ def format_date_with_suffix(date_obj):
 
 
 def send_project_email_notification(project):
-    """Sends an email notification to the sales person when their project becomes ongoing."""
-    with app.app_context():
-        sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
-            Team_Members.Team_Member_Name == project.sales_person
-        ).scalar()
+    """Returns True if email sent successfully, False otherwise"""
+    try:
+        with app.app_context():
+            logging.info(f"Looking up email for sales person: {project.sales_person}")
+            sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
+                Team_Members.Team_Member_Name == project.sales_person
+            ).scalar()
 
-        if not sales_person_email:
-            print(f"ERROR: No email found for sales person {project.sales_person}")
-            return
+            if not sales_person_email:
+                logging.error(f"No email found for sales person: {project.sales_person}")
+                return False
+
+            logging.info(f"Preparing email for project {project.project_id} to {sales_person_email}")
 
         # Generate Google Maps link if coordinates exist
         google_maps_link = f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>' if project.google_coordinates else ""
@@ -4207,29 +4240,35 @@ def send_project_email_notification(project):
             subject,
             #recipients=["emmanuel@tinosolutions.com"],
             recipients=[sales_person_email],
-            #cc=["emmanuel@tinosolutions.com"],
+            cc=["emmanuel@tinosolutions.com"],
             #cc=["augustine@tinosolutions.com"],
             #bcc=["ebenezer@tinosolutions.com", "emmanuel@tinosolutions.com","augustine@tinosolutions.com"],  # Add BCC recipients
             bcc=["emmanuel@tinosolutions.com"],  # Keep the above row and delete this one
             html=body
         )
 
-        try:
             mail.send(msg)
-            print(f"Email sent to {sales_person_email} for project {project.client_name}")
-        except Exception as e:
-            print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
+            logging.info(f"Successfully sent email to {sales_person_email}")
+            return True
+
+    except Exception as e:
+        logging.error(f"Email sending failed for project {project.project_id}: {str(e)}")
+        return False
 
 def send_completed_project_email_notification(project):
-    """Sends an email notification when a project moves to Completed status."""
-    with app.app_context():
-        sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
-            Team_Members.Team_Member_Name == project.sales_person
-        ).scalar()
+    """Returns True if email sent successfully, False otherwise"""
+    try:
+        with app.app_context():
+            logging.info(f"Looking up email for sales person: {project.sales_person}")
+            sales_person_email = db.session.query(Team_Members.Team_Member_Email).filter(
+                Team_Members.Team_Member_Name == project.sales_person
+            ).scalar()
 
-        if not sales_person_email:
-            print(f"ERROR: No email found for sales person {project.sales_person}")
-            return
+            if not sales_person_email:
+                logging.error(f"No email found for sales person: {project.sales_person}")
+                return False
+
+            logging.info(f"Preparing completion email for project {project.project_id} to {sales_person_email}")
 
         # Generate Google Maps link if coordinates exist
         google_maps_link = f'<p><b>Location:</b> <a href="https://www.google.com/maps?q={project.google_coordinates}" target="_blank">View on Google Maps</a></p>' if project.google_coordinates else ""
@@ -4276,13 +4315,13 @@ def send_completed_project_email_notification(project):
             bcc=["emmanuel@tinosolutions.com"],  # Keep the above row and delete this row
             html=body
         )
+        mail.send(msg)
+        logging.info(f"Successfully sent completion email to {sales_person_email}")
+        return True
 
-        try:
-            mail.send(msg)
-            print(f"Email sent to {sales_person_email} for completed project {project.client_name}")
-        except Exception as e:
-            print(f"ERROR: Failed to send email to {sales_person_email}: {e}")
-
+    except Exception as e:
+        logging.error(f"Completion email sending failed for project {project.project_id}: {str(e)}")
+        return False
 
 
 def get_projects_data():
