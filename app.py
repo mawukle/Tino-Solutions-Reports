@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort, send_file
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort, send_file, current_app
 import os
 import logging
 from dotenv import load_dotenv
