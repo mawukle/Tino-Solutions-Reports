@@ -4359,6 +4359,10 @@ def send_project_email_notification(project):
 
 def send_completed_project_email_notification(project):
     """Returns True if email sent successfully, False otherwise"""
+    # Add this check at the start of the function:
+    logging.info(f"Mail server config (completed): {current_app.config.get('MAIL_SERVER')}")
+    logging.info(f"Mail port (completed): {current_app.config.get('MAIL_PORT')}")
+    logging.info(f"Mail username (completed): {current_app.config.get('MAIL_USERNAME')}")
     try:
         with app.app_context():
             logging.info(f"Looking up email for sales person: {project.sales_person}")
