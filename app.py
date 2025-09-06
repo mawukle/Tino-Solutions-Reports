@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, send_from_directory, abort, send_file, current_app
 import os
 import logging
+<<<<<<< HEAD
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -29,7 +30,15 @@ from celery_worker import update_folder_has_files, create_folder_if_needed, uplo
 from werkzeug.utils import secure_filename
 from dateutil.parser import parse
 
+=======
+import pymysql
+from dotenv import load_dotenv
 
+pymysql.install_as_MySQLdb()
+>>>>>>> 14cdccd506867d47a508f1f62e4427bef40761c6
+
+# Load environment variables from .env file
+load_dotenv()
 
 pymysql.install_as_MySQLdb()
 
@@ -38,7 +47,10 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)  # Set to INFO for production
+<<<<<<< HEAD
 #logging.basicConfig(level=logging.DEBUG)
+=======
+>>>>>>> 14cdccd506867d47a508f1f62e4427bef40761c6
 
 app = Flask(__name__, static_folder='static')
 
@@ -54,6 +66,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  # Correctly reference the upload folder
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 MB
+<<<<<<< HEAD
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'pdf'}
 
 # Database configuration from environment variables
@@ -64,7 +77,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modificati
 # Initialize the database and migration tools
 # db = SQLAlchemy(app)  # This line has been removed to prevent multiple initializations
 migrate = Migrate(app, db)
+=======
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+>>>>>>> 14cdccd506867d47a508f1f62e4427bef40761c6
 
+# Database configuration from environment variables
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'user')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'password')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'database')
+
+# Error handling
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 
 # Email configuration
@@ -6056,9 +6086,13 @@ if __name__ == '__main__':
     #if not os.path.exists(UPLOAD_FOLDER):
     #    os.makedirs(UPLOAD_FOLDER)
 
+<<<<<<< HEAD
     # Use the port from environment variables; default to 5000 for local development
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
 
 
 #    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))  # Use environment variable for port
+=======
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))  # Use environment variable for port
+>>>>>>> 14cdccd506867d47a508f1f62e4427bef40761c6
