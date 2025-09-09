@@ -3883,8 +3883,22 @@ def get_projects():
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
         team_members = [member.Team_Member_Name for member in team_members]
 
-        # Filter out excluded team members
+        # Filter out excluded team members for dropdown options
         filtered_team_members = [member for member in team_members if member not in EXCLUDED_TEAM_MEMBERS]
+
+        # Find any excluded members that are currently assigned to projects
+        assigned_excluded_members = set()
+        for project in projects_list:
+            if project.sales_person and project.sales_person in EXCLUDED_TEAM_MEMBERS:
+                assigned_excluded_members.add(project.sales_person)
+            if project.lead_installer and project.lead_installer in EXCLUDED_TEAM_MEMBERS:
+                assigned_excluded_members.add(project.lead_installer)
+
+        # Create a combined list for the template that includes:
+        # 1. Current team members (not excluded)
+        # 2. Any excluded members that are currently assigned to projects
+        template_team_members = filtered_team_members + list(assigned_excluded_members)
+        template_team_members.sort()  # Optional: sort alphabetically
 
         new_projects = []
         ongoing_projects = []
@@ -3958,7 +3972,7 @@ def get_projects():
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
-            team_members=filtered_team_members,
+            team_members=template_team_members,  # Use the combined list
             message=message,
             search_query=search_query,
             start_date_from=start_date_from,
