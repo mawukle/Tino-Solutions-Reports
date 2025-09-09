@@ -2,6 +2,8 @@ import os
 import ssl
 import logging
 import gc
+import json
+import base64
 from flask import Flask
 from celery import Celery
 from google.oauth2.service_account import Credentials
@@ -16,8 +18,15 @@ from google.auth.transport.requests import Request
 # Suppress the file_cache warning
 warnings.filterwarnings("ignore", message="file_cache is only supported with oauth2client<4.0.0")
 
+# Get credentials from environment variable
+def get_google_credentials():
+    creds_json = os.getenv('GOOGLE_CREDENTIALS')
+    if not creds_json:
+        raise ValueError("GOOGLE_CREDENTIALS environment variable not set")
 
-GOOGLE_CREDENTIALS_FILE = "tinosolutions-invoices-d422558b4d05.json"
+    # Decode from base64
+    credentials_info = json.loads(base64.b64decode(creds_json).decode("utf-8"))
+    return credentials_info
 
 def make_celery():
     app = Flask(__name__)
@@ -129,14 +138,16 @@ def get_or_create_folder(service, parent_id, project_id, client_name, town, sale
     except Exception as e:
         logging.error(f"Error in get_or_create_folder: {e}")
         return None
+
 # ---------- Celery Tasks ----------
 @celery.task(bind=True)
 def create_folder_if_needed(self, project_id, client_name, town, sales_person):
     logging.info(f"Starting folder creation task for project {project_id}")
     try:
         # Initialize Google Drive service
-        credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
+        credentials_info = get_google_credentials()
+        credentials = Credentials.from_service_account_info(
+            credentials_info,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
@@ -176,11 +187,13 @@ def create_folder_if_needed(self, project_id, client_name, town, sales_person):
         raise self.retry(exc=e, countdown=60, max_retries=3)
     finally:
         gc.collect()
+
 @celery.task(bind=True)
 def update_folder_has_files(self, project_id, folder_id):
     try:
-        credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
+        credentials_info = get_google_credentials()
+        credentials = Credentials.from_service_account_info(
+            credentials_info,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
@@ -197,13 +210,13 @@ def update_folder_has_files(self, project_id, folder_id):
     finally:
         gc.collect()
 
-
 @celery.task(bind=True)
 def upload_files_to_drive(self, folder_id, file_data):
     """Process file uploads to Google Drive using in-memory files"""
     try:
-        credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
+        credentials_info = get_google_credentials()
+        credentials = Credentials.from_service_account_info(
+            credentials_info,
             scopes=["https://www.googleapis.com/auth/drive.file"]
         )
         service = build("drive", "v3", credentials=credentials)
@@ -238,14 +251,14 @@ def upload_files_to_drive(self, folder_id, file_data):
         logging.error(f"Drive service error: {str(e)}")
         raise self.retry(exc=e)
 
-
 @celery.task(bind=True)
 def create_missing_folders(self):
     try:
         self.update_state(state='STARTED')
 
-        credentials = Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS_FILE,
+        credentials_info = get_google_credentials()
+        credentials = Credentials.from_service_account_info(
+            credentials_info,
             scopes=["https://www.googleapis.com/auth/drive"]
         )
         service = build("drive", "v3", credentials=credentials)
@@ -297,9 +310,10 @@ def create_missing_folders(self):
 def rename_project_folder_task(self, project_id, client_name, town, sales_person):
     """Async task to rename a project folder in Google Drive"""
     try:
+        credentials_info = get_google_credentials()
         with app.app_context():  # Now this will work
-            credentials = Credentials.from_service_account_file(
-                GOOGLE_CREDENTIALS_FILE,
+            credentials = Credentials.from_service_account_info(
+                credentials_info,
                 scopes=["https://www.googleapis.com/auth/drive"]
             )
             service = build("drive", "v3", credentials=credentials)
