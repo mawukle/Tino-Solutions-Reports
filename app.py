@@ -3883,6 +3883,9 @@ def get_projects():
         team_members = db.session.query(Team_Members.Team_Member_Name).all()
         team_members = [member.Team_Member_Name for member in team_members]
 
+        # Filter out excluded team members
+        filtered_team_members = [member for member in team_members if member not in EXCLUDED_TEAM_MEMBERS]
+
         new_projects = []
         ongoing_projects = []
         completed_projects = []
@@ -3955,7 +3958,7 @@ def get_projects():
             new_projects=new_projects,
             ongoing_projects=ongoing_projects,
             completed_projects=completed_projects,
-            team_members=team_members,
+            team_members=filtered_team_members,
             message=message,
             search_query=search_query,
             start_date_from=start_date_from,

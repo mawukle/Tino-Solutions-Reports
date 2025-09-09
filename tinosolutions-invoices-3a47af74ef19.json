@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "tinosolutions-invoices",
+  "private_key_id": "3a47af74ef1942a794fd2f0e391b359408e0d72e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC9oLjaVJwkPTZ0\neYdy5nQZxNXIAO5dzh3axpQ0A70RBP5KOqrD16pO9tR2qWdE83nZFgS7zsoVhMhH\n4wP/KmDGCF2BRhgGT3uV/1dmLGsNqyjpOB+ELo57Oz7OvoWmz2XvQCcFF1JZekc0\nnQrW5T3kUneNwBlMEqvM98w1hurLlf3mTmw46V9UhMsNroF1iqg6cJjRA2wrb6Nh\nRxTraUKX14Z4WUNoAIwZgxPB6uJTE8ZOlVOXOEH9JxD1oTmFb7NjmEXb84cPXFJE\nS8Lta/vEYCEQWdS2PlBQXqcH2w210rAjmVW+lBQnSZudVBgjEAJgbaMTrGzu0vy1\ne6LhJgDjAgMBAAECggEACtYBWjCVj5iT4QoEzHMQ1VwjHz+2X1Pk7tiEJYjFKBDR\n+ynpEjHjwIloULOTfCQxpU8VzCmf8KTa0QjO9KjWSNq3hSidPNcT59lkhCkroOdT\n+ifD3UjPyYj0KNpIRuT5HTfcQvU3Nne/U+lZcjg9VivEOyxsBaXXfWn3mGNyTVnW\nqnnmqO+nm2jbiuLyusimvsGUy+dEWRUdTQvCNfeJQHOyRT1Caii9gLJEhBJdEvHg\nqSLX1VAuSTQD3hVh+gPQd43M1HVvm2SNMNpheLIal17Uc3AzfIp03SAxJFf86GHm\nkX6Q7HiazH8H5NKRkVywMIuacjxVE1rrO5BH5SUu+QKBgQDk1XLG99UL+28N+ZCM\nLgTS37p3PAaMIcOj384R6EHkR+ukJaI5a1rqCc/HL18HSdUVYHgO3rqUiZzN+Af9\nMnI+MWtTnOpQTs478BD41M9olPaCu0jcyYUut14KlO2AGv6XosEY3tiKLHSWaRIo\n0GvNun+A3xex8Bpk1qw3WAjntQKBgQDUI8EdBzoonrWy+qeFMN7Mk6GWB9MXYjti\n9JVLWohI6sFibhca+rju3ZwcfmOVOMHCkMV/xWjbFo2Ju/U9u4YA9mmfLH4rap5R\nBU4/zZVyNE44HnjgoeARSeiZZ5JYvSg/XzQVBNCTIgNFm3I8tWalWq6yuY1Tl0vL\nuJAoYQz1NwKBgQDC3eW0/B1n68ChlPF7/kBLVwxSN0KYGLSim5a/dxqNjJVlHkss\nPHiaLqrKw1NYQI59er4iY5ddoGZwm5QqEMhqn+j2tfxvUPyc3A2H6KmLNLdLkrM0\nmUOaCbrCphot6k790DJBvJuH5t2NrIIzUXFMK1Ii61ghRgcj8g+LvaMvtQKBgCkm\numpQIZcJmoOane53WXDj3n+FCwzJMG30thVE/ZTvfQ4D/xVrt34WnRbl6Zljxipg\n/P7ZI4sEZ/Zk8KDGBKuhIUIQVnVDnGxpFBHKZogd32KBfr9Mh3OzG5zOe5QdNXZ9\nmFPPeEpiWbIiAloGcl/3JFZlKiYh/kEJj2VV1janAoGBANJrx5eGe3fYxGpZfHsR\nmtyhdQYdn/s1+wQNHWio7t30fVREGKfATrJf4trDKBTJdrSMmrJ6kFw6951TzGEf\nWnZs/uKnDSt3yhSW7OzNQDufl5LfooXflp3Lp38TFUqZSNxGiJidFUBgBWbrnD9J\nvU8LPj4TatGrVGXPjmH7rwJs\n-----END PRIVATE KEY-----\n",
+  "client_email": "invoice@tinosolutions-invoices.iam.gserviceaccount.com",
+  "client_id": "107773495882008292398",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/invoice%40tinosolutions-invoices.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
