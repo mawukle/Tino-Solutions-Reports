@@ -4674,8 +4674,8 @@ from google.oauth2 import service_account
 GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
 
 if GOOGLE_CREDENTIALS:
-    #credentials_json = json.loads(base64.b64decode(GOOGLE_CREDENTIALS).decode("utf-8"))
-    credentials_json = json.loads(GOOGLE_CREDENTIALS)
+    credentials_json = json.loads(base64.b64decode(GOOGLE_CREDENTIALS).decode("utf-8"))
+    #credentials_json = json.loads(GOOGLE_CREDENTIALS)
     credentials = service_account.Credentials.from_service_account_info(credentials_json)
 else:
     raise ValueError("GOOGLE_CREDENTIALS environment variable not set.")
