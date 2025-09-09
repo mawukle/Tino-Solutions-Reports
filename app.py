@@ -216,7 +216,7 @@ def delete_empty_rows():
 
 
 # Define this near the top of your app.py
-EXCLUDED_TEAM_MEMBERS = ["Abigail", "Ange", "Belinda", "Gabriel", "Caleb", "Clinton", "Helena", "Intsiful", "Alex", "Elisha", "Fataw", "Emmanuel", "Kristine"]
+EXCLUDED_TEAM_MEMBERS = ["Abigail", "Ange", "Belinda", "Gabriel", "Caleb", "Clinton", "Helena", "Alex", "Elisha", "Fataw", "Emmanuel", "Kristine"]
 
 
 @app.route('/', methods=['GET', 'POST'])
